@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { ALL_PRESETS, getPreset, filterPresets, searchPresets } from "../src/presets/index.js";
 
 describe("presets", () => {
-  it("has 21 total presets", () => {
-    expect(ALL_PRESETS.length).toBe(21);
+  it("has 43 total presets", () => {
+    expect(ALL_PRESETS.length).toBe(43);
   });
 
   it("has 5 sky presets", () => {
@@ -22,6 +22,18 @@ describe("presets", () => {
     expect(filterPresets({ category: "water" })).toHaveLength(5);
   });
 
+  it("has 8 river presets", () => {
+    expect(filterPresets({ category: "river" })).toHaveLength(8);
+  });
+
+  it("has 8 path presets", () => {
+    expect(filterPresets({ category: "path" })).toHaveLength(8);
+  });
+
+  it("has 6 shore presets", () => {
+    expect(filterPresets({ category: "shore" })).toHaveLength(6);
+  });
+
   it("all presets have unique IDs", () => {
     const ids = ALL_PRESETS.map((p) => p.id);
     expect(new Set(ids).size).toBe(ids.length);
@@ -33,7 +45,7 @@ describe("presets", () => {
       expect(p.name).toBeTruthy();
       expect(p.description).toBeTruthy();
       expect(p.tags.length).toBeGreaterThan(0);
-      expect(["sky", "profile", "clouds", "water"]).toContain(p.category);
+      expect(["sky", "profile", "clouds", "water", "river", "path", "shore"]).toContain(p.category);
     }
   });
 

@@ -2,3 +2,6 @@ export { skyLayerType } from "./sky.js";
 export { profileLayerType } from "./profile.js";
 export { cloudsLayerType } from "./clouds.js";
 export { waterLayerType } from "./water.js";
+export { riverLayerType } from "./river.js";
+export { pathLayerType } from "./path.js";
+export { shoreLayerType } from "./shore.js";

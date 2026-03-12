@@ -447,13 +447,13 @@ const setTimeOfDayTool: McpToolDefinition = {
 const listTerrainPresetsTool: McpToolDefinition = {
   name: "list_terrain_presets",
   description:
-    `List all ${ALL_PRESETS.length} terrain presets, optionally filtered by category (sky, profile, clouds, water).`,
+    `List all ${ALL_PRESETS.length} terrain presets, optionally filtered by category (sky, profile, clouds, water, river, path, shore).`,
   inputSchema: {
     type: "object",
     properties: {
       category: {
         type: "string",
-        enum: ["sky", "profile", "clouds", "water"],
+        enum: ["sky", "profile", "clouds", "water", "river", "path", "shore"],
         description: "Filter by category.",
       },
     },
@@ -547,7 +547,7 @@ const setTerrainDepthTool: McpToolDefinition = {
 // set_depth_lane
 // ---------------------------------------------------------------------------
 
-const TERRAIN_TYPE_IDS = ["terrain:sky", "terrain:profile", "terrain:clouds", "terrain:water"];
+const TERRAIN_TYPE_IDS = ["terrain:sky", "terrain:profile", "terrain:clouds", "terrain:water", "terrain:river", "terrain:path", "terrain:shore"];
 
 const setDepthLaneTool: McpToolDefinition = {
   name: "set_depth_lane",
@@ -608,6 +608,269 @@ const setDepthLaneTool: McpToolDefinition = {
 };
 
 // ---------------------------------------------------------------------------
+// add_river
+// ---------------------------------------------------------------------------
+
+const RIVER_PRESETS_LIST = [
+  "gentle-stream", "wide-river", "mountain-creek", "lazy-oxbow",
+  "forest-brook", "delta-channels", "waterfall-stream", "tidal-estuary",
+] as const;
+
+const addRiverTool: McpToolDefinition = {
+  name: "add_river",
+  description:
+    "Add a perspective river/stream layer. The river flows from background toward foreground with width " +
+    "narrowing toward the horizon. Choose a preset or customize path shape, bank style, and ripple intensity. " +
+    "Presets: gentle-stream, wide-river, mountain-creek, lazy-oxbow, forest-brook, delta-channels, waterfall-stream, tidal-estuary.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      preset: {
+        type: "string",
+        enum: [...RIVER_PRESETS_LIST],
+        description: "River preset. Defaults to 'gentle-stream'.",
+      },
+      seed: { type: "number", description: "Random seed for river variation." },
+      pathPreset: {
+        type: "string",
+        enum: ["straight", "meandering", "s-curve", "winding", "switchback", "fork"],
+        description: "Override path curve shape.",
+      },
+      widthNear: { type: "number", description: "Width in pixels at the near (foreground) end." },
+      widthFar: { type: "number", description: "Width in pixels at the far (background) end." },
+      waterColor: { type: "string", description: "Water color as hex." },
+      bankColor: { type: "string", description: "Bank/shore color as hex." },
+      bankStyle: {
+        type: "string",
+        enum: ["none", "soft-grass", "rocky", "sandy", "muddy"],
+        description: "Bank edge treatment style.",
+      },
+      depthLane: {
+        type: "string",
+        description: "Depth lane placement. Defaults to 'midground'.",
+      },
+      atmosphericMode: {
+        type: "string",
+        enum: ["none", "western", "ink-wash"],
+        description: "Atmospheric depth mode.",
+      },
+      name: { type: "string", description: "Custom layer name." },
+    },
+  },
+  async handler(input: Record<string, unknown>, ctx: McpToolContext): Promise<McpToolResult> {
+    const presetId = (input.preset as string) ?? "gentle-stream";
+    const preset = getPreset(presetId);
+    if (presetId && !preset) {
+      return errorResult(`Unknown river preset "${presetId}". Use list_terrain_presets category=river to see options.`);
+    }
+
+    const seed = (input.seed as number) ?? Math.floor(Math.random() * 100000);
+    const properties: Record<string, unknown> = { preset: presetId, seed };
+
+    if (input.pathPreset) properties.pathPreset = input.pathPreset;
+    if (input.widthNear !== undefined) properties.widthNear = input.widthNear;
+    if (input.widthFar !== undefined) properties.widthFar = input.widthFar;
+    if (input.waterColor) properties.waterColor = input.waterColor;
+    if (input.bankColor) properties.bankColor = input.bankColor;
+    if (input.bankStyle) properties.bankStyle = input.bankStyle;
+    if (input.depthLane) {
+      if (!parseDepthLaneSub(input.depthLane as string)) {
+        return errorResult(`Invalid depth lane "${input.depthLane}". Valid lanes: ${DEPTH_LANE_ORDER.join(", ")} (with optional -1/-2/-3 sub-level).`);
+      }
+      properties.depthLane = input.depthLane;
+    }
+    if (input.atmosphericMode) properties.atmosphericMode = input.atmosphericMode;
+
+    const layerName = (input.name as string) ?? `River (${preset?.name ?? presetId})`;
+    const layer = createLayer("terrain:river", layerName, ctx, properties);
+
+    ctx.layers.add(layer);
+    ctx.emitChange("layer-added");
+
+    return textResult(
+      `Added river layer "${layerName}" with ${presetId} preset.\n` +
+      `Seed: ${seed}, Layer ID: ${layer.id}`,
+    );
+  },
+};
+
+// ---------------------------------------------------------------------------
+// add_path
+// ---------------------------------------------------------------------------
+
+const PATH_PRESETS_LIST = [
+  "dirt-trail", "cobblestone-road", "gravel-path", "forest-path",
+  "mountain-switchback", "garden-walk", "sand-track", "country-lane",
+] as const;
+
+const addPathTool: McpToolDefinition = {
+  name: "add_path",
+  description:
+    "Add a perspective path/trail layer. The path recedes from foreground into background with width narrowing " +
+    "toward the horizon. Supports surface textures (dirt, cobblestone, gravel, sand, worn-grass, flagstone) and " +
+    "edge treatments (sharp, grass-encroach, scattered-stones, overgrown). " +
+    "Presets: dirt-trail, cobblestone-road, gravel-path, forest-path, mountain-switchback, garden-walk, sand-track, country-lane.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      preset: {
+        type: "string",
+        enum: [...PATH_PRESETS_LIST],
+        description: "Path preset. Defaults to 'dirt-trail'.",
+      },
+      seed: { type: "number", description: "Random seed for path variation." },
+      pathPreset: {
+        type: "string",
+        enum: ["straight", "meandering", "winding", "switchback", "fork"],
+        description: "Override path curve shape.",
+      },
+      widthNear: { type: "number", description: "Width in pixels at the near end." },
+      widthFar: { type: "number", description: "Width in pixels at the far end." },
+      surfaceColor: { type: "string", description: "Surface color as hex." },
+      surfaceStyle: {
+        type: "string",
+        enum: ["dirt", "cobblestone", "gravel", "sand", "worn-grass", "flagstone"],
+        description: "Surface texture style.",
+      },
+      edgeTreatment: {
+        type: "string",
+        enum: ["sharp", "grass-encroach", "scattered-stones", "overgrown"],
+        description: "Edge treatment at path borders.",
+      },
+      wear: { type: "number", description: "Wear level 0-1 (0=pristine, 1=heavily worn)." },
+      depthLane: {
+        type: "string",
+        description: "Depth lane placement. Defaults to 'midground'.",
+      },
+      atmosphericMode: {
+        type: "string",
+        enum: ["none", "western", "ink-wash"],
+        description: "Atmospheric depth mode.",
+      },
+      name: { type: "string", description: "Custom layer name." },
+    },
+  },
+  async handler(input: Record<string, unknown>, ctx: McpToolContext): Promise<McpToolResult> {
+    const presetId = (input.preset as string) ?? "dirt-trail";
+    const preset = getPreset(presetId);
+    if (presetId && !preset) {
+      return errorResult(`Unknown path preset "${presetId}". Use list_terrain_presets category=path to see options.`);
+    }
+
+    const seed = (input.seed as number) ?? Math.floor(Math.random() * 100000);
+    const properties: Record<string, unknown> = { preset: presetId, seed };
+
+    if (input.pathPreset) properties.pathPreset = input.pathPreset;
+    if (input.widthNear !== undefined) properties.widthNear = input.widthNear;
+    if (input.widthFar !== undefined) properties.widthFar = input.widthFar;
+    if (input.surfaceColor) properties.surfaceColor = input.surfaceColor;
+    if (input.surfaceStyle) properties.surfaceStyle = input.surfaceStyle;
+    if (input.edgeTreatment) properties.edgeTreatment = input.edgeTreatment;
+    if (input.wear !== undefined) properties.wear = input.wear;
+    if (input.depthLane) {
+      if (!parseDepthLaneSub(input.depthLane as string)) {
+        return errorResult(`Invalid depth lane "${input.depthLane}". Valid lanes: ${DEPTH_LANE_ORDER.join(", ")} (with optional -1/-2/-3 sub-level).`);
+      }
+      properties.depthLane = input.depthLane;
+    }
+    if (input.atmosphericMode) properties.atmosphericMode = input.atmosphericMode;
+
+    const layerName = (input.name as string) ?? `Path (${preset?.name ?? presetId})`;
+    const layer = createLayer("terrain:path", layerName, ctx, properties);
+
+    ctx.layers.add(layer);
+    ctx.emitChange("layer-added");
+
+    return textResult(
+      `Added path layer "${layerName}" with ${presetId} preset.\n` +
+      `Seed: ${seed}, Layer ID: ${layer.id}`,
+    );
+  },
+};
+
+// ---------------------------------------------------------------------------
+// add_shore
+// ---------------------------------------------------------------------------
+
+const SHORE_PRESETS_LIST = [
+  "sandy-beach", "rocky-shore", "muddy-riverbank", "grassy-bank", "tidal-flat", "cliff-base",
+] as const;
+
+const addShoreTool: McpToolDefinition = {
+  name: "add_shore",
+  description:
+    "Add a shore/coastline transition layer between water and land. Renders the strip where water meets " +
+    "ground with foam lines, debris, and wet/dry gradients. Position it at the same waterline as your water layer. " +
+    "Presets: sandy-beach, rocky-shore, muddy-riverbank, grassy-bank, tidal-flat, cliff-base.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      preset: {
+        type: "string",
+        enum: [...SHORE_PRESETS_LIST],
+        description: "Shore preset. Defaults to 'sandy-beach'.",
+      },
+      seed: { type: "number", description: "Random seed for shore variation." },
+      waterlinePosition: { type: "number", description: "Waterline position 0-1 (0=top, 1=bottom). Match this to your water layer." },
+      width: { type: "number", description: "Shore strip width as fraction of canvas height (0.01-0.25)." },
+      color: { type: "string", description: "Dry shore color as hex." },
+      wetColor: { type: "string", description: "Wet shore color as hex." },
+      foamIntensity: { type: "number", description: "Foam line intensity 0-1." },
+      debrisType: {
+        type: "string",
+        enum: ["none", "seaweed", "driftwood", "shells", "pebbles"],
+        description: "Type of debris scattered along the shore.",
+      },
+      depthLane: {
+        type: "string",
+        description: "Depth lane placement. Defaults to 'ground-plane'.",
+      },
+      atmosphericMode: {
+        type: "string",
+        enum: ["none", "western", "ink-wash"],
+        description: "Atmospheric depth mode.",
+      },
+      name: { type: "string", description: "Custom layer name." },
+    },
+  },
+  async handler(input: Record<string, unknown>, ctx: McpToolContext): Promise<McpToolResult> {
+    const presetId = (input.preset as string) ?? "sandy-beach";
+    const preset = getPreset(presetId);
+    if (presetId && !preset) {
+      return errorResult(`Unknown shore preset "${presetId}". Use list_terrain_presets category=shore to see options.`);
+    }
+
+    const seed = (input.seed as number) ?? Math.floor(Math.random() * 100000);
+    const properties: Record<string, unknown> = { preset: presetId, seed };
+
+    if (input.waterlinePosition !== undefined) properties.waterlinePosition = input.waterlinePosition;
+    if (input.width !== undefined) properties.width = input.width;
+    if (input.color) properties.color = input.color;
+    if (input.wetColor) properties.wetColor = input.wetColor;
+    if (input.foamIntensity !== undefined) properties.foamIntensity = input.foamIntensity;
+    if (input.debrisType) properties.debrisType = input.debrisType;
+    if (input.depthLane) {
+      if (!parseDepthLaneSub(input.depthLane as string)) {
+        return errorResult(`Invalid depth lane "${input.depthLane}". Valid lanes: ${DEPTH_LANE_ORDER.join(", ")} (with optional -1/-2/-3 sub-level).`);
+      }
+      properties.depthLane = input.depthLane;
+    }
+    if (input.atmosphericMode) properties.atmosphericMode = input.atmosphericMode;
+
+    const layerName = (input.name as string) ?? `Shore (${preset?.name ?? presetId})`;
+    const layer = createLayer("terrain:shore", layerName, ctx, properties);
+
+    ctx.layers.add(layer);
+    ctx.emitChange("layer-added");
+
+    return textResult(
+      `Added shore layer "${layerName}" with ${presetId} preset.\n` +
+      `Seed: ${seed}, Layer ID: ${layer.id}`,
+    );
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Export
 // ---------------------------------------------------------------------------
 
@@ -616,6 +879,9 @@ export const terrainMcpTools: McpToolDefinition[] = [
   addTerrainProfileTool,
   addCloudsTool,
   addWaterSurfaceTool,
+  addRiverTool,
+  addPathTool,
+  addShoreTool,
   createLandscapeTool,
   setTimeOfDayTool,
   listTerrainPresetsTool,

@@ -1,8 +1,8 @@
 /**
  * @genart-dev/plugin-terrain — Natural landscape element layers
  *
- * 4 layer types (sky, profile, clouds, water),
- * 21 presets, 9 MCP tools.
+ * 7 layer types (sky, profile, clouds, water, river, path, shore),
+ * 43 presets, 12 MCP tools.
  */
 
 import type { DesignPlugin, PluginContext } from "@genart-dev/core";
@@ -12,6 +12,9 @@ import {
   profileLayerType,
   cloudsLayerType,
   waterLayerType,
+  riverLayerType,
+  pathLayerType,
+  shoreLayerType,
 } from "./layers/index.js";
 
 const terrainPlugin: DesignPlugin = {
@@ -20,14 +23,18 @@ const terrainPlugin: DesignPlugin = {
   version: "0.1.0",
   description:
     "Natural landscape element layers: sky gradients, terrain profiles, cloud formations, " +
-    "and water surfaces. Depth lane system for cross-plugin depth coordination. " +
-    "4 layer types, 21 presets, 9 MCP tools.",
+    "water surfaces, perspective rivers, paths/trails, and shore transitions. " +
+    "Depth lane system for cross-plugin depth coordination. " +
+    "7 layer types, 43 presets, 12 MCP tools.",
 
   layerTypes: [
     skyLayerType,
     profileLayerType,
     cloudsLayerType,
     waterLayerType,
+    riverLayerType,
+    pathLayerType,
+    shoreLayerType,
   ],
   tools: [],
   exportHandlers: [],
@@ -45,6 +52,9 @@ export {
   profileLayerType,
   cloudsLayerType,
   waterLayerType,
+  riverLayerType,
+  pathLayerType,
+  shoreLayerType,
 } from "./layers/index.js";
 
 // Re-export presets
@@ -55,6 +65,9 @@ export type {
   ProfilePreset,
   CloudPreset,
   WaterPreset,
+  RiverPreset,
+  PathPreset,
+  ShorePreset,
   PresetCategory,
 } from "./presets/types.js";
 
@@ -67,6 +80,23 @@ export { createValueNoise, createFractalNoise } from "./shared/noise.js";
 export { parseHex, toHex, lerpColor, darken, lighten } from "./shared/color-utils.js";
 export { applyDepthEasing } from "./shared/depth.js";
 export type { DepthEasing } from "./shared/depth.js";
+
+// Re-export perspective curve system
+export {
+  evalBezier,
+  evalBezierTangent,
+  evalBezierNormal,
+  getPathPresetCurve,
+  samplePerspectiveCurve,
+  drawPerspectiveRibbon,
+  drawCrossLines,
+} from "./shared/perspective-curve.js";
+export type {
+  Point2,
+  BezierCurve,
+  PathPresetType,
+  CurveSample,
+} from "./shared/perspective-curve.js";
 
 // Re-export depth lane system
 export {

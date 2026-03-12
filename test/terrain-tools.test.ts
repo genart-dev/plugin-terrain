@@ -29,8 +29,8 @@ function getTool(name: string) {
 }
 
 describe("terrain MCP tools", () => {
-  it("exports 9 tools", () => {
-    expect(terrainMcpTools).toHaveLength(9);
+  it("exports 12 tools", () => {
+    expect(terrainMcpTools).toHaveLength(12);
   });
 
   it("all tools have name, description, and handler", () => {
@@ -90,6 +90,309 @@ describe("terrain MCP tools", () => {
     });
   });
 
+  describe("add_river", () => {
+    it("adds a river layer with default preset", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_river").handler({}, ctx);
+      expect(result.isError).toBeUndefined();
+      expect(ctx.layers.add).toHaveBeenCalled();
+      expect(ctx.emitChange).toHaveBeenCalledWith("layer-added");
+      expect(result.content[0]!.text).toContain("gentle-stream");
+    });
+
+    it("adds river with custom preset", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_river").handler({ preset: "wide-river" }, ctx);
+      expect(result.content[0]!.text).toContain("wide-river");
+    });
+
+    it("returns error for unknown preset", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_river").handler({ preset: "lava-flow" }, ctx);
+      expect(result.isError).toBe(true);
+    });
+
+    it("accepts depthLane parameter", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_river").handler({
+        preset: "gentle-stream",
+        depthLane: "foreground",
+      }, ctx);
+      expect(result.isError).toBeUndefined();
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.properties.depthLane).toBe("foreground");
+    });
+
+    it("rejects invalid depth lane", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_river").handler({
+        depthLane: "invalid",
+      }, ctx);
+      expect(result.isError).toBe(true);
+    });
+
+    it("accepts atmosphericMode parameter", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_river").handler({
+        atmosphericMode: "western",
+      }, ctx);
+      expect(result.isError).toBeUndefined();
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.properties.atmosphericMode).toBe("western");
+    });
+
+    it("accepts pathPreset override", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_river").handler({
+        pathPreset: "s-curve",
+      }, ctx);
+      expect(result.isError).toBeUndefined();
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.properties.pathPreset).toBe("s-curve");
+    });
+
+    it("accepts bankStyle parameter", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_river").handler({
+        bankStyle: "rocky",
+      }, ctx);
+      expect(result.isError).toBeUndefined();
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.properties.bankStyle).toBe("rocky");
+    });
+
+    it("sets correct layer type", async () => {
+      const ctx = createMockContext();
+      await getTool("add_river").handler({}, ctx);
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.type).toBe("terrain:river");
+    });
+  });
+
+  describe("add_path", () => {
+    it("adds a path layer with default preset", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_path").handler({}, ctx);
+      expect(result.isError).toBeUndefined();
+      expect(ctx.layers.add).toHaveBeenCalled();
+      expect(ctx.emitChange).toHaveBeenCalledWith("layer-added");
+      expect(result.content[0]!.text).toContain("dirt-trail");
+    });
+
+    it("adds path with custom preset", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_path").handler({ preset: "cobblestone-road" }, ctx);
+      expect(result.content[0]!.text).toContain("cobblestone-road");
+    });
+
+    it("returns error for unknown preset", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_path").handler({ preset: "highway" }, ctx);
+      expect(result.isError).toBe(true);
+    });
+
+    it("accepts surfaceStyle parameter", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_path").handler({
+        surfaceStyle: "gravel",
+      }, ctx);
+      expect(result.isError).toBeUndefined();
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.properties.surfaceStyle).toBe("gravel");
+    });
+
+    it("accepts edgeTreatment parameter", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_path").handler({
+        edgeTreatment: "overgrown",
+      }, ctx);
+      expect(result.isError).toBeUndefined();
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.properties.edgeTreatment).toBe("overgrown");
+    });
+
+    it("accepts wear parameter", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_path").handler({
+        wear: 0.8,
+      }, ctx);
+      expect(result.isError).toBeUndefined();
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.properties.wear).toBe(0.8);
+    });
+
+    it("accepts depthLane parameter", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_path").handler({
+        depthLane: "foreground-2",
+      }, ctx);
+      expect(result.isError).toBeUndefined();
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.properties.depthLane).toBe("foreground-2");
+    });
+
+    it("rejects invalid depth lane", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_path").handler({
+        depthLane: "invalid",
+      }, ctx);
+      expect(result.isError).toBe(true);
+    });
+
+    it("sets correct layer type", async () => {
+      const ctx = createMockContext();
+      await getTool("add_path").handler({}, ctx);
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.type).toBe("terrain:path");
+    });
+  });
+
+  describe("add_shore", () => {
+    it("adds a shore layer with default preset", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_shore").handler({}, ctx);
+      expect(result.isError).toBeUndefined();
+      expect(ctx.layers.add).toHaveBeenCalled();
+      expect(ctx.emitChange).toHaveBeenCalledWith("layer-added");
+      expect(result.content[0]!.text).toContain("sandy-beach");
+    });
+
+    it("adds shore with custom preset", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_shore").handler({ preset: "rocky-shore" }, ctx);
+      expect(result.content[0]!.text).toContain("rocky-shore");
+    });
+
+    it("returns error for unknown preset", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_shore").handler({ preset: "lava-coast" }, ctx);
+      expect(result.isError).toBe(true);
+    });
+
+    it("accepts waterlinePosition parameter", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_shore").handler({
+        waterlinePosition: 0.7,
+      }, ctx);
+      expect(result.isError).toBeUndefined();
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.properties.waterlinePosition).toBe(0.7);
+    });
+
+    it("accepts width parameter", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_shore").handler({
+        width: 0.15,
+      }, ctx);
+      expect(result.isError).toBeUndefined();
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.properties.width).toBe(0.15);
+    });
+
+    it("accepts debrisType parameter", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_shore").handler({
+        debrisType: "pebbles",
+      }, ctx);
+      expect(result.isError).toBeUndefined();
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.properties.debrisType).toBe("pebbles");
+    });
+
+    it("accepts foamIntensity parameter", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_shore").handler({
+        foamIntensity: 0.9,
+      }, ctx);
+      expect(result.isError).toBeUndefined();
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.properties.foamIntensity).toBe(0.9);
+    });
+
+    it("accepts depthLane parameter", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_shore").handler({
+        depthLane: "foreground",
+      }, ctx);
+      expect(result.isError).toBeUndefined();
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.properties.depthLane).toBe("foreground");
+    });
+
+    it("rejects invalid depth lane", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_shore").handler({
+        depthLane: "invalid",
+      }, ctx);
+      expect(result.isError).toBe(true);
+    });
+
+    it("sets correct layer type", async () => {
+      const ctx = createMockContext();
+      await getTool("add_shore").handler({}, ctx);
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.type).toBe("terrain:shore");
+    });
+  });
+
+  describe("set_depth_lane on new layer types", () => {
+    it("sets depth lane on river layer", async () => {
+      const ctx = createMockContext();
+      await getTool("add_river").handler({}, ctx);
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+
+      const result = await getTool("set_depth_lane").handler({
+        layerId: addedLayer.id,
+        depthLane: "background",
+      }, ctx);
+      expect(result.isError).toBeUndefined();
+    });
+
+    it("sets depth lane on path layer", async () => {
+      const ctx = createMockContext();
+      await getTool("add_path").handler({}, ctx);
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+
+      const result = await getTool("set_depth_lane").handler({
+        layerId: addedLayer.id,
+        depthLane: "foreground-3",
+      }, ctx);
+      expect(result.isError).toBeUndefined();
+    });
+
+    it("sets depth lane on shore layer", async () => {
+      const ctx = createMockContext();
+      await getTool("add_shore").handler({}, ctx);
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+
+      const result = await getTool("set_depth_lane").handler({
+        layerId: addedLayer.id,
+        depthLane: "ground-plane",
+      }, ctx);
+      expect(result.isError).toBeUndefined();
+    });
+  });
+
+  describe("list_terrain_presets with new categories", () => {
+    it("filters river presets", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("list_terrain_presets").handler({ category: "river" }, ctx);
+      expect(result.content[0]!.text).toContain("8 presets");
+    });
+
+    it("filters path presets", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("list_terrain_presets").handler({ category: "path" }, ctx);
+      expect(result.content[0]!.text).toContain("8 presets");
+    });
+
+    it("filters shore presets", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("list_terrain_presets").handler({ category: "shore" }, ctx);
+      expect(result.content[0]!.text).toContain("6 presets");
+    });
+  });
+
   describe("create_landscape", () => {
     it("creates sky + terrain (2 layers minimum)", async () => {
       const ctx = createMockContext();
@@ -141,7 +444,7 @@ describe("terrain MCP tools", () => {
     it("lists all presets when no filter", async () => {
       const ctx = createMockContext();
       const result = await getTool("list_terrain_presets").handler({}, ctx);
-      expect(result.content[0]!.text).toContain("21 presets");
+      expect(result.content[0]!.text).toContain("43 presets");
     });
 
     it("filters by category", async () => {

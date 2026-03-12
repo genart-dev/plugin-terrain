@@ -58,7 +58,46 @@ export interface WaterPreset extends BasePreset {
   shimmerIntensity: number;
 }
 
-/** Discriminated union of all terrain presets. */
-export type TerrainPreset = SkyPreset | ProfilePreset | CloudPreset | WaterPreset;
+/** River preset (perspective curve water body). */
+export interface RiverPreset extends BasePreset {
+  category: "river";
+  pathPreset: "straight" | "meandering" | "s-curve" | "winding" | "switchback" | "fork";
+  widthNear: number;
+  widthFar: number;
+  waterColor: string;
+  bankColor: string;
+  rippleScale: number;
+  rippleIntensity: number;
+  reflectionIntensity: number;
+  flowDirection: number;
+  bankStyle: "none" | "soft-grass" | "rocky" | "sandy" | "muddy";
+}
 
-export type PresetCategory = "sky" | "profile" | "clouds" | "water";
+/** Path preset (perspective curve dry ground). */
+export interface PathPreset extends BasePreset {
+  category: "path";
+  pathPreset: "straight" | "meandering" | "winding" | "switchback" | "fork";
+  widthNear: number;
+  widthFar: number;
+  surfaceColor: string;
+  surfaceStyle: "dirt" | "cobblestone" | "gravel" | "sand" | "worn-grass" | "flagstone";
+  edgeTreatment: "sharp" | "grass-encroach" | "scattered-stones" | "overgrown";
+  wear: number;
+}
+
+/** Shore preset (water-land transition zone). */
+export interface ShorePreset extends BasePreset {
+  category: "shore";
+  shoreType: "sandy-beach" | "rocky-shore" | "muddy-bank" | "grassy-bank" | "tidal-flat" | "cliff-base";
+  width: number;
+  color: string;
+  wetColor: string;
+  foamLine: boolean;
+  foamIntensity: number;
+  debrisType: "none" | "seaweed" | "driftwood" | "shells" | "pebbles";
+}
+
+/** Discriminated union of all terrain presets. */
+export type TerrainPreset = SkyPreset | ProfilePreset | CloudPreset | WaterPreset | RiverPreset | PathPreset | ShorePreset;
+
+export type PresetCategory = "sky" | "profile" | "clouds" | "water" | "river" | "path" | "shore";
