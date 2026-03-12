@@ -1,0 +1,76 @@
+import { describe, it, expect } from "vitest";
+import { ALL_PRESETS, getPreset, filterPresets, searchPresets } from "../src/presets/index.js";
+
+describe("presets", () => {
+  it("has 21 total presets", () => {
+    expect(ALL_PRESETS.length).toBe(21);
+  });
+
+  it("has 5 sky presets", () => {
+    expect(filterPresets({ category: "sky" })).toHaveLength(5);
+  });
+
+  it("has 6 profile presets", () => {
+    expect(filterPresets({ category: "profile" })).toHaveLength(6);
+  });
+
+  it("has 5 cloud presets", () => {
+    expect(filterPresets({ category: "clouds" })).toHaveLength(5);
+  });
+
+  it("has 5 water presets", () => {
+    expect(filterPresets({ category: "water" })).toHaveLength(5);
+  });
+
+  it("all presets have unique IDs", () => {
+    const ids = ALL_PRESETS.map((p) => p.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("all presets have required fields", () => {
+    for (const p of ALL_PRESETS) {
+      expect(p.id).toBeTruthy();
+      expect(p.name).toBeTruthy();
+      expect(p.description).toBeTruthy();
+      expect(p.tags.length).toBeGreaterThan(0);
+      expect(["sky", "profile", "clouds", "water"]).toContain(p.category);
+    }
+  });
+
+  it("getPreset returns correct preset", () => {
+    const dawn = getPreset("dawn");
+    expect(dawn).toBeDefined();
+    expect(dawn!.name).toBe("Dawn");
+    expect(dawn!.category).toBe("sky");
+  });
+
+  it("getPreset returns undefined for unknown ID", () => {
+    expect(getPreset("nonexistent")).toBeUndefined();
+  });
+
+  it("filterPresets by category", () => {
+    const skyPresets = filterPresets({ category: "sky" });
+    expect(skyPresets.every((p) => p.category === "sky")).toBe(true);
+  });
+
+  it("filterPresets by tags", () => {
+    const warmPresets = filterPresets({ tags: ["warm"] });
+    expect(warmPresets.length).toBeGreaterThan(0);
+    expect(warmPresets.every((p) => p.tags.includes("warm"))).toBe(true);
+  });
+
+  it("searchPresets by name", () => {
+    const results = searchPresets("alpine");
+    expect(results.length).toBe(1);
+    expect(results[0]!.id).toBe("alpine-range");
+  });
+
+  it("searchPresets by description keyword", () => {
+    const results = searchPresets("cumulus");
+    expect(results.length).toBeGreaterThan(0);
+  });
+
+  it("searchPresets case-insensitive", () => {
+    expect(searchPresets("DAWN")).toHaveLength(1);
+  });
+});
