@@ -1,8 +1,8 @@
 /**
  * @genart-dev/plugin-terrain — Natural landscape element layers
  *
- * 7 layer types (sky, profile, clouds, water, river, path, shore),
- * 43 presets, 12 MCP tools.
+ * 10 layer types (sky, profile, clouds, water, river, path, shore, field, rock, treeline),
+ * 63 presets, 15 MCP tools.
  */
 
 import type { DesignPlugin, PluginContext } from "@genart-dev/core";
@@ -15,6 +15,9 @@ import {
   riverLayerType,
   pathLayerType,
   shoreLayerType,
+  fieldLayerType,
+  rockLayerType,
+  treelineLayerType,
 } from "./layers/index.js";
 
 const terrainPlugin: DesignPlugin = {
@@ -23,9 +26,10 @@ const terrainPlugin: DesignPlugin = {
   version: "0.1.0",
   description:
     "Natural landscape element layers: sky gradients, terrain profiles, cloud formations, " +
-    "water surfaces, perspective rivers, paths/trails, and shore transitions. " +
+    "water surfaces, perspective rivers, paths/trails, shore transitions, vegetation fields, " +
+    "natural rock forms, and treeline silhouettes. " +
     "Depth lane system for cross-plugin depth coordination. " +
-    "7 layer types, 43 presets, 12 MCP tools.",
+    "10 layer types, 63 presets, 15 MCP tools.",
 
   layerTypes: [
     skyLayerType,
@@ -35,6 +39,9 @@ const terrainPlugin: DesignPlugin = {
     riverLayerType,
     pathLayerType,
     shoreLayerType,
+    fieldLayerType,
+    rockLayerType,
+    treelineLayerType,
   ],
   tools: [],
   exportHandlers: [],
@@ -55,6 +62,9 @@ export {
   riverLayerType,
   pathLayerType,
   shoreLayerType,
+  fieldLayerType,
+  rockLayerType,
+  treelineLayerType,
 } from "./layers/index.js";
 
 // Re-export presets
@@ -68,6 +78,9 @@ export type {
   RiverPreset,
   PathPreset,
   ShorePreset,
+  FieldPreset,
+  RockPreset,
+  TreelinePreset,
   PresetCategory,
 } from "./presets/types.js";
 

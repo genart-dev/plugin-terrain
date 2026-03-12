@@ -1,7 +1,8 @@
 /**
  * MCP tool definitions for plugin-terrain.
  *
- * 9 tools: add_sky, add_terrain_profile, add_clouds, add_water_surface,
+ * 15 tools: add_sky, add_terrain_profile, add_clouds, add_water_surface,
+ * add_river, add_path, add_shore, add_field, add_rock, add_treeline,
  * create_landscape, set_time_of_day, list_terrain_presets, set_terrain_depth, set_depth_lane.
  */
 
@@ -447,13 +448,13 @@ const setTimeOfDayTool: McpToolDefinition = {
 const listTerrainPresetsTool: McpToolDefinition = {
   name: "list_terrain_presets",
   description:
-    `List all ${ALL_PRESETS.length} terrain presets, optionally filtered by category (sky, profile, clouds, water, river, path, shore).`,
+    `List all ${ALL_PRESETS.length} terrain presets, optionally filtered by category (sky, profile, clouds, water, river, path, shore, field, rock, treeline).`,
   inputSchema: {
     type: "object",
     properties: {
       category: {
         type: "string",
-        enum: ["sky", "profile", "clouds", "water", "river", "path", "shore"],
+        enum: ["sky", "profile", "clouds", "water", "river", "path", "shore", "field", "rock", "treeline"],
         description: "Filter by category.",
       },
     },
@@ -547,7 +548,7 @@ const setTerrainDepthTool: McpToolDefinition = {
 // set_depth_lane
 // ---------------------------------------------------------------------------
 
-const TERRAIN_TYPE_IDS = ["terrain:sky", "terrain:profile", "terrain:clouds", "terrain:water", "terrain:river", "terrain:path", "terrain:shore"];
+const TERRAIN_TYPE_IDS = ["terrain:sky", "terrain:profile", "terrain:clouds", "terrain:water", "terrain:river", "terrain:path", "terrain:shore", "terrain:field", "terrain:rock", "terrain:treeline"];
 
 const setDepthLaneTool: McpToolDefinition = {
   name: "set_depth_lane",
@@ -871,6 +872,271 @@ const addShoreTool: McpToolDefinition = {
 };
 
 // ---------------------------------------------------------------------------
+// add_field
+// ---------------------------------------------------------------------------
+
+const FIELD_PRESETS_LIST = [
+  "meadow-grass", "wheat-field", "wildflower-meadow", "lavender-rows",
+  "dry-savanna", "rice-paddy", "autumn-stubble", "snow-covered",
+] as const;
+
+const addFieldTool: McpToolDefinition = {
+  name: "add_field",
+  description:
+    "Add a vegetation field layer with depth-receding marks. Renders grass, wheat, or wildflower marks that " +
+    "diminish in size toward the horizon. Supports wind direction and seasonal tinting. " +
+    "Presets: meadow-grass, wheat-field, wildflower-meadow, lavender-rows, dry-savanna, rice-paddy, autumn-stubble, snow-covered.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      preset: {
+        type: "string",
+        enum: [...FIELD_PRESETS_LIST],
+        description: "Field preset. Defaults to 'meadow-grass'.",
+      },
+      seed: { type: "number", description: "Random seed for field variation." },
+      vegetationType: {
+        type: "string",
+        enum: ["grass", "wheat", "wildflowers"],
+        description: "Vegetation type.",
+      },
+      color: { type: "string", description: "Primary vegetation color as hex." },
+      secondaryColor: { type: "string", description: "Secondary/accent color as hex." },
+      density: { type: "number", description: "Mark density 0.1-1.0." },
+      windDirection: { type: "number", description: "Wind direction in degrees (0-360)." },
+      windStrength: { type: "number", description: "Wind strength 0-1." },
+      seasonalTint: {
+        type: "string",
+        enum: ["spring", "summer", "autumn", "winter"],
+        description: "Seasonal color tinting.",
+      },
+      depthLane: {
+        type: "string",
+        description: "Depth lane placement. Defaults to 'midground'.",
+      },
+      atmosphericMode: {
+        type: "string",
+        enum: ["none", "western", "ink-wash"],
+        description: "Atmospheric depth mode.",
+      },
+      name: { type: "string", description: "Custom layer name." },
+    },
+  },
+  async handler(input: Record<string, unknown>, ctx: McpToolContext): Promise<McpToolResult> {
+    const presetId = (input.preset as string) ?? "meadow-grass";
+    const preset = getPreset(presetId);
+    if (presetId && !preset) {
+      return errorResult(`Unknown field preset "${presetId}". Use list_terrain_presets category=field to see options.`);
+    }
+
+    const seed = (input.seed as number) ?? Math.floor(Math.random() * 100000);
+    const properties: Record<string, unknown> = { preset: presetId, seed };
+
+    if (input.vegetationType) properties.vegetationType = input.vegetationType;
+    if (input.color) properties.color = input.color;
+    if (input.secondaryColor) properties.secondaryColor = input.secondaryColor;
+    if (input.density !== undefined) properties.density = input.density;
+    if (input.windDirection !== undefined) properties.windDirection = input.windDirection;
+    if (input.windStrength !== undefined) properties.windStrength = input.windStrength;
+    if (input.seasonalTint) properties.seasonalTint = input.seasonalTint;
+    if (input.depthLane) {
+      if (!parseDepthLaneSub(input.depthLane as string)) {
+        return errorResult(`Invalid depth lane "${input.depthLane}". Valid lanes: ${DEPTH_LANE_ORDER.join(", ")} (with optional -1/-2/-3 sub-level).`);
+      }
+      properties.depthLane = input.depthLane;
+    }
+    if (input.atmosphericMode) properties.atmosphericMode = input.atmosphericMode;
+
+    const layerName = (input.name as string) ?? `Field (${preset?.name ?? presetId})`;
+    const layer = createLayer("terrain:field", layerName, ctx, properties);
+
+    ctx.layers.add(layer);
+    ctx.emitChange("layer-added");
+
+    return textResult(
+      `Added field layer "${layerName}" with ${presetId} preset.\n` +
+      `Seed: ${seed}, Layer ID: ${layer.id}`,
+    );
+  },
+};
+
+// ---------------------------------------------------------------------------
+// add_rock
+// ---------------------------------------------------------------------------
+
+const ROCK_PRESETS_LIST = [
+  "granite-boulder", "sandstone-outcrop", "shan-shui-rock", "mossy-rock",
+  "slate-shelf", "volcanic-basalt",
+] as const;
+
+const addRockTool: McpToolDefinition = {
+  name: "add_rock",
+  description:
+    "Add a natural rock form layer. Renders a depth-aware rock with silhouette, shadow, and texture. " +
+    "Supports 4 rock types (boulder, outcrop, pinnacle, shelf) and 4 texture modes " +
+    "(speckled, striated, cun-fa for Chinese ink style, cracked). " +
+    "Presets: granite-boulder, sandstone-outcrop, shan-shui-rock, mossy-rock, slate-shelf, volcanic-basalt.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      preset: {
+        type: "string",
+        enum: [...ROCK_PRESETS_LIST],
+        description: "Rock preset. Defaults to 'granite-boulder'.",
+      },
+      seed: { type: "number", description: "Random seed for rock variation." },
+      rockType: {
+        type: "string",
+        enum: ["boulder", "outcrop", "pinnacle", "shelf"],
+        description: "Rock form type.",
+      },
+      textureMode: {
+        type: "string",
+        enum: ["speckled", "striated", "cun-fa", "cracked"],
+        description: "Surface texture mode. 'cun-fa' renders traditional Chinese ink brush strokes.",
+      },
+      color: { type: "string", description: "Rock body color as hex." },
+      shadowColor: { type: "string", description: "Shadow color as hex." },
+      scale: { type: "number", description: "Scale factor 0.3-2.0." },
+      roughness: { type: "number", description: "Surface roughness 0-1." },
+      crackDensity: { type: "number", description: "Crack/crevice density 0-1." },
+      depthLane: {
+        type: "string",
+        description: "Depth lane placement. Defaults to 'foreground'.",
+      },
+      atmosphericMode: {
+        type: "string",
+        enum: ["none", "western", "ink-wash"],
+        description: "Atmospheric depth mode.",
+      },
+      name: { type: "string", description: "Custom layer name." },
+    },
+  },
+  async handler(input: Record<string, unknown>, ctx: McpToolContext): Promise<McpToolResult> {
+    const presetId = (input.preset as string) ?? "granite-boulder";
+    const preset = getPreset(presetId);
+    if (presetId && !preset) {
+      return errorResult(`Unknown rock preset "${presetId}". Use list_terrain_presets category=rock to see options.`);
+    }
+
+    const seed = (input.seed as number) ?? Math.floor(Math.random() * 100000);
+    const properties: Record<string, unknown> = { preset: presetId, seed };
+
+    if (input.rockType) properties.rockType = input.rockType;
+    if (input.textureMode) properties.textureMode = input.textureMode;
+    if (input.color) properties.color = input.color;
+    if (input.shadowColor) properties.shadowColor = input.shadowColor;
+    if (input.scale !== undefined) properties.scale = input.scale;
+    if (input.roughness !== undefined) properties.roughness = input.roughness;
+    if (input.crackDensity !== undefined) properties.crackDensity = input.crackDensity;
+    if (input.depthLane) {
+      if (!parseDepthLaneSub(input.depthLane as string)) {
+        return errorResult(`Invalid depth lane "${input.depthLane}". Valid lanes: ${DEPTH_LANE_ORDER.join(", ")} (with optional -1/-2/-3 sub-level).`);
+      }
+      properties.depthLane = input.depthLane;
+    }
+    if (input.atmosphericMode) properties.atmosphericMode = input.atmosphericMode;
+
+    const layerName = (input.name as string) ?? `Rock (${preset?.name ?? presetId})`;
+    const layer = createLayer("terrain:rock", layerName, ctx, properties);
+
+    ctx.layers.add(layer);
+    ctx.emitChange("layer-added");
+
+    return textResult(
+      `Added rock layer "${layerName}" with ${presetId} preset.\n` +
+      `Seed: ${seed}, Layer ID: ${layer.id}`,
+    );
+  },
+};
+
+// ---------------------------------------------------------------------------
+// add_treeline
+// ---------------------------------------------------------------------------
+
+const TREELINE_PRESETS_LIST = [
+  "deciduous-canopy", "conifer-ridge", "autumn-treeline", "misty-forest",
+  "palm-fringe", "winter-bare",
+] as const;
+
+const addTreelineTool: McpToolDefinition = {
+  name: "add_treeline",
+  description:
+    "Add a treeline silhouette band layer. Renders a dense canopy mass (not individual trees) with an " +
+    "irregular top edge profile. Treelines are visual impressions of forest edges, distinct from plugin-plants " +
+    "which renders individual specimens. Supports deciduous, conifer, palm, and bare winter styles. " +
+    "Presets: deciduous-canopy, conifer-ridge, autumn-treeline, misty-forest, palm-fringe, winter-bare.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      preset: {
+        type: "string",
+        enum: [...TREELINE_PRESETS_LIST],
+        description: "Treeline preset. Defaults to 'deciduous-canopy'.",
+      },
+      seed: { type: "number", description: "Random seed for treeline variation." },
+      canopyStyle: {
+        type: "string",
+        enum: ["rounded", "pointed", "fan", "bare"],
+        description: "Canopy silhouette style.",
+      },
+      color: { type: "string", description: "Foliage color as hex." },
+      highlightColor: { type: "string", description: "Highlight color as hex." },
+      shadowColor: { type: "string", description: "Shadow color as hex." },
+      density: { type: "number", description: "Canopy density 0.2-1.0." },
+      height: { type: "number", description: "Treeline height as fraction of canvas (0.05-0.4)." },
+      irregularity: { type: "number", description: "Top edge irregularity 0-1." },
+      depthLane: {
+        type: "string",
+        description: "Depth lane placement. Defaults to 'background'.",
+      },
+      atmosphericMode: {
+        type: "string",
+        enum: ["none", "western", "ink-wash"],
+        description: "Atmospheric depth mode.",
+      },
+      name: { type: "string", description: "Custom layer name." },
+    },
+  },
+  async handler(input: Record<string, unknown>, ctx: McpToolContext): Promise<McpToolResult> {
+    const presetId = (input.preset as string) ?? "deciduous-canopy";
+    const preset = getPreset(presetId);
+    if (presetId && !preset) {
+      return errorResult(`Unknown treeline preset "${presetId}". Use list_terrain_presets category=treeline to see options.`);
+    }
+
+    const seed = (input.seed as number) ?? Math.floor(Math.random() * 100000);
+    const properties: Record<string, unknown> = { preset: presetId, seed };
+
+    if (input.canopyStyle) properties.canopyStyle = input.canopyStyle;
+    if (input.color) properties.color = input.color;
+    if (input.highlightColor) properties.highlightColor = input.highlightColor;
+    if (input.shadowColor) properties.shadowColor = input.shadowColor;
+    if (input.density !== undefined) properties.density = input.density;
+    if (input.height !== undefined) properties.height = input.height;
+    if (input.irregularity !== undefined) properties.irregularity = input.irregularity;
+    if (input.depthLane) {
+      if (!parseDepthLaneSub(input.depthLane as string)) {
+        return errorResult(`Invalid depth lane "${input.depthLane}". Valid lanes: ${DEPTH_LANE_ORDER.join(", ")} (with optional -1/-2/-3 sub-level).`);
+      }
+      properties.depthLane = input.depthLane;
+    }
+    if (input.atmosphericMode) properties.atmosphericMode = input.atmosphericMode;
+
+    const layerName = (input.name as string) ?? `Treeline (${preset?.name ?? presetId})`;
+    const layer = createLayer("terrain:treeline", layerName, ctx, properties);
+
+    ctx.layers.add(layer);
+    ctx.emitChange("layer-added");
+
+    return textResult(
+      `Added treeline layer "${layerName}" with ${presetId} preset.\n` +
+      `Seed: ${seed}, Layer ID: ${layer.id}`,
+    );
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Export
 // ---------------------------------------------------------------------------
 
@@ -882,6 +1148,9 @@ export const terrainMcpTools: McpToolDefinition[] = [
   addRiverTool,
   addPathTool,
   addShoreTool,
+  addFieldTool,
+  addRockTool,
+  addTreelineTool,
   createLandscapeTool,
   setTimeOfDayTool,
   listTerrainPresetsTool,

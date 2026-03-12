@@ -97,7 +97,44 @@ export interface ShorePreset extends BasePreset {
   debrisType: "none" | "seaweed" | "driftwood" | "shells" | "pebbles";
 }
 
-/** Discriminated union of all terrain presets. */
-export type TerrainPreset = SkyPreset | ProfilePreset | CloudPreset | WaterPreset | RiverPreset | PathPreset | ShorePreset;
+/** Field preset (depth-receding vegetation marks). */
+export interface FieldPreset extends BasePreset {
+  category: "field";
+  vegetationType: "grass" | "wheat" | "wildflowers";
+  color: string;
+  secondaryColor: string;
+  density: number;
+  markLength: number;
+  windDirection: number;
+  windStrength: number;
+  seasonalTint: "spring" | "summer" | "autumn" | "winter";
+}
 
-export type PresetCategory = "sky" | "profile" | "clouds" | "water" | "river" | "path" | "shore";
+/** Rock preset (natural rock forms with texture modes). */
+export interface RockPreset extends BasePreset {
+  category: "rock";
+  rockType: "boulder" | "outcrop" | "pinnacle" | "shelf";
+  textureMode: "speckled" | "striated" | "cun-fa" | "cracked";
+  color: string;
+  shadowColor: string;
+  scale: number;
+  roughness: number;
+  crackDensity: number;
+}
+
+/** Treeline preset (dense canopy silhouette band). */
+export interface TreelinePreset extends BasePreset {
+  category: "treeline";
+  canopyStyle: "rounded" | "pointed" | "fan" | "bare";
+  color: string;
+  highlightColor: string;
+  shadowColor: string;
+  density: number;
+  height: number;
+  irregularity: number;
+}
+
+/** Discriminated union of all terrain presets. */
+export type TerrainPreset = SkyPreset | ProfilePreset | CloudPreset | WaterPreset | RiverPreset | PathPreset | ShorePreset | FieldPreset | RockPreset | TreelinePreset;
+
+export type PresetCategory = "sky" | "profile" | "clouds" | "water" | "river" | "path" | "shore" | "field" | "rock" | "treeline";

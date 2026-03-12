@@ -5,3 +5,6 @@ export { waterLayerType } from "./water.js";
 export { riverLayerType } from "./river.js";
 export { pathLayerType } from "./path.js";
 export { shoreLayerType } from "./shore.js";
+export { fieldLayerType } from "./field.js";
+export { rockLayerType } from "./rock.js";
+export { treelineLayerType } from "./treeline.js";
