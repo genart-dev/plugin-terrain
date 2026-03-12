@@ -1,8 +1,9 @@
 /**
  * @genart-dev/plugin-terrain — Natural landscape element layers
  *
- * 12 layer types (sky, profile, clouds, water, river, path, shore, field, rock, treeline, celestial, fog-layer),
- * 74 presets, 17 MCP tools.
+ * 21 layer types (sky, profile, clouds, water, river, path, shore, field, rock, treeline, celestial, fog-layer,
+ * starfield, cliff-face, snowfield, building, bridge, reflection, vignette-foliage, forest-floor, haze),
+ * 116 presets, 26 MCP tools.
  */
 
 import type { DesignPlugin, PluginContext } from "@genart-dev/core";
@@ -20,18 +21,29 @@ import {
   treelineLayerType,
   celestialLayerType,
   fogLayerType,
+  starfieldLayerType,
+  cliffFaceLayerType,
+  snowfieldLayerType,
+  buildingLayerType,
+  bridgeLayerType,
+  reflectionLayerType,
+  vignetteFoliageLayerType,
+  forestFloorLayerType,
+  hazeLayerType,
 } from "./layers/index.js";
 
 const terrainPlugin: DesignPlugin = {
   id: "terrain",
   name: "Terrain",
-  version: "0.1.0",
+  version: "0.2.0",
   description:
     "Natural landscape element layers: sky gradients, terrain profiles, cloud formations, " +
     "water surfaces, perspective rivers, paths/trails, shore transitions, vegetation fields, " +
-    "natural rock forms, treeline silhouettes, celestial bodies, and occluding fog bands. " +
+    "natural rock forms, treeline silhouettes, celestial bodies, occluding fog bands, " +
+    "star fields, cliff faces, snow fields, building silhouettes, bridges, water reflections, " +
+    "vignette foliage, forest floor undergrowth, and atmospheric haze. " +
     "Depth lane system for cross-plugin depth coordination. " +
-    "12 layer types, 74 presets, 17 MCP tools.",
+    "21 layer types, 116 presets, 26 MCP tools.",
 
   layerTypes: [
     skyLayerType,
@@ -46,6 +58,15 @@ const terrainPlugin: DesignPlugin = {
     treelineLayerType,
     celestialLayerType,
     fogLayerType,
+    starfieldLayerType,
+    cliffFaceLayerType,
+    snowfieldLayerType,
+    buildingLayerType,
+    bridgeLayerType,
+    reflectionLayerType,
+    vignetteFoliageLayerType,
+    forestFloorLayerType,
+    hazeLayerType,
   ],
   tools: [],
   exportHandlers: [],
@@ -71,6 +92,15 @@ export {
   treelineLayerType,
   celestialLayerType,
   fogLayerType,
+  starfieldLayerType,
+  cliffFaceLayerType,
+  snowfieldLayerType,
+  buildingLayerType,
+  bridgeLayerType,
+  reflectionLayerType,
+  vignetteFoliageLayerType,
+  forestFloorLayerType,
+  hazeLayerType,
 } from "./layers/index.js";
 
 // Re-export presets
@@ -89,6 +119,15 @@ export type {
   TreelinePreset,
   CelestialPreset,
   FogPreset,
+  StarfieldPreset,
+  CliffFacePreset,
+  SnowfieldPreset,
+  BuildingPreset,
+  BridgePreset,
+  ReflectionPreset,
+  VignetteFoliagePreset,
+  ForestFloorPreset,
+  HazePreset,
   PresetCategory,
 } from "./presets/types.js";
 

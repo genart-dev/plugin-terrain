@@ -160,7 +160,116 @@ export interface FogPreset extends BasePreset {
   wispDensity: number;
 }
 
-/** Discriminated union of all terrain presets. */
-export type TerrainPreset = SkyPreset | ProfilePreset | CloudPreset | WaterPreset | RiverPreset | PathPreset | ShorePreset | FieldPreset | RockPreset | TreelinePreset | CelestialPreset | FogPreset;
+/** Star field preset (night sky stars). */
+export interface StarfieldPreset extends BasePreset {
+  category: "starfield";
+  starCount: number;
+  brightnessRange: number;
+  maxSize: number;
+  starColor: string;
+  warmTint: number;
+  milkyWayEnabled: boolean;
+  milkyWayAngle: number;
+  milkyWayIntensity: number;
+  constellationHints: boolean;
+}
 
-export type PresetCategory = "sky" | "profile" | "clouds" | "water" | "river" | "path" | "shore" | "field" | "rock" | "treeline" | "celestial" | "fog";
+/** Cliff face preset (vertical rock wall). */
+export interface CliffFacePreset extends BasePreset {
+  category: "cliff-face";
+  textureMode: "sandstone" | "granite" | "basalt" | "limestone";
+  color: string;
+  shadowColor: string;
+  height: number;
+  xPosition: number;
+  width: number;
+  roughness: number;
+  ledgeCount: number;
+}
+
+/** Snow field preset (snow-covered ground). */
+export interface SnowfieldPreset extends BasePreset {
+  category: "snowfield";
+  snowColor: string;
+  shadowColor: string;
+  driftIntensity: number;
+  sparkleIntensity: number;
+  coverageTop: number;
+  coverageBottom: number;
+}
+
+/** Building preset (architectural silhouettes). */
+export interface BuildingPreset extends BasePreset {
+  category: "building";
+  buildingType: "farmhouse" | "church" | "tower" | "village";
+  color: string;
+  roofColor: string;
+  scale: number;
+  xPosition: number;
+  yPosition: number;
+  windowCount: number;
+}
+
+/** Bridge preset (bridge silhouettes spanning terrain). */
+export interface BridgePreset extends BasePreset {
+  category: "bridge";
+  bridgeStyle: "arch" | "suspension" | "footbridge" | "flat";
+  color: string;
+  deckColor: string;
+  span: number;
+  xPosition: number;
+  yPosition: number;
+  archHeight: number;
+  railingHeight: number;
+}
+
+/** Reflection preset (mirror reflection in water surface). */
+export interface ReflectionPreset extends BasePreset {
+  category: "reflection";
+  skyColor: string;
+  terrainColor: string;
+  darkening: number;
+  rippleFrequency: number;
+  rippleAmplitude: number;
+  waterlinePosition: number;
+  blurAmount: number;
+}
+
+/** Vignette foliage preset (foreground framing foliage). */
+export interface VignetteFoliagePreset extends BasePreset {
+  category: "vignette-foliage";
+  foliageStyle: "branches" | "grass-blades" | "leaves" | "vines";
+  color: string;
+  secondaryColor: string;
+  density: number;
+  depth: number;
+  edges: "top" | "bottom" | "sides" | "top-sides" | "all";
+}
+
+/** Forest floor preset (ground cover with undergrowth). */
+export interface ForestFloorPreset extends BasePreset {
+  category: "forest-floor";
+  coverType: "ferns" | "moss" | "fallen-logs" | "mushrooms";
+  color: string;
+  secondaryColor: string;
+  groundColor: string;
+  density: number;
+  coverageTop: number;
+  coverageBottom: number;
+}
+
+/** Haze preset (subtle atmospheric haze). */
+export interface HazePreset extends BasePreset {
+  category: "haze";
+  color: string;
+  opacity: number;
+  yPosition: number;
+  height: number;
+  gradientDirection: "bottom-up" | "top-down" | "center-out" | "uniform";
+  noiseAmount: number;
+}
+
+/** Discriminated union of all terrain presets. */
+export type TerrainPreset = SkyPreset | ProfilePreset | CloudPreset | WaterPreset | RiverPreset | PathPreset | ShorePreset | FieldPreset | RockPreset | TreelinePreset | CelestialPreset | FogPreset | StarfieldPreset | CliffFacePreset | SnowfieldPreset | BuildingPreset | BridgePreset | ReflectionPreset | VignetteFoliagePreset | ForestFloorPreset | HazePreset;
+
+export type PresetCategory = "sky" | "profile" | "clouds" | "water" | "river" | "path" | "shore" | "field" | "rock" | "treeline" | "celestial" | "fog" | "starfield" | "cliff-face" | "snowfield" | "building" | "bridge" | "reflection" | "vignette-foliage" | "forest-floor" | "haze";

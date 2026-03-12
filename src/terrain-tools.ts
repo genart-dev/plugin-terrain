@@ -1,9 +1,11 @@
 /**
  * MCP tool definitions for plugin-terrain.
  *
- * 17 tools: add_sky, add_terrain_profile, add_clouds, add_water_surface,
+ * 26 tools: add_sky, add_terrain_profile, add_clouds, add_water_surface,
  * add_river, add_path, add_shore, add_field, add_rock, add_treeline,
- * add_celestial, add_fog_layer,
+ * add_celestial, add_fog_layer, add_starfield, add_cliff_face, add_snowfield,
+ * add_building, add_bridge, add_reflection, add_vignette_foliage, add_forest_floor,
+ * add_haze,
  * create_landscape, set_time_of_day, list_terrain_presets, set_terrain_depth, set_depth_lane.
  */
 
@@ -449,13 +451,13 @@ const setTimeOfDayTool: McpToolDefinition = {
 const listTerrainPresetsTool: McpToolDefinition = {
   name: "list_terrain_presets",
   description:
-    `List all ${ALL_PRESETS.length} terrain presets, optionally filtered by category (sky, profile, clouds, water, river, path, shore, field, rock, treeline, celestial, fog).`,
+    `List all ${ALL_PRESETS.length} terrain presets, optionally filtered by category (sky, profile, clouds, water, river, path, shore, field, rock, treeline, celestial, fog, starfield, cliff-face, snowfield, building, bridge, reflection, vignette-foliage, forest-floor, haze).`,
   inputSchema: {
     type: "object",
     properties: {
       category: {
         type: "string",
-        enum: ["sky", "profile", "clouds", "water", "river", "path", "shore", "field", "rock", "treeline", "celestial", "fog"],
+        enum: ["sky", "profile", "clouds", "water", "river", "path", "shore", "field", "rock", "treeline", "celestial", "fog", "starfield", "cliff-face", "snowfield", "building", "bridge", "reflection", "vignette-foliage", "forest-floor", "haze"],
         description: "Filter by category.",
       },
     },
@@ -549,7 +551,7 @@ const setTerrainDepthTool: McpToolDefinition = {
 // set_depth_lane
 // ---------------------------------------------------------------------------
 
-const TERRAIN_TYPE_IDS = ["terrain:sky", "terrain:profile", "terrain:clouds", "terrain:water", "terrain:river", "terrain:path", "terrain:shore", "terrain:field", "terrain:rock", "terrain:treeline", "terrain:celestial", "terrain:fog-layer"];
+const TERRAIN_TYPE_IDS = ["terrain:sky", "terrain:profile", "terrain:clouds", "terrain:water", "terrain:river", "terrain:path", "terrain:shore", "terrain:field", "terrain:rock", "terrain:treeline", "terrain:celestial", "terrain:fog-layer", "terrain:starfield", "terrain:cliff-face", "terrain:snowfield", "terrain:building", "terrain:bridge", "terrain:reflection", "terrain:vignette-foliage", "terrain:forest-floor", "terrain:haze"];
 
 const setDepthLaneTool: McpToolDefinition = {
   name: "set_depth_lane",
@@ -1313,6 +1315,699 @@ const addFogLayerTool: McpToolDefinition = {
 };
 
 // ---------------------------------------------------------------------------
+// add_starfield
+// ---------------------------------------------------------------------------
+
+const STARFIELD_PRESETS_LIST = [
+  "clear-night", "dense-starfield", "milky-way", "sparse-stars", "twilight-stars",
+] as const;
+
+const addStarfieldTool: McpToolDefinition = {
+  name: "add_starfield",
+  description:
+    "Add a star field layer for night sky scenes. Renders magnitude-based stars with optional Milky Way band " +
+    "and constellation hint lines. Stars vary in size, brightness, and color temperature. " +
+    "Presets: clear-night, dense-starfield, milky-way, sparse-stars, twilight-stars.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      preset: {
+        type: "string",
+        enum: [...STARFIELD_PRESETS_LIST],
+        description: "Starfield preset. Defaults to 'clear-night'.",
+      },
+      seed: { type: "number", description: "Random seed for star placement." },
+      starCount: { type: "number", description: "Number of stars (20-1000)." },
+      milkyWayEnabled: { type: "boolean", description: "Enable Milky Way band." },
+      milkyWayAngle: { type: "number", description: "Milky Way angle in degrees (-90 to 90)." },
+      constellationHints: { type: "boolean", description: "Show constellation hint lines." },
+      starColor: { type: "string", description: "Base star color as hex." },
+      depthLane: { type: "string", description: "Depth lane placement. Defaults to 'sky'." },
+      atmosphericMode: {
+        type: "string",
+        enum: ["none", "western", "ink-wash"],
+        description: "Atmospheric depth mode.",
+      },
+      name: { type: "string", description: "Custom layer name." },
+    },
+  },
+  async handler(input: Record<string, unknown>, ctx: McpToolContext): Promise<McpToolResult> {
+    const presetId = (input.preset as string) ?? "clear-night";
+    const preset = getPreset(presetId);
+    if (presetId && !preset) {
+      return errorResult(`Unknown starfield preset "${presetId}". Use list_terrain_presets category=starfield to see options.`);
+    }
+
+    const seed = (input.seed as number) ?? Math.floor(Math.random() * 100000);
+    const properties: Record<string, unknown> = { preset: presetId, seed };
+
+    if (input.starCount !== undefined) properties.starCount = input.starCount;
+    if (input.milkyWayEnabled !== undefined) properties.milkyWayEnabled = input.milkyWayEnabled;
+    if (input.milkyWayAngle !== undefined) properties.milkyWayAngle = input.milkyWayAngle;
+    if (input.constellationHints !== undefined) properties.constellationHints = input.constellationHints;
+    if (input.starColor) properties.starColor = input.starColor;
+    if (input.depthLane) {
+      if (!parseDepthLaneSub(input.depthLane as string)) {
+        return errorResult(`Invalid depth lane "${input.depthLane}". Valid lanes: ${DEPTH_LANE_ORDER.join(", ")} (with optional -1/-2/-3 sub-level).`);
+      }
+      properties.depthLane = input.depthLane;
+    }
+    if (input.atmosphericMode) properties.atmosphericMode = input.atmosphericMode;
+
+    const layerName = (input.name as string) ?? `Stars (${preset?.name ?? presetId})`;
+    const layer = createLayer("terrain:starfield", layerName, ctx, properties);
+
+    ctx.layers.add(layer);
+    ctx.emitChange("layer-added");
+
+    return textResult(
+      `Added starfield layer "${layerName}" with ${presetId} preset.\n` +
+      `Seed: ${seed}, Layer ID: ${layer.id}`,
+    );
+  },
+};
+
+// ---------------------------------------------------------------------------
+// add_cliff_face
+// ---------------------------------------------------------------------------
+
+const CLIFF_FACE_PRESETS_LIST = [
+  "granite-cliff", "sandstone-wall", "basalt-columns", "limestone-face", "shale-cliff",
+] as const;
+
+const addCliffFaceTool: McpToolDefinition = {
+  name: "add_cliff_face",
+  description:
+    "Add a vertical cliff face/rock wall layer. Renders a textured cliff silhouette with ledge shadows. " +
+    "Supports 4 texture modes (sandstone, granite, basalt, limestone). " +
+    "Presets: granite-cliff, sandstone-wall, basalt-columns, limestone-face, shale-cliff.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      preset: {
+        type: "string",
+        enum: [...CLIFF_FACE_PRESETS_LIST],
+        description: "Cliff preset. Defaults to 'granite-cliff'.",
+      },
+      seed: { type: "number", description: "Random seed for cliff variation." },
+      textureMode: {
+        type: "string",
+        enum: ["sandstone", "granite", "basalt", "limestone"],
+        description: "Rock texture mode.",
+      },
+      color: { type: "string", description: "Rock color as hex." },
+      shadowColor: { type: "string", description: "Shadow color as hex." },
+      height: { type: "number", description: "Cliff height as fraction of canvas (0.2-1.0)." },
+      xPosition: { type: "number", description: "Horizontal position (0=left, 0.7=right)." },
+      width: { type: "number", description: "Cliff width as fraction of canvas (0.1-0.8)." },
+      depthLane: { type: "string", description: "Depth lane placement. Defaults to 'background'." },
+      atmosphericMode: {
+        type: "string",
+        enum: ["none", "western", "ink-wash"],
+        description: "Atmospheric depth mode.",
+      },
+      name: { type: "string", description: "Custom layer name." },
+    },
+  },
+  async handler(input: Record<string, unknown>, ctx: McpToolContext): Promise<McpToolResult> {
+    const presetId = (input.preset as string) ?? "granite-cliff";
+    const preset = getPreset(presetId);
+    if (presetId && !preset) {
+      return errorResult(`Unknown cliff-face preset "${presetId}". Use list_terrain_presets category=cliff-face to see options.`);
+    }
+
+    const seed = (input.seed as number) ?? Math.floor(Math.random() * 100000);
+    const properties: Record<string, unknown> = { preset: presetId, seed };
+
+    if (input.textureMode) properties.textureMode = input.textureMode;
+    if (input.color) properties.color = input.color;
+    if (input.shadowColor) properties.shadowColor = input.shadowColor;
+    if (input.height !== undefined) properties.height = input.height;
+    if (input.xPosition !== undefined) properties.xPosition = input.xPosition;
+    if (input.width !== undefined) properties.width = input.width;
+    if (input.depthLane) {
+      if (!parseDepthLaneSub(input.depthLane as string)) {
+        return errorResult(`Invalid depth lane "${input.depthLane}". Valid lanes: ${DEPTH_LANE_ORDER.join(", ")} (with optional -1/-2/-3 sub-level).`);
+      }
+      properties.depthLane = input.depthLane;
+    }
+    if (input.atmosphericMode) properties.atmosphericMode = input.atmosphericMode;
+
+    const layerName = (input.name as string) ?? `Cliff (${preset?.name ?? presetId})`;
+    const layer = createLayer("terrain:cliff-face", layerName, ctx, properties);
+
+    ctx.layers.add(layer);
+    ctx.emitChange("layer-added");
+
+    return textResult(
+      `Added cliff face layer "${layerName}" with ${presetId} preset.\n` +
+      `Seed: ${seed}, Layer ID: ${layer.id}`,
+    );
+  },
+};
+
+// ---------------------------------------------------------------------------
+// add_snowfield
+// ---------------------------------------------------------------------------
+
+const SNOWFIELD_PRESETS_LIST = [
+  "fresh-powder", "wind-swept", "sun-crust", "deep-snow",
+] as const;
+
+const addSnowfieldTool: McpToolDefinition = {
+  name: "add_snowfield",
+  description:
+    "Add a snow-covered ground layer with drift patterns, shadow tinting, and sparkle highlights. " +
+    "Presets: fresh-powder, wind-swept, sun-crust, deep-snow.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      preset: {
+        type: "string",
+        enum: [...SNOWFIELD_PRESETS_LIST],
+        description: "Snowfield preset. Defaults to 'fresh-powder'.",
+      },
+      seed: { type: "number", description: "Random seed for snow variation." },
+      snowColor: { type: "string", description: "Snow color as hex." },
+      shadowColor: { type: "string", description: "Shadow color as hex." },
+      driftIntensity: { type: "number", description: "Drift pattern intensity 0-1." },
+      sparkleIntensity: { type: "number", description: "Sparkle highlight intensity 0-1." },
+      depthLane: { type: "string", description: "Depth lane placement. Defaults to 'ground-plane'." },
+      atmosphericMode: {
+        type: "string",
+        enum: ["none", "western", "ink-wash"],
+        description: "Atmospheric depth mode.",
+      },
+      name: { type: "string", description: "Custom layer name." },
+    },
+  },
+  async handler(input: Record<string, unknown>, ctx: McpToolContext): Promise<McpToolResult> {
+    const presetId = (input.preset as string) ?? "fresh-powder";
+    const preset = getPreset(presetId);
+    if (presetId && !preset) {
+      return errorResult(`Unknown snowfield preset "${presetId}". Use list_terrain_presets category=snowfield to see options.`);
+    }
+
+    const seed = (input.seed as number) ?? Math.floor(Math.random() * 100000);
+    const properties: Record<string, unknown> = { preset: presetId, seed };
+
+    if (input.snowColor) properties.snowColor = input.snowColor;
+    if (input.shadowColor) properties.shadowColor = input.shadowColor;
+    if (input.driftIntensity !== undefined) properties.driftIntensity = input.driftIntensity;
+    if (input.sparkleIntensity !== undefined) properties.sparkleIntensity = input.sparkleIntensity;
+    if (input.depthLane) {
+      if (!parseDepthLaneSub(input.depthLane as string)) {
+        return errorResult(`Invalid depth lane "${input.depthLane}". Valid lanes: ${DEPTH_LANE_ORDER.join(", ")} (with optional -1/-2/-3 sub-level).`);
+      }
+      properties.depthLane = input.depthLane;
+    }
+    if (input.atmosphericMode) properties.atmosphericMode = input.atmosphericMode;
+
+    const layerName = (input.name as string) ?? `Snow (${preset?.name ?? presetId})`;
+    const layer = createLayer("terrain:snowfield", layerName, ctx, properties);
+
+    ctx.layers.add(layer);
+    ctx.emitChange("layer-added");
+
+    return textResult(
+      `Added snowfield layer "${layerName}" with ${presetId} preset.\n` +
+      `Seed: ${seed}, Layer ID: ${layer.id}`,
+    );
+  },
+};
+
+// ---------------------------------------------------------------------------
+// add_building
+// ---------------------------------------------------------------------------
+
+const BUILDING_PRESETS_LIST = [
+  "farmhouse", "church-steeple", "tower-ruin", "village-cluster", "temple", "lighthouse",
+] as const;
+
+const addBuildingTool: McpToolDefinition = {
+  name: "add_building",
+  description:
+    "Add a simple architectural silhouette layer. Renders farmhouses, churches, towers, or village clusters " +
+    "as filled shapes. Buildings are intentionally simple — silhouette impressions, not detailed architecture. " +
+    "Presets: farmhouse, church-steeple, tower-ruin, village-cluster, temple, lighthouse.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      preset: {
+        type: "string",
+        enum: [...BUILDING_PRESETS_LIST],
+        description: "Building preset. Defaults to 'farmhouse'.",
+      },
+      seed: { type: "number", description: "Random seed for building variation." },
+      buildingType: {
+        type: "string",
+        enum: ["farmhouse", "church", "tower", "village"],
+        description: "Building form type.",
+      },
+      color: { type: "string", description: "Building body color as hex." },
+      roofColor: { type: "string", description: "Roof color as hex." },
+      scale: { type: "number", description: "Scale factor 0.3-2.0." },
+      xPosition: { type: "number", description: "Horizontal position 0-1." },
+      yPosition: { type: "number", description: "Vertical base position 0.2-0.95." },
+      depthLane: { type: "string", description: "Depth lane placement. Defaults to 'midground'." },
+      atmosphericMode: {
+        type: "string",
+        enum: ["none", "western", "ink-wash"],
+        description: "Atmospheric depth mode.",
+      },
+      name: { type: "string", description: "Custom layer name." },
+    },
+  },
+  async handler(input: Record<string, unknown>, ctx: McpToolContext): Promise<McpToolResult> {
+    const presetId = (input.preset as string) ?? "farmhouse";
+    const preset = getPreset(presetId);
+    if (presetId && !preset) {
+      return errorResult(`Unknown building preset "${presetId}". Use list_terrain_presets category=building to see options.`);
+    }
+
+    const seed = (input.seed as number) ?? Math.floor(Math.random() * 100000);
+    const properties: Record<string, unknown> = { preset: presetId, seed };
+
+    if (input.buildingType) properties.buildingType = input.buildingType;
+    if (input.color) properties.color = input.color;
+    if (input.roofColor) properties.roofColor = input.roofColor;
+    if (input.scale !== undefined) properties.scale = input.scale;
+    if (input.xPosition !== undefined) properties.xPosition = input.xPosition;
+    if (input.yPosition !== undefined) properties.yPosition = input.yPosition;
+    if (input.depthLane) {
+      if (!parseDepthLaneSub(input.depthLane as string)) {
+        return errorResult(`Invalid depth lane "${input.depthLane}". Valid lanes: ${DEPTH_LANE_ORDER.join(", ")} (with optional -1/-2/-3 sub-level).`);
+      }
+      properties.depthLane = input.depthLane;
+    }
+    if (input.atmosphericMode) properties.atmosphericMode = input.atmosphericMode;
+
+    const layerName = (input.name as string) ?? `Building (${preset?.name ?? presetId})`;
+    const layer = createLayer("terrain:building", layerName, ctx, properties);
+
+    ctx.layers.add(layer);
+    ctx.emitChange("layer-added");
+
+    return textResult(
+      `Added building layer "${layerName}" with ${presetId} preset.\n` +
+      `Seed: ${seed}, Layer ID: ${layer.id}`,
+    );
+  },
+};
+
+// ---------------------------------------------------------------------------
+// add_bridge
+// ---------------------------------------------------------------------------
+
+const BRIDGE_PRESETS_LIST = [
+  "stone-arch", "wooden-footbridge", "suspension-bridge", "flat-crossing",
+] as const;
+
+const addBridgeTool: McpToolDefinition = {
+  name: "add_bridge",
+  description:
+    "Add a bridge silhouette layer spanning between terrain elements. Supports arch, suspension, " +
+    "footbridge, and flat crossing styles. " +
+    "Presets: stone-arch, wooden-footbridge, suspension-bridge, flat-crossing.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      preset: {
+        type: "string",
+        enum: [...BRIDGE_PRESETS_LIST],
+        description: "Bridge preset. Defaults to 'stone-arch'.",
+      },
+      seed: { type: "number", description: "Random seed for bridge variation." },
+      bridgeStyle: {
+        type: "string",
+        enum: ["arch", "suspension", "footbridge", "flat"],
+        description: "Bridge style.",
+      },
+      color: { type: "string", description: "Bridge structure color as hex." },
+      deckColor: { type: "string", description: "Bridge deck color as hex." },
+      span: { type: "number", description: "Bridge span as fraction of canvas width (0.15-0.8)." },
+      xPosition: { type: "number", description: "Horizontal center position 0-1." },
+      yPosition: { type: "number", description: "Vertical position 0.2-0.9." },
+      depthLane: { type: "string", description: "Depth lane placement. Defaults to 'midground'." },
+      atmosphericMode: {
+        type: "string",
+        enum: ["none", "western", "ink-wash"],
+        description: "Atmospheric depth mode.",
+      },
+      name: { type: "string", description: "Custom layer name." },
+    },
+  },
+  async handler(input: Record<string, unknown>, ctx: McpToolContext): Promise<McpToolResult> {
+    const presetId = (input.preset as string) ?? "stone-arch";
+    const preset = getPreset(presetId);
+    if (presetId && !preset) {
+      return errorResult(`Unknown bridge preset "${presetId}". Use list_terrain_presets category=bridge to see options.`);
+    }
+
+    const seed = (input.seed as number) ?? Math.floor(Math.random() * 100000);
+    const properties: Record<string, unknown> = { preset: presetId, seed };
+
+    if (input.bridgeStyle) properties.bridgeStyle = input.bridgeStyle;
+    if (input.color) properties.color = input.color;
+    if (input.deckColor) properties.deckColor = input.deckColor;
+    if (input.span !== undefined) properties.span = input.span;
+    if (input.xPosition !== undefined) properties.xPosition = input.xPosition;
+    if (input.yPosition !== undefined) properties.yPosition = input.yPosition;
+    if (input.depthLane) {
+      if (!parseDepthLaneSub(input.depthLane as string)) {
+        return errorResult(`Invalid depth lane "${input.depthLane}". Valid lanes: ${DEPTH_LANE_ORDER.join(", ")} (with optional -1/-2/-3 sub-level).`);
+      }
+      properties.depthLane = input.depthLane;
+    }
+    if (input.atmosphericMode) properties.atmosphericMode = input.atmosphericMode;
+
+    const layerName = (input.name as string) ?? `Bridge (${preset?.name ?? presetId})`;
+    const layer = createLayer("terrain:bridge", layerName, ctx, properties);
+
+    ctx.layers.add(layer);
+    ctx.emitChange("layer-added");
+
+    return textResult(
+      `Added bridge layer "${layerName}" with ${presetId} preset.\n` +
+      `Seed: ${seed}, Layer ID: ${layer.id}`,
+    );
+  },
+};
+
+// ---------------------------------------------------------------------------
+// add_reflection
+// ---------------------------------------------------------------------------
+
+const REFLECTION_PRESETS_LIST = [
+  "calm-lake", "rippled-reflection", "dark-water", "golden-reflection",
+] as const;
+
+const addReflectionTool: McpToolDefinition = {
+  name: "add_reflection",
+  description:
+    "Add a water surface reflection layer. Renders a simplified mirror of sky/terrain colors below " +
+    "the waterline with darkening and ripple distortion. Not an actual scene mirror — uses solid color " +
+    "bands that simulate reflected sky and terrain tones. " +
+    "Presets: calm-lake, rippled-reflection, dark-water, golden-reflection.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      preset: {
+        type: "string",
+        enum: [...REFLECTION_PRESETS_LIST],
+        description: "Reflection preset. Defaults to 'calm-lake'.",
+      },
+      seed: { type: "number", description: "Random seed for ripple variation." },
+      skyColor: { type: "string", description: "Reflected sky color as hex." },
+      terrainColor: { type: "string", description: "Reflected terrain color as hex." },
+      darkening: { type: "number", description: "Reflection darkening 0-0.7." },
+      rippleFrequency: { type: "number", description: "Ripple frequency 0-1." },
+      rippleAmplitude: { type: "number", description: "Ripple distortion amplitude 0-1." },
+      waterlinePosition: { type: "number", description: "Waterline position 0.2-0.9." },
+      depthLane: { type: "string", description: "Depth lane placement. Defaults to 'ground-plane'." },
+      atmosphericMode: {
+        type: "string",
+        enum: ["none", "western", "ink-wash"],
+        description: "Atmospheric depth mode.",
+      },
+      name: { type: "string", description: "Custom layer name." },
+    },
+  },
+  async handler(input: Record<string, unknown>, ctx: McpToolContext): Promise<McpToolResult> {
+    const presetId = (input.preset as string) ?? "calm-lake";
+    const preset = getPreset(presetId);
+    if (presetId && !preset) {
+      return errorResult(`Unknown reflection preset "${presetId}". Use list_terrain_presets category=reflection to see options.`);
+    }
+
+    const seed = (input.seed as number) ?? Math.floor(Math.random() * 100000);
+    const properties: Record<string, unknown> = { preset: presetId, seed };
+
+    if (input.skyColor) properties.skyColor = input.skyColor;
+    if (input.terrainColor) properties.terrainColor = input.terrainColor;
+    if (input.darkening !== undefined) properties.darkening = input.darkening;
+    if (input.rippleFrequency !== undefined) properties.rippleFrequency = input.rippleFrequency;
+    if (input.rippleAmplitude !== undefined) properties.rippleAmplitude = input.rippleAmplitude;
+    if (input.waterlinePosition !== undefined) properties.waterlinePosition = input.waterlinePosition;
+    if (input.depthLane) {
+      if (!parseDepthLaneSub(input.depthLane as string)) {
+        return errorResult(`Invalid depth lane "${input.depthLane}". Valid lanes: ${DEPTH_LANE_ORDER.join(", ")} (with optional -1/-2/-3 sub-level).`);
+      }
+      properties.depthLane = input.depthLane;
+    }
+    if (input.atmosphericMode) properties.atmosphericMode = input.atmosphericMode;
+
+    const layerName = (input.name as string) ?? `Reflection (${preset?.name ?? presetId})`;
+    const layer = createLayer("terrain:reflection", layerName, ctx, properties);
+
+    ctx.layers.add(layer);
+    ctx.emitChange("layer-added");
+
+    return textResult(
+      `Added reflection layer "${layerName}" with ${presetId} preset.\n` +
+      `Seed: ${seed}, Layer ID: ${layer.id}`,
+    );
+  },
+};
+
+// ---------------------------------------------------------------------------
+// add_vignette_foliage
+// ---------------------------------------------------------------------------
+
+const VIGNETTE_FOLIAGE_PRESETS_LIST = [
+  "overhanging-branches", "grass-border", "leaf-frame", "pine-canopy", "vine-border",
+] as const;
+
+const addVignetteFoliageTool: McpToolDefinition = {
+  name: "add_vignette_foliage",
+  description:
+    "Add foreground framing foliage along canvas edges. Renders overhanging branches, grass blades, " +
+    "leaf borders, or trailing vines that frame the scene. Choose which edges to apply foliage to. " +
+    "Presets: overhanging-branches, grass-border, leaf-frame, pine-canopy, vine-border.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      preset: {
+        type: "string",
+        enum: [...VIGNETTE_FOLIAGE_PRESETS_LIST],
+        description: "Foliage preset. Defaults to 'overhanging-branches'.",
+      },
+      seed: { type: "number", description: "Random seed for foliage variation." },
+      foliageStyle: {
+        type: "string",
+        enum: ["branches", "grass-blades", "leaves", "vines"],
+        description: "Foliage element style.",
+      },
+      color: { type: "string", description: "Foliage color as hex." },
+      secondaryColor: { type: "string", description: "Secondary/accent color as hex." },
+      density: { type: "number", description: "Foliage density 0.1-1.0." },
+      depth: { type: "number", description: "Border depth as fraction of canvas (0.02-0.35)." },
+      edges: {
+        type: "string",
+        enum: ["top", "bottom", "sides", "top-sides", "all"],
+        description: "Which edges to apply foliage to.",
+      },
+      depthLane: { type: "string", description: "Depth lane placement. Defaults to 'overlay'." },
+      atmosphericMode: {
+        type: "string",
+        enum: ["none", "western", "ink-wash"],
+        description: "Atmospheric depth mode.",
+      },
+      name: { type: "string", description: "Custom layer name." },
+    },
+  },
+  async handler(input: Record<string, unknown>, ctx: McpToolContext): Promise<McpToolResult> {
+    const presetId = (input.preset as string) ?? "overhanging-branches";
+    const preset = getPreset(presetId);
+    if (presetId && !preset) {
+      return errorResult(`Unknown vignette-foliage preset "${presetId}". Use list_terrain_presets category=vignette-foliage to see options.`);
+    }
+
+    const seed = (input.seed as number) ?? Math.floor(Math.random() * 100000);
+    const properties: Record<string, unknown> = { preset: presetId, seed };
+
+    if (input.foliageStyle) properties.foliageStyle = input.foliageStyle;
+    if (input.color) properties.color = input.color;
+    if (input.secondaryColor) properties.secondaryColor = input.secondaryColor;
+    if (input.density !== undefined) properties.density = input.density;
+    if (input.depth !== undefined) properties.depth = input.depth;
+    if (input.edges) properties.edges = input.edges;
+    if (input.depthLane) {
+      if (!parseDepthLaneSub(input.depthLane as string)) {
+        return errorResult(`Invalid depth lane "${input.depthLane}". Valid lanes: ${DEPTH_LANE_ORDER.join(", ")} (with optional -1/-2/-3 sub-level).`);
+      }
+      properties.depthLane = input.depthLane;
+    }
+    if (input.atmosphericMode) properties.atmosphericMode = input.atmosphericMode;
+
+    const layerName = (input.name as string) ?? `Foliage (${preset?.name ?? presetId})`;
+    const layer = createLayer("terrain:vignette-foliage", layerName, ctx, properties);
+
+    ctx.layers.add(layer);
+    ctx.emitChange("layer-added");
+
+    return textResult(
+      `Added vignette foliage layer "${layerName}" with ${presetId} preset.\n` +
+      `Seed: ${seed}, Layer ID: ${layer.id}`,
+    );
+  },
+};
+
+// ---------------------------------------------------------------------------
+// add_forest_floor
+// ---------------------------------------------------------------------------
+
+const FOREST_FLOOR_PRESETS_LIST = [
+  "fern-carpet", "mossy-ground", "fallen-leaves", "pine-needles", "mushroom-patch",
+] as const;
+
+const addForestFloorTool: McpToolDefinition = {
+  name: "add_forest_floor",
+  description:
+    "Add a forest floor ground cover layer with undergrowth. Renders ferns, moss, fallen logs, or mushrooms " +
+    "over a dark soil base. " +
+    "Presets: fern-carpet, mossy-ground, fallen-leaves, pine-needles, mushroom-patch.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      preset: {
+        type: "string",
+        enum: [...FOREST_FLOOR_PRESETS_LIST],
+        description: "Forest floor preset. Defaults to 'fern-carpet'.",
+      },
+      seed: { type: "number", description: "Random seed for ground cover variation." },
+      coverType: {
+        type: "string",
+        enum: ["ferns", "moss", "fallen-logs", "mushrooms"],
+        description: "Ground cover type.",
+      },
+      color: { type: "string", description: "Primary cover color as hex." },
+      secondaryColor: { type: "string", description: "Secondary/accent color as hex." },
+      groundColor: { type: "string", description: "Ground/soil color as hex." },
+      density: { type: "number", description: "Cover density 0.1-1.0." },
+      depthLane: { type: "string", description: "Depth lane placement. Defaults to 'ground-plane'." },
+      atmosphericMode: {
+        type: "string",
+        enum: ["none", "western", "ink-wash"],
+        description: "Atmospheric depth mode.",
+      },
+      name: { type: "string", description: "Custom layer name." },
+    },
+  },
+  async handler(input: Record<string, unknown>, ctx: McpToolContext): Promise<McpToolResult> {
+    const presetId = (input.preset as string) ?? "fern-carpet";
+    const preset = getPreset(presetId);
+    if (presetId && !preset) {
+      return errorResult(`Unknown forest-floor preset "${presetId}". Use list_terrain_presets category=forest-floor to see options.`);
+    }
+
+    const seed = (input.seed as number) ?? Math.floor(Math.random() * 100000);
+    const properties: Record<string, unknown> = { preset: presetId, seed };
+
+    if (input.coverType) properties.coverType = input.coverType;
+    if (input.color) properties.color = input.color;
+    if (input.secondaryColor) properties.secondaryColor = input.secondaryColor;
+    if (input.groundColor) properties.groundColor = input.groundColor;
+    if (input.density !== undefined) properties.density = input.density;
+    if (input.depthLane) {
+      if (!parseDepthLaneSub(input.depthLane as string)) {
+        return errorResult(`Invalid depth lane "${input.depthLane}". Valid lanes: ${DEPTH_LANE_ORDER.join(", ")} (with optional -1/-2/-3 sub-level).`);
+      }
+      properties.depthLane = input.depthLane;
+    }
+    if (input.atmosphericMode) properties.atmosphericMode = input.atmosphericMode;
+
+    const layerName = (input.name as string) ?? `Forest Floor (${preset?.name ?? presetId})`;
+    const layer = createLayer("terrain:forest-floor", layerName, ctx, properties);
+
+    ctx.layers.add(layer);
+    ctx.emitChange("layer-added");
+
+    return textResult(
+      `Added forest floor layer "${layerName}" with ${presetId} preset.\n` +
+      `Seed: ${seed}, Layer ID: ${layer.id}`,
+    );
+  },
+};
+
+// ---------------------------------------------------------------------------
+// add_haze
+// ---------------------------------------------------------------------------
+
+const HAZE_PRESETS_LIST = [
+  "light-haze", "golden-haze", "cool-mist", "heat-haze",
+] as const;
+
+const addHazeTool: McpToolDefinition = {
+  name: "add_haze",
+  description:
+    "Add a subtle atmospheric haze layer. Lighter and more additive than fog-layer — haze softens " +
+    "distant elements without fully obscuring them. Supports directional gradients and noise modulation. " +
+    "Presets: light-haze, golden-haze, cool-mist, heat-haze.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      preset: {
+        type: "string",
+        enum: [...HAZE_PRESETS_LIST],
+        description: "Haze preset. Defaults to 'light-haze'.",
+      },
+      seed: { type: "number", description: "Random seed for haze variation." },
+      color: { type: "string", description: "Haze color as hex." },
+      opacity: { type: "number", description: "Haze opacity 0.02-0.6." },
+      yPosition: { type: "number", description: "Vertical center position 0-1." },
+      height: { type: "number", description: "Haze height as fraction of canvas (0.05-1.0)." },
+      gradientDirection: {
+        type: "string",
+        enum: ["bottom-up", "top-down", "center-out", "uniform"],
+        description: "Haze gradient direction.",
+      },
+      depthLane: { type: "string", description: "Depth lane placement. Defaults to 'midground'." },
+      atmosphericMode: {
+        type: "string",
+        enum: ["none", "western", "ink-wash"],
+        description: "Atmospheric depth mode.",
+      },
+      name: { type: "string", description: "Custom layer name." },
+    },
+  },
+  async handler(input: Record<string, unknown>, ctx: McpToolContext): Promise<McpToolResult> {
+    const presetId = (input.preset as string) ?? "light-haze";
+    const preset = getPreset(presetId);
+    if (presetId && !preset) {
+      return errorResult(`Unknown haze preset "${presetId}". Use list_terrain_presets category=haze to see options.`);
+    }
+
+    const seed = (input.seed as number) ?? Math.floor(Math.random() * 100000);
+    const properties: Record<string, unknown> = { preset: presetId, seed };
+
+    if (input.color) properties.color = input.color;
+    if (input.opacity !== undefined) properties.opacity = input.opacity;
+    if (input.yPosition !== undefined) properties.yPosition = input.yPosition;
+    if (input.height !== undefined) properties.height = input.height;
+    if (input.gradientDirection) properties.gradientDirection = input.gradientDirection;
+    if (input.depthLane) {
+      if (!parseDepthLaneSub(input.depthLane as string)) {
+        return errorResult(`Invalid depth lane "${input.depthLane}". Valid lanes: ${DEPTH_LANE_ORDER.join(", ")} (with optional -1/-2/-3 sub-level).`);
+      }
+      properties.depthLane = input.depthLane;
+    }
+    if (input.atmosphericMode) properties.atmosphericMode = input.atmosphericMode;
+
+    const layerName = (input.name as string) ?? `Haze (${preset?.name ?? presetId})`;
+    const layer = createLayer("terrain:haze", layerName, ctx, properties);
+
+    ctx.layers.add(layer);
+    ctx.emitChange("layer-added");
+
+    return textResult(
+      `Added haze layer "${layerName}" with ${presetId} preset.\n` +
+      `Seed: ${seed}, Layer ID: ${layer.id}`,
+    );
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Export
 // ---------------------------------------------------------------------------
 
@@ -1329,6 +2024,15 @@ export const terrainMcpTools: McpToolDefinition[] = [
   addTreelineTool,
   addCelestialTool,
   addFogLayerTool,
+  addStarfieldTool,
+  addCliffFaceTool,
+  addSnowfieldTool,
+  addBuildingTool,
+  addBridgeTool,
+  addReflectionTool,
+  addVignetteFoliageTool,
+  addForestFloorTool,
+  addHazeTool,
   createLandscapeTool,
   setTimeOfDayTool,
   listTerrainPresetsTool,

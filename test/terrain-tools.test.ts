@@ -29,8 +29,8 @@ function getTool(name: string) {
 }
 
 describe("terrain MCP tools", () => {
-  it("exports 17 tools", () => {
-    expect(terrainMcpTools).toHaveLength(17);
+  it("exports 26 tools", () => {
+    expect(terrainMcpTools).toHaveLength(26);
   });
 
   it("all tools have name, description, and handler", () => {
@@ -962,7 +962,7 @@ describe("terrain MCP tools", () => {
     it("lists all presets when no filter", async () => {
       const ctx = createMockContext();
       const result = await getTool("list_terrain_presets").handler({}, ctx);
-      expect(result.content[0]!.text).toContain("74 presets");
+      expect(result.content[0]!.text).toContain("116 presets");
     });
 
     it("filters by category", async () => {
