@@ -134,7 +134,33 @@ export interface TreelinePreset extends BasePreset {
   irregularity: number;
 }
 
-/** Discriminated union of all terrain presets. */
-export type TerrainPreset = SkyPreset | ProfilePreset | CloudPreset | WaterPreset | RiverPreset | PathPreset | ShorePreset | FieldPreset | RockPreset | TreelinePreset;
+/** Celestial body preset (sun, moon, star with glow and light path). */
+export interface CelestialPreset extends BasePreset {
+  category: "celestial";
+  bodyType: "sun" | "moon" | "star";
+  elevation: number;
+  azimuth: number;
+  size: number;
+  glowRadius: number;
+  glowColor: string;
+  bodyColor: string;
+  lightPathEnabled: boolean;
+  lightPathColor: string;
+}
 
-export type PresetCategory = "sky" | "profile" | "clouds" | "water" | "river" | "path" | "shore" | "field" | "rock" | "treeline";
+/** Fog layer preset (occluding fog bands for depth separation). */
+export interface FogPreset extends BasePreset {
+  category: "fog";
+  fogType: "band" | "ground" | "mountain" | "veil";
+  opacity: number;
+  height: number;
+  yPosition: number;
+  color: string;
+  edgeSoftness: number;
+  wispDensity: number;
+}
+
+/** Discriminated union of all terrain presets. */
+export type TerrainPreset = SkyPreset | ProfilePreset | CloudPreset | WaterPreset | RiverPreset | PathPreset | ShorePreset | FieldPreset | RockPreset | TreelinePreset | CelestialPreset | FogPreset;
+
+export type PresetCategory = "sky" | "profile" | "clouds" | "water" | "river" | "path" | "shore" | "field" | "rock" | "treeline" | "celestial" | "fog";

@@ -1,8 +1,8 @@
 /**
  * @genart-dev/plugin-terrain — Natural landscape element layers
  *
- * 10 layer types (sky, profile, clouds, water, river, path, shore, field, rock, treeline),
- * 63 presets, 15 MCP tools.
+ * 12 layer types (sky, profile, clouds, water, river, path, shore, field, rock, treeline, celestial, fog-layer),
+ * 74 presets, 17 MCP tools.
  */
 
 import type { DesignPlugin, PluginContext } from "@genart-dev/core";
@@ -18,6 +18,8 @@ import {
   fieldLayerType,
   rockLayerType,
   treelineLayerType,
+  celestialLayerType,
+  fogLayerType,
 } from "./layers/index.js";
 
 const terrainPlugin: DesignPlugin = {
@@ -27,9 +29,9 @@ const terrainPlugin: DesignPlugin = {
   description:
     "Natural landscape element layers: sky gradients, terrain profiles, cloud formations, " +
     "water surfaces, perspective rivers, paths/trails, shore transitions, vegetation fields, " +
-    "natural rock forms, and treeline silhouettes. " +
+    "natural rock forms, treeline silhouettes, celestial bodies, and occluding fog bands. " +
     "Depth lane system for cross-plugin depth coordination. " +
-    "10 layer types, 63 presets, 15 MCP tools.",
+    "12 layer types, 74 presets, 17 MCP tools.",
 
   layerTypes: [
     skyLayerType,
@@ -42,6 +44,8 @@ const terrainPlugin: DesignPlugin = {
     fieldLayerType,
     rockLayerType,
     treelineLayerType,
+    celestialLayerType,
+    fogLayerType,
   ],
   tools: [],
   exportHandlers: [],
@@ -65,6 +69,8 @@ export {
   fieldLayerType,
   rockLayerType,
   treelineLayerType,
+  celestialLayerType,
+  fogLayerType,
 } from "./layers/index.js";
 
 // Re-export presets
@@ -81,6 +87,8 @@ export type {
   FieldPreset,
   RockPreset,
   TreelinePreset,
+  CelestialPreset,
+  FogPreset,
   PresetCategory,
 } from "./presets/types.js";
 

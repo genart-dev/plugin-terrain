@@ -9,6 +9,8 @@ import { SHORE_PRESETS } from "./shore.js";
 import { FIELD_PRESETS } from "./field.js";
 import { ROCK_PRESETS } from "./rock.js";
 import { TREELINE_PRESETS } from "./treeline.js";
+import { CELESTIAL_PRESETS } from "./celestial.js";
+import { FOG_PRESETS } from "./fog.js";
 
 export const ALL_PRESETS: TerrainPreset[] = [
   ...SKY_PRESETS,
@@ -21,6 +23,8 @@ export const ALL_PRESETS: TerrainPreset[] = [
   ...FIELD_PRESETS,
   ...ROCK_PRESETS,
   ...TREELINE_PRESETS,
+  ...CELESTIAL_PRESETS,
+  ...FOG_PRESETS,
 ];
 
 /** Look up a preset by ID. */

@@ -29,8 +29,8 @@ function getTool(name: string) {
 }
 
 describe("terrain MCP tools", () => {
-  it("exports 15 tools", () => {
-    expect(terrainMcpTools).toHaveLength(15);
+  it("exports 17 tools", () => {
+    expect(terrainMcpTools).toHaveLength(17);
   });
 
   it("all tools have name, description, and handler", () => {
@@ -575,6 +575,194 @@ describe("terrain MCP tools", () => {
     });
   });
 
+  describe("add_celestial", () => {
+    it("adds a celestial layer with default preset", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_celestial").handler({}, ctx);
+      expect(result.isError).toBeUndefined();
+      expect(ctx.layers.add).toHaveBeenCalled();
+      expect(ctx.emitChange).toHaveBeenCalledWith("layer-added");
+      expect(result.content[0]!.text).toContain("noon-sun");
+    });
+
+    it("adds celestial with custom preset", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_celestial").handler({ preset: "harvest-moon" }, ctx);
+      expect(result.content[0]!.text).toContain("harvest-moon");
+    });
+
+    it("returns error for unknown preset", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_celestial").handler({ preset: "supernova" }, ctx);
+      expect(result.isError).toBe(true);
+    });
+
+    it("accepts bodyType parameter", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_celestial").handler({ bodyType: "star" }, ctx);
+      expect(result.isError).toBeUndefined();
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.properties.bodyType).toBe("star");
+    });
+
+    it("accepts elevation and azimuth", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_celestial").handler({
+        elevation: 0.3,
+        azimuth: 0.7,
+      }, ctx);
+      expect(result.isError).toBeUndefined();
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.properties.elevation).toBe(0.3);
+      expect(addedLayer.properties.azimuth).toBe(0.7);
+    });
+
+    it("accepts size and glowRadius", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_celestial").handler({
+        size: 0.08,
+        glowRadius: 0.3,
+      }, ctx);
+      expect(result.isError).toBeUndefined();
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.properties.size).toBe(0.08);
+      expect(addedLayer.properties.glowRadius).toBe(0.3);
+    });
+
+    it("accepts lightPathEnabled parameter", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_celestial").handler({ lightPathEnabled: true }, ctx);
+      expect(result.isError).toBeUndefined();
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.properties.lightPathEnabled).toBe(true);
+    });
+
+    it("accepts depthLane parameter", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_celestial").handler({ depthLane: "far-background" }, ctx);
+      expect(result.isError).toBeUndefined();
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.properties.depthLane).toBe("far-background");
+    });
+
+    it("rejects invalid depth lane", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_celestial").handler({ depthLane: "invalid" }, ctx);
+      expect(result.isError).toBe(true);
+    });
+
+    it("accepts atmosphericMode parameter", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_celestial").handler({ atmosphericMode: "western" }, ctx);
+      expect(result.isError).toBeUndefined();
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.properties.atmosphericMode).toBe("western");
+    });
+
+    it("sets correct layer type", async () => {
+      const ctx = createMockContext();
+      await getTool("add_celestial").handler({}, ctx);
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.type).toBe("terrain:celestial");
+    });
+  });
+
+  describe("add_fog_layer", () => {
+    it("adds a fog layer with default preset", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_fog_layer").handler({}, ctx);
+      expect(result.isError).toBeUndefined();
+      expect(ctx.layers.add).toHaveBeenCalled();
+      expect(ctx.emitChange).toHaveBeenCalledWith("layer-added");
+      expect(result.content[0]!.text).toContain("morning-mist");
+    });
+
+    it("adds fog with custom preset", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_fog_layer").handler({ preset: "valley-fog" }, ctx);
+      expect(result.content[0]!.text).toContain("valley-fog");
+    });
+
+    it("returns error for unknown preset", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_fog_layer").handler({ preset: "toxic-smog" }, ctx);
+      expect(result.isError).toBe(true);
+    });
+
+    it("accepts fogType parameter", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_fog_layer").handler({ fogType: "veil" }, ctx);
+      expect(result.isError).toBeUndefined();
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.properties.fogType).toBe("veil");
+    });
+
+    it("accepts opacity parameter", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_fog_layer").handler({ opacity: 0.8 }, ctx);
+      expect(result.isError).toBeUndefined();
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.properties.opacity).toBe(0.8);
+    });
+
+    it("accepts height and yPosition", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_fog_layer").handler({
+        height: 0.3,
+        yPosition: 0.4,
+      }, ctx);
+      expect(result.isError).toBeUndefined();
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.properties.height).toBe(0.3);
+      expect(addedLayer.properties.yPosition).toBe(0.4);
+    });
+
+    it("accepts edgeSoftness parameter", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_fog_layer").handler({ edgeSoftness: 0.9 }, ctx);
+      expect(result.isError).toBeUndefined();
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.properties.edgeSoftness).toBe(0.9);
+    });
+
+    it("accepts wispDensity parameter", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_fog_layer").handler({ wispDensity: 0.7 }, ctx);
+      expect(result.isError).toBeUndefined();
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.properties.wispDensity).toBe(0.7);
+    });
+
+    it("accepts depthLane parameter", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_fog_layer").handler({ depthLane: "background" }, ctx);
+      expect(result.isError).toBeUndefined();
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.properties.depthLane).toBe("background");
+    });
+
+    it("rejects invalid depth lane", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_fog_layer").handler({ depthLane: "invalid" }, ctx);
+      expect(result.isError).toBe(true);
+    });
+
+    it("accepts atmosphericMode parameter", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_fog_layer").handler({ atmosphericMode: "ink-wash" }, ctx);
+      expect(result.isError).toBeUndefined();
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.properties.atmosphericMode).toBe("ink-wash");
+    });
+
+    it("sets correct layer type", async () => {
+      const ctx = createMockContext();
+      await getTool("add_fog_layer").handler({}, ctx);
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+      expect(addedLayer.type).toBe("terrain:fog-layer");
+    });
+  });
+
   describe("set_depth_lane on new layer types", () => {
     it("sets depth lane on river layer", async () => {
       const ctx = createMockContext();
@@ -647,6 +835,30 @@ describe("terrain MCP tools", () => {
       }, ctx);
       expect(result.isError).toBeUndefined();
     });
+
+    it("sets depth lane on celestial layer", async () => {
+      const ctx = createMockContext();
+      await getTool("add_celestial").handler({}, ctx);
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+
+      const result = await getTool("set_depth_lane").handler({
+        layerId: addedLayer.id,
+        depthLane: "sky",
+      }, ctx);
+      expect(result.isError).toBeUndefined();
+    });
+
+    it("sets depth lane on fog layer", async () => {
+      const ctx = createMockContext();
+      await getTool("add_fog_layer").handler({}, ctx);
+      const addedLayer = (ctx.layers.add as any).mock.calls[0][0] as DesignLayer;
+
+      const result = await getTool("set_depth_lane").handler({
+        layerId: addedLayer.id,
+        depthLane: "midground-1",
+      }, ctx);
+      expect(result.isError).toBeUndefined();
+    });
   });
 
   describe("list_terrain_presets with new categories", () => {
@@ -684,6 +896,18 @@ describe("terrain MCP tools", () => {
       const ctx = createMockContext();
       const result = await getTool("list_terrain_presets").handler({ category: "treeline" }, ctx);
       expect(result.content[0]!.text).toContain("6 presets");
+    });
+
+    it("filters celestial presets", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("list_terrain_presets").handler({ category: "celestial" }, ctx);
+      expect(result.content[0]!.text).toContain("6 presets");
+    });
+
+    it("filters fog presets", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("list_terrain_presets").handler({ category: "fog" }, ctx);
+      expect(result.content[0]!.text).toContain("5 presets");
     });
   });
 
@@ -738,7 +962,7 @@ describe("terrain MCP tools", () => {
     it("lists all presets when no filter", async () => {
       const ctx = createMockContext();
       const result = await getTool("list_terrain_presets").handler({}, ctx);
-      expect(result.content[0]!.text).toContain("63 presets");
+      expect(result.content[0]!.text).toContain("74 presets");
     });
 
     it("filters by category", async () => {

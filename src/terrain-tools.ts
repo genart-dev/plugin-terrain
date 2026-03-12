@@ -1,8 +1,9 @@
 /**
  * MCP tool definitions for plugin-terrain.
  *
- * 15 tools: add_sky, add_terrain_profile, add_clouds, add_water_surface,
+ * 17 tools: add_sky, add_terrain_profile, add_clouds, add_water_surface,
  * add_river, add_path, add_shore, add_field, add_rock, add_treeline,
+ * add_celestial, add_fog_layer,
  * create_landscape, set_time_of_day, list_terrain_presets, set_terrain_depth, set_depth_lane.
  */
 
@@ -448,13 +449,13 @@ const setTimeOfDayTool: McpToolDefinition = {
 const listTerrainPresetsTool: McpToolDefinition = {
   name: "list_terrain_presets",
   description:
-    `List all ${ALL_PRESETS.length} terrain presets, optionally filtered by category (sky, profile, clouds, water, river, path, shore, field, rock, treeline).`,
+    `List all ${ALL_PRESETS.length} terrain presets, optionally filtered by category (sky, profile, clouds, water, river, path, shore, field, rock, treeline, celestial, fog).`,
   inputSchema: {
     type: "object",
     properties: {
       category: {
         type: "string",
-        enum: ["sky", "profile", "clouds", "water", "river", "path", "shore", "field", "rock", "treeline"],
+        enum: ["sky", "profile", "clouds", "water", "river", "path", "shore", "field", "rock", "treeline", "celestial", "fog"],
         description: "Filter by category.",
       },
     },
@@ -548,7 +549,7 @@ const setTerrainDepthTool: McpToolDefinition = {
 // set_depth_lane
 // ---------------------------------------------------------------------------
 
-const TERRAIN_TYPE_IDS = ["terrain:sky", "terrain:profile", "terrain:clouds", "terrain:water", "terrain:river", "terrain:path", "terrain:shore", "terrain:field", "terrain:rock", "terrain:treeline"];
+const TERRAIN_TYPE_IDS = ["terrain:sky", "terrain:profile", "terrain:clouds", "terrain:water", "terrain:river", "terrain:path", "terrain:shore", "terrain:field", "terrain:rock", "terrain:treeline", "terrain:celestial", "terrain:fog-layer"];
 
 const setDepthLaneTool: McpToolDefinition = {
   name: "set_depth_lane",
@@ -1137,6 +1138,181 @@ const addTreelineTool: McpToolDefinition = {
 };
 
 // ---------------------------------------------------------------------------
+// add_celestial
+// ---------------------------------------------------------------------------
+
+const CELESTIAL_PRESETS_LIST = [
+  "noon-sun", "golden-hour-sun", "harvest-moon", "crescent-moon",
+  "blood-moon", "polar-star",
+] as const;
+
+const addCelestialTool: McpToolDefinition = {
+  name: "add_celestial",
+  description:
+    "Add a celestial body layer (sun, moon, or star) with glow and optional light path on water. " +
+    "Renders a radial gradient glow, a body disk, and an optional vertical shimmer band below. " +
+    "Presets: noon-sun, golden-hour-sun, harvest-moon, crescent-moon, blood-moon, polar-star.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      preset: {
+        type: "string",
+        enum: [...CELESTIAL_PRESETS_LIST],
+        description: "Celestial preset. Defaults to 'noon-sun'.",
+      },
+      seed: { type: "number", description: "Random seed for variation." },
+      bodyType: {
+        type: "string",
+        enum: ["sun", "moon", "star"],
+        description: "Body type.",
+      },
+      elevation: { type: "number", description: "Vertical position 0 (bottom) to 1 (top)." },
+      azimuth: { type: "number", description: "Horizontal position 0 (left) to 1 (right)." },
+      size: { type: "number", description: "Body size as fraction of canvas (0.005-0.15)." },
+      glowRadius: { type: "number", description: "Glow radius as fraction of canvas (0-0.5)." },
+      glowColor: { type: "string", description: "Glow color as hex." },
+      bodyColor: { type: "string", description: "Body disk color as hex." },
+      lightPathEnabled: { type: "boolean", description: "Enable vertical light path on water below." },
+      lightPathColor: { type: "string", description: "Light path color as hex." },
+      depthLane: {
+        type: "string",
+        description: "Depth lane placement. Defaults to 'sky'.",
+      },
+      atmosphericMode: {
+        type: "string",
+        enum: ["none", "western", "ink-wash"],
+        description: "Atmospheric depth mode.",
+      },
+      name: { type: "string", description: "Custom layer name." },
+    },
+  },
+  async handler(input: Record<string, unknown>, ctx: McpToolContext): Promise<McpToolResult> {
+    const presetId = (input.preset as string) ?? "noon-sun";
+    const preset = getPreset(presetId);
+    if (presetId && !preset) {
+      return errorResult(`Unknown celestial preset "${presetId}". Use list_terrain_presets category=celestial to see options.`);
+    }
+
+    const seed = (input.seed as number) ?? Math.floor(Math.random() * 100000);
+    const properties: Record<string, unknown> = { preset: presetId, seed };
+
+    if (input.bodyType) properties.bodyType = input.bodyType;
+    if (input.elevation !== undefined) properties.elevation = input.elevation;
+    if (input.azimuth !== undefined) properties.azimuth = input.azimuth;
+    if (input.size !== undefined) properties.size = input.size;
+    if (input.glowRadius !== undefined) properties.glowRadius = input.glowRadius;
+    if (input.glowColor) properties.glowColor = input.glowColor;
+    if (input.bodyColor) properties.bodyColor = input.bodyColor;
+    if (input.lightPathEnabled !== undefined) properties.lightPathEnabled = input.lightPathEnabled;
+    if (input.lightPathColor) properties.lightPathColor = input.lightPathColor;
+    if (input.depthLane) {
+      if (!parseDepthLaneSub(input.depthLane as string)) {
+        return errorResult(`Invalid depth lane "${input.depthLane}". Valid lanes: ${DEPTH_LANE_ORDER.join(", ")} (with optional -1/-2/-3 sub-level).`);
+      }
+      properties.depthLane = input.depthLane;
+    }
+    if (input.atmosphericMode) properties.atmosphericMode = input.atmosphericMode;
+
+    const layerName = (input.name as string) ?? `Celestial (${preset?.name ?? presetId})`;
+    const layer = createLayer("terrain:celestial", layerName, ctx, properties);
+
+    ctx.layers.add(layer);
+    ctx.emitChange("layer-added");
+
+    return textResult(
+      `Added celestial layer "${layerName}" with ${presetId} preset.\n` +
+      `Seed: ${seed}, Layer ID: ${layer.id}`,
+    );
+  },
+};
+
+// ---------------------------------------------------------------------------
+// add_fog_layer
+// ---------------------------------------------------------------------------
+
+const FOG_PRESETS_LIST = [
+  "morning-mist", "mountain-veil", "valley-fog", "shan-shui-cloud-band",
+  "coastal-haar",
+] as const;
+
+const addFogLayerTool: McpToolDefinition = {
+  name: "add_fog_layer",
+  description:
+    "Add an occluding fog layer for depth separation (shan-shui 'three distances' effect). " +
+    "Fog layers cover elements behind them, unlike mist particles which are additive. " +
+    "Renders a noise-modulated horizontal band with soft edges and wisps. " +
+    "Presets: morning-mist, mountain-veil, valley-fog, shan-shui-cloud-band, coastal-haar.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      preset: {
+        type: "string",
+        enum: [...FOG_PRESETS_LIST],
+        description: "Fog preset. Defaults to 'morning-mist'.",
+      },
+      seed: { type: "number", description: "Random seed for fog variation." },
+      fogType: {
+        type: "string",
+        enum: ["band", "ground", "mountain", "veil"],
+        description: "Fog shape type.",
+      },
+      opacity: { type: "number", description: "Fog opacity 0.05-1.0." },
+      height: { type: "number", description: "Fog band height as fraction of canvas (0.02-0.5)." },
+      yPosition: { type: "number", description: "Vertical center position 0 (top) to 1 (bottom)." },
+      color: { type: "string", description: "Fog color as hex." },
+      edgeSoftness: { type: "number", description: "Edge fade softness 0-1." },
+      wispDensity: { type: "number", description: "Wisp tendril density 0-1." },
+      depthLane: {
+        type: "string",
+        description: "Depth lane placement. Defaults to 'midground'.",
+      },
+      atmosphericMode: {
+        type: "string",
+        enum: ["none", "western", "ink-wash"],
+        description: "Atmospheric depth mode.",
+      },
+      name: { type: "string", description: "Custom layer name." },
+    },
+  },
+  async handler(input: Record<string, unknown>, ctx: McpToolContext): Promise<McpToolResult> {
+    const presetId = (input.preset as string) ?? "morning-mist";
+    const preset = getPreset(presetId);
+    if (presetId && !preset) {
+      return errorResult(`Unknown fog preset "${presetId}". Use list_terrain_presets category=fog to see options.`);
+    }
+
+    const seed = (input.seed as number) ?? Math.floor(Math.random() * 100000);
+    const properties: Record<string, unknown> = { preset: presetId, seed };
+
+    if (input.fogType) properties.fogType = input.fogType;
+    if (input.opacity !== undefined) properties.opacity = input.opacity;
+    if (input.height !== undefined) properties.height = input.height;
+    if (input.yPosition !== undefined) properties.yPosition = input.yPosition;
+    if (input.color) properties.color = input.color;
+    if (input.edgeSoftness !== undefined) properties.edgeSoftness = input.edgeSoftness;
+    if (input.wispDensity !== undefined) properties.wispDensity = input.wispDensity;
+    if (input.depthLane) {
+      if (!parseDepthLaneSub(input.depthLane as string)) {
+        return errorResult(`Invalid depth lane "${input.depthLane}". Valid lanes: ${DEPTH_LANE_ORDER.join(", ")} (with optional -1/-2/-3 sub-level).`);
+      }
+      properties.depthLane = input.depthLane;
+    }
+    if (input.atmosphericMode) properties.atmosphericMode = input.atmosphericMode;
+
+    const layerName = (input.name as string) ?? `Fog (${preset?.name ?? presetId})`;
+    const layer = createLayer("terrain:fog-layer", layerName, ctx, properties);
+
+    ctx.layers.add(layer);
+    ctx.emitChange("layer-added");
+
+    return textResult(
+      `Added fog layer "${layerName}" with ${presetId} preset.\n` +
+      `Seed: ${seed}, Layer ID: ${layer.id}`,
+    );
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Export
 // ---------------------------------------------------------------------------
 
@@ -1151,6 +1327,8 @@ export const terrainMcpTools: McpToolDefinition[] = [
   addFieldTool,
   addRockTool,
   addTreelineTool,
+  addCelestialTool,
+  addFogLayerTool,
   createLandscapeTool,
   setTimeOfDayTool,
   listTerrainPresetsTool,

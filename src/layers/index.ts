@@ -8,3 +8,5 @@ export { shoreLayerType } from "./shore.js";
 export { fieldLayerType } from "./field.js";
 export { rockLayerType } from "./rock.js";
 export { treelineLayerType } from "./treeline.js";
+export { celestialLayerType } from "./celestial.js";
+export { fogLayerType } from "./fog.js";
