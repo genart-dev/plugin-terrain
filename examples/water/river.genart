@@ -1,0 +1,85 @@
+{
+  "genart": "1.3",
+  "id": "terrain-river",
+  "title": "River Water",
+  "created": "2026-03-11T00:00:00.000Z",
+  "modified": "2026-03-11T00:00:00.000Z",
+  "renderer": {
+    "type": "canvas2d"
+  },
+  "canvas": {
+    "width": 600,
+    "height": 600
+  },
+  "parameters": [],
+  "colors": [],
+  "state": {
+    "seed": 42,
+    "params": {},
+    "colorPalette": []
+  },
+  "algorithm": "function sketch(ctx, state) {}",
+  "layers": [
+    {
+      "id": "sky-layer",
+      "type": "terrain:sky",
+      "name": "Sky — Noon",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "blendMode": "normal",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 600,
+        "rotation": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "anchorX": 0,
+        "anchorY": 0
+      },
+      "properties": {
+        "preset": "noon",
+        "zenithColor": "#1E3A6E",
+        "horizonColor": "#87CEEB",
+        "hazeColor": "#B0D4E8",
+        "hazeIntensity": 0.15,
+        "hazePosition": 0.9,
+        "hazeWidth": 0.1,
+        "horizonLine": 1
+      }
+    },
+    {
+      "id": "water-layer",
+      "type": "terrain:water",
+      "name": "Water — River",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "blendMode": "normal",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 600,
+        "rotation": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "anchorX": 0,
+        "anchorY": 0
+      },
+      "properties": {
+        "preset": "river",
+        "seed": 42,
+        "waterlinePosition": 0.65,
+        "rippleFrequency": 12,
+        "rippleAmplitude": 1,
+        "rippleMode": "sine",
+        "waterColor": "#2E5060",
+        "depthDarkening": 0.45,
+        "shimmerIntensity": 0.2
+      }
+    }
+  ]
+}

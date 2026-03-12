@@ -1,0 +1,54 @@
+{
+  "genart": "1.3",
+  "id": "terrain-golden-hour",
+  "title": "Golden Hour Sky",
+  "created": "2026-03-11T00:00:00.000Z",
+  "modified": "2026-03-11T00:00:00.000Z",
+  "renderer": {
+    "type": "canvas2d"
+  },
+  "canvas": {
+    "width": 600,
+    "height": 600
+  },
+  "parameters": [],
+  "colors": [],
+  "state": {
+    "seed": 42,
+    "params": {},
+    "colorPalette": []
+  },
+  "algorithm": "function sketch(ctx, state) {}",
+  "layers": [
+    {
+      "id": "sky-layer",
+      "type": "terrain:sky",
+      "name": "Sky — Golden Hour",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "blendMode": "normal",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 600,
+        "rotation": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "anchorX": 0,
+        "anchorY": 0
+      },
+      "properties": {
+        "preset": "golden-hour",
+        "zenithColor": "#2C5F8A",
+        "horizonColor": "#E8A317",
+        "hazeColor": "#F0C75E",
+        "hazeIntensity": 0.5,
+        "hazePosition": 0.8,
+        "hazeWidth": 0.2,
+        "horizonLine": 1
+      }
+    }
+  ]
+}
