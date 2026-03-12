@@ -223,6 +223,41 @@ export interface BridgePreset extends BasePreset {
   railingHeight: number;
 }
 
+/** Fence preset (fence/wall silhouettes). */
+export interface FencePreset extends BasePreset {
+  category: "fence";
+  fenceStyle: "picket" | "stone-wall" | "rail" | "wire";
+  color: string;
+  postColor: string;
+  height: number;
+  yPosition: number;
+  spacing: number;
+  sag: number;
+}
+
+/** Boat preset (boat/ship silhouettes on water). */
+export interface BoatPreset extends BasePreset {
+  category: "boat";
+  boatType: "sailboat" | "rowboat" | "fishing" | "ship";
+  color: string;
+  sailColor: string;
+  scale: number;
+  xPosition: number;
+  yPosition: number;
+  tilt: number;
+}
+
+/** Erosion preset (weathering texture overlay). */
+export interface ErosionPreset extends BasePreset {
+  category: "erosion";
+  erosionType: "rain-wash" | "wind-scour" | "frost-crack" | "lichen";
+  color: string;
+  intensity: number;
+  coverageTop: number;
+  coverageBottom: number;
+  noiseScale: number;
+}
+
 /** Reflection preset (mirror reflection in water surface). */
 export interface ReflectionPreset extends BasePreset {
   category: "reflection";
@@ -270,6 +305,6 @@ export interface HazePreset extends BasePreset {
 }
 
 /** Discriminated union of all terrain presets. */
-export type TerrainPreset = SkyPreset | ProfilePreset | CloudPreset | WaterPreset | RiverPreset | PathPreset | ShorePreset | FieldPreset | RockPreset | TreelinePreset | CelestialPreset | FogPreset | StarfieldPreset | CliffFacePreset | SnowfieldPreset | BuildingPreset | BridgePreset | ReflectionPreset | VignetteFoliagePreset | ForestFloorPreset | HazePreset;
+export type TerrainPreset = SkyPreset | ProfilePreset | CloudPreset | WaterPreset | RiverPreset | PathPreset | ShorePreset | FieldPreset | RockPreset | TreelinePreset | CelestialPreset | FogPreset | StarfieldPreset | CliffFacePreset | SnowfieldPreset | BuildingPreset | BridgePreset | ReflectionPreset | VignetteFoliagePreset | ForestFloorPreset | HazePreset | FencePreset | BoatPreset | ErosionPreset;
 
-export type PresetCategory = "sky" | "profile" | "clouds" | "water" | "river" | "path" | "shore" | "field" | "rock" | "treeline" | "celestial" | "fog" | "starfield" | "cliff-face" | "snowfield" | "building" | "bridge" | "reflection" | "vignette-foliage" | "forest-floor" | "haze";
+export type PresetCategory = "sky" | "profile" | "clouds" | "water" | "river" | "path" | "shore" | "field" | "rock" | "treeline" | "celestial" | "fog" | "starfield" | "cliff-face" | "snowfield" | "building" | "bridge" | "reflection" | "vignette-foliage" | "forest-floor" | "haze" | "fence" | "boat" | "erosion";

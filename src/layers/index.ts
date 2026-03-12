@@ -19,3 +19,6 @@ export { reflectionLayerType } from "./reflection.js";
 export { vignetteFoliageLayerType } from "./vignette-foliage.js";
 export { forestFloorLayerType } from "./forest-floor.js";
 export { hazeLayerType } from "./haze.js";
+export { fenceLayerType } from "./fence.js";
+export { boatLayerType } from "./boat.js";
+export { erosionLayerType } from "./erosion.js";

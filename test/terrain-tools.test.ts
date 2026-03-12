@@ -29,8 +29,8 @@ function getTool(name: string) {
 }
 
 describe("terrain MCP tools", () => {
-  it("exports 26 tools", () => {
-    expect(terrainMcpTools).toHaveLength(26);
+  it("exports 41 tools", () => {
+    expect(terrainMcpTools).toHaveLength(41);
   });
 
   it("all tools have name, description, and handler", () => {
@@ -962,7 +962,7 @@ describe("terrain MCP tools", () => {
     it("lists all presets when no filter", async () => {
       const ctx = createMockContext();
       const result = await getTool("list_terrain_presets").handler({}, ctx);
-      expect(result.content[0]!.text).toContain("116 presets");
+      expect(result.content[0]!.text).toContain("128 presets");
     });
 
     it("filters by category", async () => {
@@ -1219,4 +1219,165 @@ describe("terrain MCP tools", () => {
       expect(text).toContain("[midground]");
     });
   });
+
+  // -------------------------------------------------------------------------
+  // Tier 3 add_* tools
+  // -------------------------------------------------------------------------
+
+  describe("add_fence", () => {
+    it("adds a fence layer with default preset", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_fence").handler({}, ctx);
+      expect(result.isError).toBeUndefined();
+      expect(ctx.layers.add).toHaveBeenCalled();
+      expect(ctx.emitChange).toHaveBeenCalledWith("layer-added");
+    });
+
+    it("adds fence with custom preset", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_fence").handler({ preset: "ranch-rail" }, ctx);
+      expect(result.content[0]!.text).toContain("ranch-rail");
+    });
+
+    it("returns error for unknown preset", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_fence").handler({ preset: "barbed-wire" }, ctx);
+      expect(result.isError).toBe(true);
+    });
+
+    it("accepts fence style override", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_fence").handler({ fenceStyle: "wire" }, ctx);
+      expect(result.isError).toBeUndefined();
+    });
+
+    it("rejects invalid depth lane", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_fence").handler({ depthLane: "invalid" }, ctx);
+      expect(result.isError).toBe(true);
+    });
+  });
+
+  describe("add_boat", () => {
+    it("adds a boat layer with default preset", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_boat").handler({}, ctx);
+      expect(result.isError).toBeUndefined();
+      expect(ctx.layers.add).toHaveBeenCalled();
+      expect(ctx.emitChange).toHaveBeenCalledWith("layer-added");
+    });
+
+    it("adds boat with custom preset", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_boat").handler({ preset: "fishing-boat" }, ctx);
+      expect(result.content[0]!.text).toContain("fishing-boat");
+    });
+
+    it("returns error for unknown preset", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_boat").handler({ preset: "submarine" }, ctx);
+      expect(result.isError).toBe(true);
+    });
+
+    it("accepts boat type override", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_boat").handler({ boatType: "ship" }, ctx);
+      expect(result.isError).toBeUndefined();
+    });
+
+    it("rejects invalid depth lane", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_boat").handler({ depthLane: "invalid" }, ctx);
+      expect(result.isError).toBe(true);
+    });
+  });
+
+  describe("add_erosion", () => {
+    it("adds an erosion layer with default preset", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_erosion").handler({}, ctx);
+      expect(result.isError).toBeUndefined();
+      expect(ctx.layers.add).toHaveBeenCalled();
+      expect(ctx.emitChange).toHaveBeenCalledWith("layer-added");
+    });
+
+    it("adds erosion with custom preset", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_erosion").handler({ preset: "frost-cracks" }, ctx);
+      expect(result.content[0]!.text).toContain("frost-cracks");
+    });
+
+    it("returns error for unknown preset", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_erosion").handler({ preset: "acid-rain" }, ctx);
+      expect(result.isError).toBe(true);
+    });
+
+    it("accepts erosion type override", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_erosion").handler({ erosionType: "lichen" }, ctx);
+      expect(result.isError).toBeUndefined();
+    });
+
+    it("rejects invalid depth lane", async () => {
+      const ctx = createMockContext();
+      const result = await getTool("add_erosion").handler({ depthLane: "invalid" }, ctx);
+      expect(result.isError).toBe(true);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Scene recipe tools
+  // -------------------------------------------------------------------------
+
+  const SCENE_RECIPES = [
+    { name: "create_mountain_valley", expectedLayers: 6 },
+    { name: "create_river_scene", expectedLayers: 6 },
+    { name: "create_coastal_moonlight", expectedLayers: 6 },
+    { name: "create_park_riverside", expectedLayers: 7 },
+    { name: "create_shan_shui", expectedLayers: 6 },
+    { name: "create_pastoral", expectedLayers: 7 },
+    { name: "create_forest_clearing", expectedLayers: 6 },
+    { name: "create_alpine_lake", expectedLayers: 7 },
+    { name: "create_japanese_garden", expectedLayers: 7 },
+    { name: "create_desert_expanse", expectedLayers: 6 },
+    { name: "create_winter_woodland", expectedLayers: 6 },
+    { name: "create_tropical_coast", expectedLayers: 7 },
+  ] as const;
+
+  for (const recipe of SCENE_RECIPES) {
+    describe(recipe.name, () => {
+      it(`creates ${recipe.expectedLayers} layers`, async () => {
+        const ctx = createMockContext();
+        const result = await getTool(recipe.name).handler({}, ctx);
+        expect(result.isError).toBeUndefined();
+        expect(ctx.layers.add).toHaveBeenCalledTimes(recipe.expectedLayers);
+        expect(result.content[0]!.text).toContain(`${recipe.expectedLayers} layers`);
+      });
+
+      it("emits layer-added change", async () => {
+        const ctx = createMockContext();
+        await getTool(recipe.name).handler({}, ctx);
+        expect(ctx.emitChange).toHaveBeenCalledWith("layer-added");
+      });
+
+      it("accepts seed parameter", async () => {
+        const ctx = createMockContext();
+        const result = await getTool(recipe.name).handler({ seed: 42 }, ctx);
+        expect(result.isError).toBeUndefined();
+      });
+
+      it("accepts atmosphericMode parameter", async () => {
+        const ctx = createMockContext();
+        const result = await getTool(recipe.name).handler({ atmosphericMode: "western" }, ctx);
+        expect(result.isError).toBeUndefined();
+      });
+
+      it("returns layer IDs in summary", async () => {
+        const ctx = createMockContext();
+        const result = await getTool(recipe.name).handler({}, ctx);
+        expect(result.content[0]!.text).toContain("Layer IDs:");
+      });
+    });
+  }
 });

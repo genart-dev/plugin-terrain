@@ -1,12 +1,16 @@
 /**
  * MCP tool definitions for plugin-terrain.
  *
- * 26 tools: add_sky, add_terrain_profile, add_clouds, add_water_surface,
+ * 41 tools: add_sky, add_terrain_profile, add_clouds, add_water_surface,
  * add_river, add_path, add_shore, add_field, add_rock, add_treeline,
  * add_celestial, add_fog_layer, add_starfield, add_cliff_face, add_snowfield,
  * add_building, add_bridge, add_reflection, add_vignette_foliage, add_forest_floor,
- * add_haze,
- * create_landscape, set_time_of_day, list_terrain_presets, set_terrain_depth, set_depth_lane.
+ * add_haze, add_fence, add_boat, add_erosion,
+ * create_landscape, create_mountain_valley, create_river_scene, create_coastal_moonlight,
+ * create_park_riverside, create_shan_shui, create_pastoral, create_forest_clearing,
+ * create_alpine_lake, create_japanese_garden, create_desert_expanse, create_winter_woodland,
+ * create_tropical_coast,
+ * set_time_of_day, list_terrain_presets, set_terrain_depth, set_depth_lane.
  */
 
 import type {
@@ -451,13 +455,13 @@ const setTimeOfDayTool: McpToolDefinition = {
 const listTerrainPresetsTool: McpToolDefinition = {
   name: "list_terrain_presets",
   description:
-    `List all ${ALL_PRESETS.length} terrain presets, optionally filtered by category (sky, profile, clouds, water, river, path, shore, field, rock, treeline, celestial, fog, starfield, cliff-face, snowfield, building, bridge, reflection, vignette-foliage, forest-floor, haze).`,
+    `List all ${ALL_PRESETS.length} terrain presets, optionally filtered by category (sky, profile, clouds, water, river, path, shore, field, rock, treeline, celestial, fog, starfield, cliff-face, snowfield, building, bridge, reflection, vignette-foliage, forest-floor, haze, fence, boat, erosion).`,
   inputSchema: {
     type: "object",
     properties: {
       category: {
         type: "string",
-        enum: ["sky", "profile", "clouds", "water", "river", "path", "shore", "field", "rock", "treeline", "celestial", "fog", "starfield", "cliff-face", "snowfield", "building", "bridge", "reflection", "vignette-foliage", "forest-floor", "haze"],
+        enum: ["sky", "profile", "clouds", "water", "river", "path", "shore", "field", "rock", "treeline", "celestial", "fog", "starfield", "cliff-face", "snowfield", "building", "bridge", "reflection", "vignette-foliage", "forest-floor", "haze", "fence", "boat", "erosion"],
         description: "Filter by category.",
       },
     },
@@ -551,7 +555,7 @@ const setTerrainDepthTool: McpToolDefinition = {
 // set_depth_lane
 // ---------------------------------------------------------------------------
 
-const TERRAIN_TYPE_IDS = ["terrain:sky", "terrain:profile", "terrain:clouds", "terrain:water", "terrain:river", "terrain:path", "terrain:shore", "terrain:field", "terrain:rock", "terrain:treeline", "terrain:celestial", "terrain:fog-layer", "terrain:starfield", "terrain:cliff-face", "terrain:snowfield", "terrain:building", "terrain:bridge", "terrain:reflection", "terrain:vignette-foliage", "terrain:forest-floor", "terrain:haze"];
+const TERRAIN_TYPE_IDS = ["terrain:sky", "terrain:profile", "terrain:clouds", "terrain:water", "terrain:river", "terrain:path", "terrain:shore", "terrain:field", "terrain:rock", "terrain:treeline", "terrain:celestial", "terrain:fog-layer", "terrain:starfield", "terrain:cliff-face", "terrain:snowfield", "terrain:building", "terrain:bridge", "terrain:reflection", "terrain:vignette-foliage", "terrain:forest-floor", "terrain:haze", "terrain:fence", "terrain:boat", "terrain:erosion"];
 
 const setDepthLaneTool: McpToolDefinition = {
   name: "set_depth_lane",
@@ -2008,6 +2012,499 @@ const addHazeTool: McpToolDefinition = {
 };
 
 // ---------------------------------------------------------------------------
+// add_fence
+// ---------------------------------------------------------------------------
+
+const FENCE_PRESETS_LIST = [
+  "white-picket", "stone-wall", "ranch-rail", "wire-fence",
+] as const;
+
+const addFenceTool: McpToolDefinition = {
+  name: "add_fence",
+  description:
+    "Add a fence or wall silhouette layer. Renders picket fences, stone walls, ranch rails, or wire fences " +
+    "as foreground elements. " +
+    "Presets: white-picket, stone-wall, ranch-rail, wire-fence.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      preset: {
+        type: "string",
+        enum: [...FENCE_PRESETS_LIST],
+        description: "Fence preset. Defaults to 'white-picket'.",
+      },
+      seed: { type: "number", description: "Random seed for fence variation." },
+      fenceStyle: {
+        type: "string",
+        enum: ["picket", "stone-wall", "rail", "wire"],
+        description: "Fence style.",
+      },
+      color: { type: "string", description: "Fence color as hex." },
+      postColor: { type: "string", description: "Post color as hex." },
+      height: { type: "number", description: "Fence height 0.02-0.15." },
+      yPosition: { type: "number", description: "Vertical base position 0.2-0.95." },
+      spacing: { type: "number", description: "Post spacing 0.01-0.1." },
+      sag: { type: "number", description: "Wire/rail sag amount 0-1." },
+      depthLane: { type: "string", description: "Depth lane placement. Defaults to 'foreground'." },
+      atmosphericMode: {
+        type: "string",
+        enum: ["none", "western", "ink-wash"],
+        description: "Atmospheric depth mode.",
+      },
+      name: { type: "string", description: "Custom layer name." },
+    },
+  },
+  async handler(input: Record<string, unknown>, ctx: McpToolContext): Promise<McpToolResult> {
+    const presetId = (input.preset as string) ?? "white-picket";
+    const preset = getPreset(presetId);
+    if (presetId && !preset) {
+      return errorResult(`Unknown fence preset "${presetId}". Use list_terrain_presets category=fence to see options.`);
+    }
+
+    const seed = (input.seed as number) ?? Math.floor(Math.random() * 100000);
+    const properties: Record<string, unknown> = { preset: presetId, seed };
+
+    if (input.fenceStyle) properties.fenceStyle = input.fenceStyle;
+    if (input.color) properties.color = input.color;
+    if (input.postColor) properties.postColor = input.postColor;
+    if (input.height !== undefined) properties.height = input.height;
+    if (input.yPosition !== undefined) properties.yPosition = input.yPosition;
+    if (input.spacing !== undefined) properties.spacing = input.spacing;
+    if (input.sag !== undefined) properties.sag = input.sag;
+    if (input.depthLane) {
+      if (!parseDepthLaneSub(input.depthLane as string)) {
+        return errorResult(`Invalid depth lane "${input.depthLane}". Valid lanes: ${DEPTH_LANE_ORDER.join(", ")} (with optional -1/-2/-3 sub-level).`);
+      }
+      properties.depthLane = input.depthLane;
+    }
+    if (input.atmosphericMode) properties.atmosphericMode = input.atmosphericMode;
+
+    const layerName = (input.name as string) ?? `Fence (${preset?.name ?? presetId})`;
+    const layer = createLayer("terrain:fence", layerName, ctx, properties);
+
+    ctx.layers.add(layer);
+    ctx.emitChange("layer-added");
+
+    return textResult(
+      `Added fence layer "${layerName}" with ${presetId} preset.\n` +
+      `Seed: ${seed}, Layer ID: ${layer.id}`,
+    );
+  },
+};
+
+// ---------------------------------------------------------------------------
+// add_boat
+// ---------------------------------------------------------------------------
+
+const BOAT_PRESETS_LIST = [
+  "sailboat", "rowboat", "fishing-boat", "cargo-ship",
+] as const;
+
+const addBoatTool: McpToolDefinition = {
+  name: "add_boat",
+  description:
+    "Add a boat or ship silhouette layer on water. Renders sailboats, rowboats, fishing boats, or cargo ships. " +
+    "Presets: sailboat, rowboat, fishing-boat, cargo-ship.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      preset: {
+        type: "string",
+        enum: [...BOAT_PRESETS_LIST],
+        description: "Boat preset. Defaults to 'sailboat'.",
+      },
+      seed: { type: "number", description: "Random seed for boat variation." },
+      boatType: {
+        type: "string",
+        enum: ["sailboat", "rowboat", "fishing", "ship"],
+        description: "Boat form type.",
+      },
+      color: { type: "string", description: "Hull color as hex." },
+      sailColor: { type: "string", description: "Sail/cabin color as hex." },
+      scale: { type: "number", description: "Scale factor 0.02-0.15." },
+      xPosition: { type: "number", description: "Horizontal position 0-1." },
+      yPosition: { type: "number", description: "Vertical position 0.2-0.9." },
+      tilt: { type: "number", description: "Wave rocking tilt in degrees -15 to 15." },
+      depthLane: { type: "string", description: "Depth lane placement. Defaults to 'midground'." },
+      atmosphericMode: {
+        type: "string",
+        enum: ["none", "western", "ink-wash"],
+        description: "Atmospheric depth mode.",
+      },
+      name: { type: "string", description: "Custom layer name." },
+    },
+  },
+  async handler(input: Record<string, unknown>, ctx: McpToolContext): Promise<McpToolResult> {
+    const presetId = (input.preset as string) ?? "sailboat";
+    const preset = getPreset(presetId);
+    if (presetId && !preset) {
+      return errorResult(`Unknown boat preset "${presetId}". Use list_terrain_presets category=boat to see options.`);
+    }
+
+    const seed = (input.seed as number) ?? Math.floor(Math.random() * 100000);
+    const properties: Record<string, unknown> = { preset: presetId, seed };
+
+    if (input.boatType) properties.boatType = input.boatType;
+    if (input.color) properties.color = input.color;
+    if (input.sailColor) properties.sailColor = input.sailColor;
+    if (input.scale !== undefined) properties.scale = input.scale;
+    if (input.xPosition !== undefined) properties.xPosition = input.xPosition;
+    if (input.yPosition !== undefined) properties.yPosition = input.yPosition;
+    if (input.tilt !== undefined) properties.tilt = input.tilt;
+    if (input.depthLane) {
+      if (!parseDepthLaneSub(input.depthLane as string)) {
+        return errorResult(`Invalid depth lane "${input.depthLane}". Valid lanes: ${DEPTH_LANE_ORDER.join(", ")} (with optional -1/-2/-3 sub-level).`);
+      }
+      properties.depthLane = input.depthLane;
+    }
+    if (input.atmosphericMode) properties.atmosphericMode = input.atmosphericMode;
+
+    const layerName = (input.name as string) ?? `Boat (${preset?.name ?? presetId})`;
+    const layer = createLayer("terrain:boat", layerName, ctx, properties);
+
+    ctx.layers.add(layer);
+    ctx.emitChange("layer-added");
+
+    return textResult(
+      `Added boat layer "${layerName}" with ${presetId} preset.\n` +
+      `Seed: ${seed}, Layer ID: ${layer.id}`,
+    );
+  },
+};
+
+// ---------------------------------------------------------------------------
+// add_erosion
+// ---------------------------------------------------------------------------
+
+const EROSION_PRESETS_LIST = [
+  "rain-streaks", "wind-erosion", "frost-cracks", "lichen-growth",
+] as const;
+
+const addErosionTool: McpToolDefinition = {
+  name: "add_erosion",
+  description:
+    "Add an erosion/weathering texture overlay layer. Renders rain wash streaks, wind scour marks, " +
+    "frost crack networks, or lichen patches as foreground texture. " +
+    "Presets: rain-streaks, wind-erosion, frost-cracks, lichen-growth.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      preset: {
+        type: "string",
+        enum: [...EROSION_PRESETS_LIST],
+        description: "Erosion preset. Defaults to 'rain-streaks'.",
+      },
+      seed: { type: "number", description: "Random seed for erosion variation." },
+      erosionType: {
+        type: "string",
+        enum: ["rain-wash", "wind-scour", "frost-crack", "lichen"],
+        description: "Erosion style.",
+      },
+      color: { type: "string", description: "Erosion mark color (use rgba for transparency)." },
+      intensity: { type: "number", description: "Intensity 0-1." },
+      coverageTop: { type: "number", description: "Coverage region top 0-1." },
+      coverageBottom: { type: "number", description: "Coverage region bottom 0-1." },
+      noiseScale: { type: "number", description: "Noise scale 0.1-2." },
+      depthLane: { type: "string", description: "Depth lane placement. Defaults to 'foreground'." },
+      atmosphericMode: {
+        type: "string",
+        enum: ["none", "western", "ink-wash"],
+        description: "Atmospheric depth mode.",
+      },
+      name: { type: "string", description: "Custom layer name." },
+    },
+  },
+  async handler(input: Record<string, unknown>, ctx: McpToolContext): Promise<McpToolResult> {
+    const presetId = (input.preset as string) ?? "rain-streaks";
+    const preset = getPreset(presetId);
+    if (presetId && !preset) {
+      return errorResult(`Unknown erosion preset "${presetId}". Use list_terrain_presets category=erosion to see options.`);
+    }
+
+    const seed = (input.seed as number) ?? Math.floor(Math.random() * 100000);
+    const properties: Record<string, unknown> = { preset: presetId, seed };
+
+    if (input.erosionType) properties.erosionType = input.erosionType;
+    if (input.color) properties.color = input.color;
+    if (input.intensity !== undefined) properties.intensity = input.intensity;
+    if (input.coverageTop !== undefined) properties.coverageTop = input.coverageTop;
+    if (input.coverageBottom !== undefined) properties.coverageBottom = input.coverageBottom;
+    if (input.noiseScale !== undefined) properties.noiseScale = input.noiseScale;
+    if (input.depthLane) {
+      if (!parseDepthLaneSub(input.depthLane as string)) {
+        return errorResult(`Invalid depth lane "${input.depthLane}". Valid lanes: ${DEPTH_LANE_ORDER.join(", ")} (with optional -1/-2/-3 sub-level).`);
+      }
+      properties.depthLane = input.depthLane;
+    }
+    if (input.atmosphericMode) properties.atmosphericMode = input.atmosphericMode;
+
+    const layerName = (input.name as string) ?? `Erosion (${preset?.name ?? presetId})`;
+    const layer = createLayer("terrain:erosion", layerName, ctx, properties);
+
+    ctx.layers.add(layer);
+    ctx.emitChange("layer-added");
+
+    return textResult(
+      `Added erosion layer "${layerName}" with ${presetId} preset.\n` +
+      `Seed: ${seed}, Layer ID: ${layer.id}`,
+    );
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Scene Recipe helpers
+// ---------------------------------------------------------------------------
+
+interface RecipeLayer {
+  typeId: string;
+  name: string;
+  preset: string;
+  depthLane: string;
+  extra?: Record<string, unknown>;
+}
+
+function createSceneRecipe(
+  recipeName: string,
+  description: string,
+  defaultLayers: RecipeLayer[],
+  presetOverrideKeys: string[],
+): McpToolDefinition {
+  const inputProperties: Record<string, unknown> = {
+    seed: { type: "number", description: "Base seed for all layers." },
+    atmosphericMode: {
+      type: "string",
+      enum: ["none", "western", "ink-wash"],
+      description: "Atmospheric depth mode for terrain layers. Defaults to 'none'.",
+    },
+  };
+  for (const key of presetOverrideKeys) {
+    inputProperties[key] = {
+      type: "string",
+      description: `Override preset for ${key.replace("Preset", "")} layer.`,
+    };
+  }
+
+  return {
+    name: recipeName,
+    description,
+    inputSchema: { type: "object", properties: inputProperties },
+    async handler(input: Record<string, unknown>, ctx: McpToolContext): Promise<McpToolResult> {
+      const seed = (input.seed as number) ?? Math.floor(Math.random() * 100000);
+      const atmoMode = (input.atmosphericMode as string) ?? "none";
+      const layerIds: string[] = [];
+      const summary: string[] = [];
+
+      for (let i = 0; i < defaultLayers.length; i++) {
+        const def = defaultLayers[i]!;
+        const overrideKey = `${def.name.toLowerCase().replace(/[^a-z]/g, "")}Preset`;
+        const presetId = (input[overrideKey] as string) ?? def.preset;
+
+        const properties: Record<string, unknown> = {
+          preset: presetId,
+          seed: seed + i,
+          depthLane: def.depthLane,
+          ...def.extra,
+        };
+        if (atmoMode !== "none") {
+          properties.atmosphericMode = atmoMode;
+        }
+
+        const layerName = `${def.name} (${presetId})`;
+        const layer = createLayer(def.typeId, layerName, ctx, properties);
+        ctx.layers.add(layer);
+        layerIds.push(layer.id);
+        summary.push(`${def.name}: ${presetId} [${def.depthLane}]`);
+      }
+
+      ctx.emitChange("layer-added");
+
+      return textResult(
+        `${recipeName} created (${layerIds.length} layers):\n` +
+        summary.map((s) => `  ${s}`).join("\n") +
+        `\nLayer IDs: ${layerIds.join(", ")}`,
+      );
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// 12 Scene Recipe Tools
+// ---------------------------------------------------------------------------
+
+const createMountainValleyTool = createSceneRecipe(
+  "create_mountain_valley",
+  "Create a mountain valley scene: sky + alpine ridges + valley fog + treeline + meadow field + haze.",
+  [
+    { typeId: "terrain:sky", name: "Sky", preset: "noon", depthLane: "sky" },
+    { typeId: "terrain:profile", name: "Terrain", preset: "alpine-range", depthLane: "background" },
+    { typeId: "terrain:fog-layer", name: "Fog", preset: "valley-fog", depthLane: "midground" },
+    { typeId: "terrain:treeline", name: "Treeline", preset: "conifer-ridge", depthLane: "midground" },
+    { typeId: "terrain:field", name: "Field", preset: "meadow-grass", depthLane: "foreground" },
+    { typeId: "terrain:haze", name: "Haze", preset: "light-haze", depthLane: "overlay" },
+  ],
+  ["skyPreset", "terrainPreset", "fogPreset", "treelinePreset", "fieldPreset", "hazePreset"],
+);
+
+const createRiverSceneTool = createSceneRecipe(
+  "create_river_scene",
+  "Create a river scene: sky + rolling hills + river + shore + treeline + reflection.",
+  [
+    { typeId: "terrain:sky", name: "Sky", preset: "dawn", depthLane: "sky" },
+    { typeId: "terrain:profile", name: "Terrain", preset: "rolling-hills", depthLane: "background" },
+    { typeId: "terrain:river", name: "River", preset: "gentle-stream", depthLane: "midground" },
+    { typeId: "terrain:shore", name: "Shore", preset: "sandy-beach", depthLane: "midground" },
+    { typeId: "terrain:treeline", name: "Treeline", preset: "deciduous-canopy", depthLane: "midground" },
+    { typeId: "terrain:reflection", name: "Reflection", preset: "calm-lake", depthLane: "midground" },
+  ],
+  ["skyPreset", "terrainPreset", "riverPreset", "shorePreset", "treelinePreset", "reflectionPreset"],
+);
+
+const createCoastalMoonlightTool = createSceneRecipe(
+  "create_coastal_moonlight",
+  "Create a moonlit coastal scene: night sky + starfield + moon + water + rocky shore + dark reflection.",
+  [
+    { typeId: "terrain:sky", name: "Sky", preset: "night", depthLane: "sky" },
+    { typeId: "terrain:starfield", name: "Starfield", preset: "clear-night", depthLane: "sky" },
+    { typeId: "terrain:celestial", name: "Celestial", preset: "harvest-moon", depthLane: "sky" },
+    { typeId: "terrain:water", name: "Water", preset: "still-lake", depthLane: "midground" },
+    { typeId: "terrain:shore", name: "Shore", preset: "rocky-shore", depthLane: "foreground" },
+    { typeId: "terrain:reflection", name: "Reflection", preset: "dark-water", depthLane: "midground" },
+  ],
+  ["skyPreset", "starfieldPreset", "celestialPreset", "waterPreset", "shorePreset", "reflectionPreset"],
+);
+
+const createParkRiversideTool = createSceneRecipe(
+  "create_park_riverside",
+  "Create a park riverside scene: overcast sky + gentle hills + river + path + treeline + meadow + building.",
+  [
+    { typeId: "terrain:sky", name: "Sky", preset: "noon", depthLane: "sky" },
+    { typeId: "terrain:profile", name: "Terrain", preset: "foothills", depthLane: "background" },
+    { typeId: "terrain:river", name: "River", preset: "gentle-stream", depthLane: "midground" },
+    { typeId: "terrain:path", name: "Path", preset: "dirt-trail", depthLane: "foreground" },
+    { typeId: "terrain:treeline", name: "Treeline", preset: "deciduous-canopy", depthLane: "midground" },
+    { typeId: "terrain:field", name: "Field", preset: "meadow-grass", depthLane: "foreground" },
+    { typeId: "terrain:building", name: "Building", preset: "farmhouse", depthLane: "midground" },
+  ],
+  ["skyPreset", "terrainPreset", "riverPreset", "pathPreset", "treelinePreset", "fieldPreset", "buildingPreset"],
+);
+
+const createShanShuiTool = createSceneRecipe(
+  "create_shan_shui",
+  "Create a Chinese shan-shui (mountain-water) landscape: misty sky + sharp peaks + mountain mist + rock + calm water + haze.",
+  [
+    { typeId: "terrain:sky", name: "Sky", preset: "dawn", depthLane: "sky" },
+    { typeId: "terrain:profile", name: "Terrain", preset: "alpine-range", depthLane: "background" },
+    { typeId: "terrain:fog-layer", name: "Fog", preset: "mountain-veil", depthLane: "midground" },
+    { typeId: "terrain:rock", name: "Rock", preset: "shan-shui-rock", depthLane: "foreground" },
+    { typeId: "terrain:water", name: "Water", preset: "still-lake", depthLane: "midground" },
+    { typeId: "terrain:haze", name: "Haze", preset: "cool-mist", depthLane: "overlay" },
+  ],
+  ["skyPreset", "terrainPreset", "fogPreset", "rockPreset", "waterPreset", "hazePreset"],
+);
+
+const createPastoralTool = createSceneRecipe(
+  "create_pastoral",
+  "Create a pastoral countryside scene: golden-hour sky + rolling hills + wheat field + country lane + picket fence + farmhouse + golden haze.",
+  [
+    { typeId: "terrain:sky", name: "Sky", preset: "golden-hour", depthLane: "sky" },
+    { typeId: "terrain:profile", name: "Terrain", preset: "rolling-hills", depthLane: "background" },
+    { typeId: "terrain:field", name: "Field", preset: "wheat-field", depthLane: "midground" },
+    { typeId: "terrain:path", name: "Path", preset: "country-lane", depthLane: "foreground" },
+    { typeId: "terrain:fence", name: "Fence", preset: "white-picket", depthLane: "foreground" },
+    { typeId: "terrain:building", name: "Building", preset: "farmhouse", depthLane: "midground" },
+    { typeId: "terrain:haze", name: "Haze", preset: "golden-haze", depthLane: "overlay" },
+  ],
+  ["skyPreset", "terrainPreset", "fieldPreset", "pathPreset", "fencePreset", "buildingPreset", "hazePreset"],
+);
+
+const createForestClearingTool = createSceneRecipe(
+  "create_forest_clearing",
+  "Create a forest clearing scene: overcast sky + treeline + overhanging branches + fern carpet + ground fog + woodland trail.",
+  [
+    { typeId: "terrain:sky", name: "Sky", preset: "noon", depthLane: "sky" },
+    { typeId: "terrain:treeline", name: "Treeline", preset: "deciduous-canopy", depthLane: "midground" },
+    { typeId: "terrain:vignette-foliage", name: "Vignette", preset: "overhanging-branches", depthLane: "overlay" },
+    { typeId: "terrain:forest-floor", name: "ForestFloor", preset: "fern-carpet", depthLane: "foreground" },
+    { typeId: "terrain:fog-layer", name: "Fog", preset: "morning-mist", depthLane: "midground" },
+    { typeId: "terrain:path", name: "Path", preset: "forest-path", depthLane: "foreground" },
+  ],
+  ["skyPreset", "treelinePreset", "vignettePreset", "forestfloorPreset", "fogPreset", "pathPreset"],
+);
+
+const createAlpineLakeTool = createSceneRecipe(
+  "create_alpine_lake",
+  "Create an alpine lake scene: noon sky + alpine range + snow field + calm water + lake reflection + granite cliff + cool mist.",
+  [
+    { typeId: "terrain:sky", name: "Sky", preset: "noon", depthLane: "sky" },
+    { typeId: "terrain:profile", name: "Terrain", preset: "alpine-range", depthLane: "background" },
+    { typeId: "terrain:snowfield", name: "Snowfield", preset: "fresh-powder", depthLane: "background" },
+    { typeId: "terrain:water", name: "Water", preset: "still-lake", depthLane: "midground" },
+    { typeId: "terrain:reflection", name: "Reflection", preset: "calm-lake", depthLane: "midground" },
+    { typeId: "terrain:cliff-face", name: "CliffFace", preset: "granite-cliff", depthLane: "midground" },
+    { typeId: "terrain:haze", name: "Haze", preset: "cool-mist", depthLane: "overlay" },
+  ],
+  ["skyPreset", "terrainPreset", "snowfieldPreset", "waterPreset", "reflectionPreset", "cliffPreset", "hazePreset"],
+);
+
+const createJapaneseGardenTool = createSceneRecipe(
+  "create_japanese_garden",
+  "Create a Japanese garden scene: misty sky + calm water + stone bridge + decorative rock + treeline + lake reflection + light haze.",
+  [
+    { typeId: "terrain:sky", name: "Sky", preset: "dawn", depthLane: "sky" },
+    { typeId: "terrain:water", name: "Water", preset: "still-lake", depthLane: "midground" },
+    { typeId: "terrain:bridge", name: "Bridge", preset: "stone-arch", depthLane: "midground" },
+    { typeId: "terrain:rock", name: "Rock", preset: "shan-shui-rock", depthLane: "foreground" },
+    { typeId: "terrain:treeline", name: "Treeline", preset: "autumn-treeline", depthLane: "midground" },
+    { typeId: "terrain:reflection", name: "Reflection", preset: "calm-lake", depthLane: "midground" },
+    { typeId: "terrain:haze", name: "Haze", preset: "light-haze", depthLane: "overlay" },
+  ],
+  ["skyPreset", "waterPreset", "bridgePreset", "rockPreset", "treelinePreset", "reflectionPreset", "hazePreset"],
+);
+
+const createDesertExpanseTool = createSceneRecipe(
+  "create_desert_expanse",
+  "Create a desert expanse scene: noon sky + mesa plateau + sandstone cliff + dry scrub field + heat haze + wind erosion.",
+  [
+    { typeId: "terrain:sky", name: "Sky", preset: "noon", depthLane: "sky" },
+    { typeId: "terrain:profile", name: "Terrain", preset: "mesa-plateau", depthLane: "background" },
+    { typeId: "terrain:cliff-face", name: "CliffFace", preset: "sandstone-wall", depthLane: "midground" },
+    { typeId: "terrain:field", name: "Field", preset: "dry-savanna", depthLane: "foreground" },
+    { typeId: "terrain:haze", name: "Haze", preset: "heat-haze", depthLane: "overlay" },
+    { typeId: "terrain:erosion", name: "Erosion", preset: "wind-erosion", depthLane: "foreground" },
+  ],
+  ["skyPreset", "terrainPreset", "cliffPreset", "fieldPreset", "hazePreset", "erosionPreset"],
+);
+
+const createWinterWoodlandTool = createSceneRecipe(
+  "create_winter_woodland",
+  "Create a winter woodland scene: overcast sky + gentle hills + deep snow + conifer treeline + pine canopy vignette + morning mist.",
+  [
+    { typeId: "terrain:sky", name: "Sky", preset: "noon", depthLane: "sky" },
+    { typeId: "terrain:profile", name: "Terrain", preset: "foothills", depthLane: "background" },
+    { typeId: "terrain:snowfield", name: "Snowfield", preset: "deep-snow", depthLane: "midground" },
+    { typeId: "terrain:treeline", name: "Treeline", preset: "conifer-ridge", depthLane: "midground" },
+    { typeId: "terrain:vignette-foliage", name: "Vignette", preset: "pine-canopy", depthLane: "overlay" },
+    { typeId: "terrain:fog-layer", name: "Fog", preset: "morning-mist", depthLane: "midground" },
+  ],
+  ["skyPreset", "terrainPreset", "snowfieldPreset", "treelinePreset", "vignettePreset", "fogPreset"],
+);
+
+const createTropicalCoastTool = createSceneRecipe(
+  "create_tropical_coast",
+  "Create a tropical coast scene: golden-hour sky + calm sea + sandy beach + sailboat + golden reflection + leaf frame vignette + golden haze.",
+  [
+    { typeId: "terrain:sky", name: "Sky", preset: "golden-hour", depthLane: "sky" },
+    { typeId: "terrain:water", name: "Water", preset: "still-lake", depthLane: "midground" },
+    { typeId: "terrain:shore", name: "Shore", preset: "sandy-beach", depthLane: "foreground" },
+    { typeId: "terrain:boat", name: "Boat", preset: "sailboat", depthLane: "midground" },
+    { typeId: "terrain:reflection", name: "Reflection", preset: "golden-reflection", depthLane: "midground" },
+    { typeId: "terrain:vignette-foliage", name: "Vignette", preset: "leaf-frame", depthLane: "overlay" },
+    { typeId: "terrain:haze", name: "Haze", preset: "golden-haze", depthLane: "overlay" },
+  ],
+  ["skyPreset", "waterPreset", "shorePreset", "boatPreset", "reflectionPreset", "vignettePreset", "hazePreset"],
+);
+
+// ---------------------------------------------------------------------------
 // Export
 // ---------------------------------------------------------------------------
 
@@ -2033,7 +2530,22 @@ export const terrainMcpTools: McpToolDefinition[] = [
   addVignetteFoliageTool,
   addForestFloorTool,
   addHazeTool,
+  addFenceTool,
+  addBoatTool,
+  addErosionTool,
   createLandscapeTool,
+  createMountainValleyTool,
+  createRiverSceneTool,
+  createCoastalMoonlightTool,
+  createParkRiversideTool,
+  createShanShuiTool,
+  createPastoralTool,
+  createForestClearingTool,
+  createAlpineLakeTool,
+  createJapaneseGardenTool,
+  createDesertExpanseTool,
+  createWinterWoodlandTool,
+  createTropicalCoastTool,
   setTimeOfDayTool,
   listTerrainPresetsTool,
   setTerrainDepthTool,

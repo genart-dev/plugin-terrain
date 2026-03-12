@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { ALL_PRESETS, getPreset, filterPresets, searchPresets } from "../src/presets/index.js";
 
 describe("presets", () => {
-  it("has 116 total presets", () => {
-    expect(ALL_PRESETS.length).toBe(116);
+  it("has 128 total presets", () => {
+    expect(ALL_PRESETS.length).toBe(128);
   });
 
   it("has 5 sky presets", () => {
@@ -90,6 +90,18 @@ describe("presets", () => {
     expect(filterPresets({ category: "haze" })).toHaveLength(4);
   });
 
+  it("has 4 fence presets", () => {
+    expect(filterPresets({ category: "fence" })).toHaveLength(4);
+  });
+
+  it("has 4 boat presets", () => {
+    expect(filterPresets({ category: "boat" })).toHaveLength(4);
+  });
+
+  it("has 4 erosion presets", () => {
+    expect(filterPresets({ category: "erosion" })).toHaveLength(4);
+  });
+
   it("all presets have unique IDs", () => {
     const ids = ALL_PRESETS.map((p) => p.id);
     expect(new Set(ids).size).toBe(ids.length);
@@ -101,7 +113,7 @@ describe("presets", () => {
       expect(p.name).toBeTruthy();
       expect(p.description).toBeTruthy();
       expect(p.tags.length).toBeGreaterThan(0);
-      expect(["sky", "profile", "clouds", "water", "river", "path", "shore", "field", "rock", "treeline", "celestial", "fog", "starfield", "cliff-face", "snowfield", "building", "bridge", "reflection", "vignette-foliage", "forest-floor", "haze"]).toContain(p.category);
+      expect(["sky", "profile", "clouds", "water", "river", "path", "shore", "field", "rock", "treeline", "celestial", "fog", "starfield", "cliff-face", "snowfield", "building", "bridge", "reflection", "vignette-foliage", "forest-floor", "haze", "fence", "boat", "erosion"]).toContain(p.category);
     }
   });
 
