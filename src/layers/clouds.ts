@@ -6,6 +6,7 @@ import type {
 } from "@genart-dev/core";
 import { createFractalNoise } from "../shared/noise.js";
 import { parseHex } from "../shared/color-utils.js";
+import { createDepthLaneProperty } from "../shared/depth-lanes.js";
 import { getPreset } from "../presets/index.js";
 import type { CloudPreset } from "../presets/types.js";
 import { createDefaultProps } from "./shared.js";
@@ -46,6 +47,7 @@ const CLOUD_PROPERTIES: LayerPropertySchema[] = [
   { key: "cloudColor", label: "Cloud Color", type: "color", default: "#FFFFFF", group: "colors" },
   { key: "shadowColor", label: "Shadow Color", type: "color", default: "#A0A8B0", group: "colors" },
   { key: "softness", label: "Softness", type: "number", default: 0.5, min: 0.1, max: 1.0, step: 0.05, group: "style" },
+  createDepthLaneProperty("overlay"),
 ];
 
 type CloudType = "cumulus" | "stratus" | "cirrus";

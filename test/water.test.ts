@@ -67,4 +67,16 @@ describe("terrain:water", () => {
 
     expect(ctx.stroke).toHaveBeenCalled();
   });
+
+  it("createDefault includes depthLane property", () => {
+    const defaults = waterLayerType.createDefault();
+    expect(defaults.depthLane).toBe("midground");
+  });
+
+  it("properties schema includes depthLane select", () => {
+    const depthLaneProp = waterLayerType.properties.find((p) => p.key === "depthLane");
+    expect(depthLaneProp).toBeTruthy();
+    expect(depthLaneProp!.type).toBe("select");
+    expect(depthLaneProp!.default).toBe("midground");
+  });
 });

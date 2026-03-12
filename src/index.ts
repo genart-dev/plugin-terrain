@@ -2,7 +2,7 @@
  * @genart-dev/plugin-terrain — Natural landscape element layers
  *
  * 4 layer types (sky, profile, clouds, water),
- * 21 presets, 8 MCP tools.
+ * 21 presets, 9 MCP tools.
  */
 
 import type { DesignPlugin, PluginContext } from "@genart-dev/core";
@@ -20,7 +20,8 @@ const terrainPlugin: DesignPlugin = {
   version: "0.1.0",
   description:
     "Natural landscape element layers: sky gradients, terrain profiles, cloud formations, " +
-    "and water surfaces. 4 layer types, 21 presets, 8 MCP tools.",
+    "and water surfaces. Depth lane system for cross-plugin depth coordination. " +
+    "4 layer types, 21 presets, 9 MCP tools.",
 
   layerTypes: [
     skyLayerType,
@@ -66,3 +67,24 @@ export { createValueNoise, createFractalNoise } from "./shared/noise.js";
 export { parseHex, toHex, lerpColor, darken, lighten } from "./shared/color-utils.js";
 export { applyDepthEasing } from "./shared/depth.js";
 export type { DepthEasing } from "./shared/depth.js";
+
+// Re-export depth lane system
+export {
+  resolveDepthLane,
+  depthForLane,
+  parseDepthLaneSub,
+  applyAtmosphericDepth,
+  laneSubLevelAttenuation,
+  createDepthLaneProperty,
+  createAtmosphericModeProperty,
+  DEPTH_LANE_ORDER,
+  DEPTH_LANE_OPTIONS,
+} from "./shared/depth-lanes.js";
+export type {
+  DepthLane,
+  DepthSubLevel,
+  DepthLaneSub,
+  DepthLaneConfig,
+  AtmosphericMode,
+  SubLevelAttenuation,
+} from "./shared/depth-lanes.js";

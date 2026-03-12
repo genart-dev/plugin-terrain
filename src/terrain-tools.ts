@@ -1,8 +1,8 @@
 /**
  * MCP tool definitions for plugin-terrain.
  *
- * 8 tools: add_sky, add_terrain_profile, add_clouds, add_water_surface,
- * create_landscape, set_time_of_day, list_terrain_presets, set_terrain_depth.
+ * 9 tools: add_sky, add_terrain_profile, add_clouds, add_water_surface,
+ * create_landscape, set_time_of_day, list_terrain_presets, set_terrain_depth, set_depth_lane.
  */
 
 import type {
@@ -15,6 +15,8 @@ import type {
 } from "@genart-dev/core";
 import { ALL_PRESETS, getPreset, filterPresets } from "./presets/index.js";
 import type { TerrainPreset, PresetCategory, SkyPreset } from "./presets/types.js";
+import { parseDepthLaneSub, DEPTH_LANE_ORDER } from "./shared/depth-lanes.js";
+import type { AtmosphericMode } from "./shared/depth-lanes.js";
 
 function textResult(text: string): McpToolResult {
   return { content: [{ type: "text", text }] };
@@ -130,6 +132,15 @@ const addTerrainProfileTool: McpToolDefinition = {
       ridgeCount: { type: "number", description: "Number of ridges (1-8)." },
       foregroundColor: { type: "string", description: "Override foreground color as hex." },
       backgroundRidgeColor: { type: "string", description: "Override background ridge color as hex." },
+      depthLane: {
+        type: "string",
+        description: "Depth lane placement (e.g. 'background', 'far-background-1', 'foreground-3'). Defaults to 'background'.",
+      },
+      atmosphericMode: {
+        type: "string",
+        enum: ["none", "western", "ink-wash"],
+        description: "Atmospheric depth mode. 'western' adds blue-shift + desaturation toward distance, 'ink-wash' fades to warm paper tone. Defaults to 'none'.",
+      },
       name: { type: "string", description: "Custom layer name." },
     },
   },
@@ -146,6 +157,13 @@ const addTerrainProfileTool: McpToolDefinition = {
     if (input.ridgeCount !== undefined) properties.ridgeCount = input.ridgeCount;
     if (input.foregroundColor) properties.foregroundColor = input.foregroundColor;
     if (input.backgroundRidgeColor) properties.backgroundRidgeColor = input.backgroundRidgeColor;
+    if (input.depthLane) {
+      if (!parseDepthLaneSub(input.depthLane as string)) {
+        return errorResult(`Invalid depth lane "${input.depthLane}". Valid lanes: ${DEPTH_LANE_ORDER.join(", ")} (with optional -1/-2/-3 sub-level).`);
+      }
+      properties.depthLane = input.depthLane;
+    }
+    if (input.atmosphericMode) properties.atmosphericMode = input.atmosphericMode;
 
     const layerName = (input.name as string) ?? `Terrain (${preset?.name ?? presetId})`;
     const layer = createLayer("terrain:profile", layerName, ctx, properties);
@@ -270,7 +288,8 @@ const createLandscapeTool: McpToolDefinition = {
   name: "create_landscape",
   description:
     "Create a complete landscape scene by adding sky + terrain profile + optional clouds + optional water " +
-    "in correct layer order (sky at bottom, terrain above, clouds on top, water at terrain level). " +
+    "in correct layer order. Each layer is auto-assigned an appropriate depth lane. " +
+    "Set atmosphericMode to 'western' or 'ink-wash' for automatic atmospheric perspective on terrain ridges. " +
     "Returns all created layer IDs.",
   inputSchema: {
     type: "object",
@@ -295,53 +314,66 @@ const createLandscapeTool: McpToolDefinition = {
         enum: ["still-lake", "choppy-sea", "mountain-stream", "river", "pond"],
         description: "Water type. Omit for no water.",
       },
+      atmosphericMode: {
+        type: "string",
+        enum: ["none", "western", "ink-wash"],
+        description: "Atmospheric depth mode for terrain ridges. Defaults to 'none'.",
+      },
       seed: { type: "number", description: "Base seed for all layers." },
     },
   },
   async handler(input: Record<string, unknown>, ctx: McpToolContext): Promise<McpToolResult> {
     const seed = (input.seed as number) ?? Math.floor(Math.random() * 100000);
+    const atmoMode = (input.atmosphericMode as string) ?? "none";
     const layerIds: string[] = [];
     const summary: string[] = [];
 
-    // Sky (bottom of stack)
+    // Sky (bottom of stack) — depth lane: sky
     const skyPresetId = (input.skyPreset as string) ?? "noon";
-    const skyLayer = createLayer("terrain:sky", `Sky (${skyPresetId})`, ctx, { preset: skyPresetId });
+    const skyLayer = createLayer("terrain:sky", `Sky (${skyPresetId})`, ctx, {
+      preset: skyPresetId,
+      depthLane: "sky",
+    });
     ctx.layers.add(skyLayer);
     layerIds.push(skyLayer.id);
-    summary.push(`Sky: ${skyPresetId}`);
+    summary.push(`Sky: ${skyPresetId} [sky]`);
 
-    // Terrain profile
+    // Terrain profile — depth lane: background (spans far-background to foreground via ridges)
     const terrainPresetId = (input.terrainPreset as string) ?? "rolling-hills";
     const terrainLayer = createLayer("terrain:profile", `Terrain (${terrainPresetId})`, ctx, {
       preset: terrainPresetId,
       seed,
+      depthLane: "background",
+      atmosphericMode: atmoMode,
     });
     ctx.layers.add(terrainLayer);
     layerIds.push(terrainLayer.id);
-    summary.push(`Terrain: ${terrainPresetId} (seed ${seed})`);
+    summary.push(`Terrain: ${terrainPresetId} [background] (seed ${seed}${atmoMode !== "none" ? `, ${atmoMode} atmosphere` : ""})`);
 
-    // Water (optional)
+    // Water (optional) — depth lane: midground
     if (input.waterPreset) {
       const waterPresetId = input.waterPreset as string;
       const waterLayer = createLayer("terrain:water", `Water (${waterPresetId})`, ctx, {
         preset: waterPresetId,
         seed: seed + 1,
+        depthLane: "midground",
       });
       ctx.layers.add(waterLayer);
       layerIds.push(waterLayer.id);
-      summary.push(`Water: ${waterPresetId}`);
+      summary.push(`Water: ${waterPresetId} [midground]`);
     }
 
-    // Clouds (optional, on top)
+    // Clouds (optional, on top) — depth lane: overlay
     if (input.cloudPreset) {
       const cloudPresetId = input.cloudPreset as string;
       const cloudLayer = createLayer("terrain:clouds", `Clouds (${cloudPresetId})`, ctx, {
         preset: cloudPresetId,
         seed: seed + 2,
+        depthLane: "overlay",
       });
       ctx.layers.add(cloudLayer);
       layerIds.push(cloudLayer.id);
-      summary.push(`Clouds: ${cloudPresetId}`);
+      summary.push(`Clouds: ${cloudPresetId} [overlay]`);
     }
 
     ctx.emitChange("layer-added");
@@ -512,6 +544,70 @@ const setTerrainDepthTool: McpToolDefinition = {
 };
 
 // ---------------------------------------------------------------------------
+// set_depth_lane
+// ---------------------------------------------------------------------------
+
+const TERRAIN_TYPE_IDS = ["terrain:sky", "terrain:profile", "terrain:clouds", "terrain:water"];
+
+const setDepthLaneTool: McpToolDefinition = {
+  name: "set_depth_lane",
+  description:
+    "Set the depth lane on any terrain layer. Depth lanes define named depth slots that all plugins understand: " +
+    "sky, far-background, background, midground, foreground, ground-plane, overlay. " +
+    "Append -1 (back), -2 (mid), or -3 (front) for sub-level control within a lane (e.g. 'background-1'). " +
+    "Optionally set the atmospheric depth mode on terrain:profile layers.",
+  inputSchema: {
+    type: "object",
+    required: ["layerId", "depthLane"],
+    properties: {
+      layerId: { type: "string", description: "Target layer ID." },
+      depthLane: {
+        type: "string",
+        description: "Depth lane (e.g. 'background', 'foreground-3', 'midground-1').",
+      },
+      atmosphericMode: {
+        type: "string",
+        enum: ["none", "western", "ink-wash"],
+        description: "Atmospheric depth mode (terrain:profile only). 'western' = blue-shift, 'ink-wash' = paper-tone fade.",
+      },
+    },
+  },
+  async handler(input: Record<string, unknown>, ctx: McpToolContext): Promise<McpToolResult> {
+    const layerId = input.layerId as string;
+    const layer = ctx.layers.get(layerId);
+    if (!layer) return errorResult(`Layer "${layerId}" not found.`);
+    if (!TERRAIN_TYPE_IDS.includes(layer.type)) {
+      return errorResult(`Layer "${layerId}" is type "${layer.type}", not a terrain layer.`);
+    }
+
+    const laneSub = input.depthLane as string;
+    const parsed = parseDepthLaneSub(laneSub);
+    if (!parsed) {
+      return errorResult(
+        `Invalid depth lane "${laneSub}". Valid lanes: ${DEPTH_LANE_ORDER.join(", ")} (with optional -1/-2/-3 sub-level).`,
+      );
+    }
+
+    const propUpdates: Partial<LayerProperties> = { depthLane: laneSub };
+    const changes: string[] = [`depthLane → ${laneSub} (${parsed.lane}, sub-level ${parsed.subLevel})`];
+
+    if (input.atmosphericMode !== undefined) {
+      if (layer.type !== "terrain:profile") {
+        return errorResult(`atmosphericMode is only supported on terrain:profile layers, not ${layer.type}.`);
+      }
+      const mode = input.atmosphericMode as AtmosphericMode;
+      propUpdates.atmosphericMode = mode;
+      changes.push(`atmosphericMode → ${mode}`);
+    }
+
+    ctx.layers.updateProperties(layerId, propUpdates);
+    ctx.emitChange("layer-updated");
+
+    return textResult(`Updated "${layer.name}":\n${changes.join("\n")}`);
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Export
 // ---------------------------------------------------------------------------
 
@@ -524,4 +620,5 @@ export const terrainMcpTools: McpToolDefinition[] = [
   setTimeOfDayTool,
   listTerrainPresetsTool,
   setTerrainDepthTool,
+  setDepthLaneTool,
 ];

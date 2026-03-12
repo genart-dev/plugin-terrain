@@ -8,6 +8,13 @@ import { createFractalNoise } from "../shared/noise.js";
 import { lerpColor } from "../shared/color-utils.js";
 import { applyDepthEasing } from "../shared/depth.js";
 import type { DepthEasing } from "../shared/depth.js";
+import {
+  createDepthLaneProperty,
+  createAtmosphericModeProperty,
+  resolveDepthLane,
+  applyAtmosphericDepth,
+} from "../shared/depth-lanes.js";
+import type { AtmosphericMode } from "../shared/depth-lanes.js";
 import { getPreset } from "../presets/index.js";
 import type { ProfilePreset } from "../presets/types.js";
 import { createDefaultProps } from "./shared.js";
@@ -51,6 +58,8 @@ const PROFILE_PROPERTIES: LayerPropertySchema[] = [
       { value: "exponential", label: "Exponential" },
     ],
   },
+  createDepthLaneProperty("background"),
+  createAtmosphericModeProperty(),
 ];
 
 function resolveProps(properties: LayerProperties): {
@@ -65,6 +74,8 @@ function resolveProps(properties: LayerProperties): {
   backgroundRidgeColor: string;
   depthValueShift: number;
   depthEasing: DepthEasing;
+  depthLane: string;
+  atmosphericMode: AtmosphericMode;
 } {
   const presetId = properties.preset as string | undefined;
   const preset = presetId ? getPreset(presetId) : undefined;
@@ -82,6 +93,8 @@ function resolveProps(properties: LayerProperties): {
     backgroundRidgeColor: (properties.backgroundRidgeColor as string) || pp?.backgroundRidgeColor || "#7A9E8A",
     depthValueShift: (properties.depthValueShift as number) ?? pp?.depthValueShift ?? 0.4,
     depthEasing: (properties.depthEasing as DepthEasing) ?? pp?.depthEasing ?? "linear",
+    depthLane: (properties.depthLane as string) ?? "background",
+    atmosphericMode: (properties.atmosphericMode as AtmosphericMode) ?? "none",
   };
 }
 
@@ -120,8 +133,22 @@ export const profileLayerType: LayerTypeDefinition = {
       // Elevation range available above baseline
       const elevRange = baselineNorm * height * 0.4;
 
-      // Color interpolation: backgroundRidgeColor (far) → foregroundColor (near)
-      const ridgeColor = lerpColor(p.backgroundRidgeColor, p.foregroundColor, t);
+      // Determine colors for this ridge, with optional atmospheric depth
+      let bgColor = p.backgroundRidgeColor;
+      let fgColor = p.foregroundColor;
+
+      if (p.atmosphericMode !== "none") {
+        const laneConfig = resolveDepthLane(p.depthLane);
+        if (laneConfig) {
+          // Map ridge t (0=far, 1=near) to depth within the lane's range
+          const ridgeDepth = laneConfig.depthMin + (laneConfig.depthMax - laneConfig.depthMin) * t;
+          // Apply atmosphere to both endpoint colors, then lerp
+          bgColor = applyAtmosphericDepth(bgColor, ridgeDepth, p.atmosphericMode);
+          fgColor = applyAtmosphericDepth(fgColor, ridgeDepth, p.atmosphericMode);
+        }
+      }
+
+      const ridgeColor = lerpColor(bgColor, fgColor, t);
 
       // Generate noise profile and draw filled path
       ctx.beginPath();

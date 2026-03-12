@@ -59,4 +59,16 @@ describe("terrain:clouds", () => {
     expect(keys).toContain("cloudColor");
     expect(keys).toContain("softness");
   });
+
+  it("createDefault includes depthLane property", () => {
+    const defaults = cloudsLayerType.createDefault();
+    expect(defaults.depthLane).toBe("overlay");
+  });
+
+  it("properties schema includes depthLane select", () => {
+    const depthLaneProp = cloudsLayerType.properties.find((p) => p.key === "depthLane");
+    expect(depthLaneProp).toBeTruthy();
+    expect(depthLaneProp!.type).toBe("select");
+    expect(depthLaneProp!.default).toBe("overlay");
+  });
 });

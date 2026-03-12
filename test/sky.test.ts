@@ -76,4 +76,16 @@ describe("terrain:sky", () => {
     expect(keys).toContain("hazeIntensity");
     expect(keys).toContain("horizonLine");
   });
+
+  it("createDefault includes depthLane property", () => {
+    const defaults = skyLayerType.createDefault();
+    expect(defaults.depthLane).toBe("sky");
+  });
+
+  it("properties schema includes depthLane select", () => {
+    const depthLaneProp = skyLayerType.properties.find((p) => p.key === "depthLane");
+    expect(depthLaneProp).toBeTruthy();
+    expect(depthLaneProp!.type).toBe("select");
+    expect(depthLaneProp!.default).toBe("sky");
+  });
 });

@@ -7,6 +7,7 @@ import type {
 import { parseHex, darken } from "../shared/color-utils.js";
 import { mulberry32 } from "../shared/prng.js";
 import { createValueNoise } from "../shared/noise.js";
+import { createDepthLaneProperty } from "../shared/depth-lanes.js";
 import { getPreset } from "../presets/index.js";
 import type { WaterPreset } from "../presets/types.js";
 import { createDefaultProps } from "./shared.js";
@@ -44,6 +45,7 @@ const WATER_PROPERTIES: LayerPropertySchema[] = [
   { key: "waterColor", label: "Water Color", type: "color", default: "#2A4A6B", group: "colors" },
   { key: "depthDarkening", label: "Depth Darkening", type: "number", default: 0.4, min: 0, max: 1, step: 0.05, group: "style" },
   { key: "shimmerIntensity", label: "Shimmer Intensity", type: "number", default: 0.15, min: 0, max: 1, step: 0.05, group: "style" },
+  createDepthLaneProperty("midground"),
 ];
 
 function resolveProps(properties: LayerProperties): {

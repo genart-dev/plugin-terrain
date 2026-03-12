@@ -5,6 +5,7 @@ import type {
   ValidationError,
 } from "@genart-dev/core";
 import { parseHex } from "../shared/color-utils.js";
+import { createDepthLaneProperty } from "../shared/depth-lanes.js";
 import { getPreset } from "../presets/index.js";
 import type { SkyPreset } from "../presets/types.js";
 import { createDefaultProps } from "./shared.js";
@@ -31,6 +32,7 @@ const SKY_PROPERTIES: LayerPropertySchema[] = [
   { key: "hazePosition", label: "Haze Position", type: "number", default: 0.9, min: 0, max: 1, step: 0.05, group: "haze" },
   { key: "hazeWidth", label: "Haze Width", type: "number", default: 0.1, min: 0.01, max: 0.5, step: 0.01, group: "haze" },
   { key: "horizonLine", label: "Horizon Line", type: "number", default: 1.0, min: 0.3, max: 1.0, step: 0.05, group: "layout" },
+  createDepthLaneProperty("sky"),
 ];
 
 function resolveProps(properties: LayerProperties): {

@@ -82,4 +82,66 @@ describe("terrain:profile", () => {
     const errors = profileLayerType.validate({ preset: "martian-craters" });
     expect(errors).toHaveLength(1);
   });
+
+  it("createDefault includes depthLane property", () => {
+    const defaults = profileLayerType.createDefault();
+    expect(defaults.depthLane).toBe("background");
+  });
+
+  it("createDefault includes atmosphericMode property", () => {
+    const defaults = profileLayerType.createDefault();
+    expect(defaults.atmosphericMode).toBe("none");
+  });
+
+  it("properties schema includes depthLane select", () => {
+    const depthLaneProp = profileLayerType.properties.find((p) => p.key === "depthLane");
+    expect(depthLaneProp).toBeTruthy();
+    expect(depthLaneProp!.type).toBe("select");
+  });
+
+  it("properties schema includes atmosphericMode select", () => {
+    const atmoProp = profileLayerType.properties.find((p) => p.key === "atmosphericMode");
+    expect(atmoProp).toBeTruthy();
+    expect(atmoProp!.type).toBe("select");
+  });
+
+  it("render with atmosphericMode='none' matches default rendering", () => {
+    const ctx1 = createMockCtx();
+    const ctx2 = createMockCtx();
+    const propsNone = { ...profileLayerType.createDefault(), ridgeCount: 2, seed: 42, atmosphericMode: "none" };
+    const propsDefault = { ...profileLayerType.createDefault(), ridgeCount: 2, seed: 42 };
+
+    profileLayerType.render(propsNone, ctx1, BOUNDS, {} as any);
+    profileLayerType.render(propsDefault, ctx2, BOUNDS, {} as any);
+
+    // Both should produce same number of fills
+    expect(ctx1.fill).toHaveBeenCalledTimes(2);
+    expect(ctx2.fill).toHaveBeenCalledTimes(2);
+  });
+
+  it("render with atmosphericMode='western' still produces valid output", () => {
+    const ctx = createMockCtx();
+    const props = {
+      ...profileLayerType.createDefault(),
+      ridgeCount: 3,
+      seed: 42,
+      atmosphericMode: "western",
+      depthLane: "background",
+    };
+    profileLayerType.render(props, ctx, BOUNDS, {} as any);
+    expect(ctx.fill).toHaveBeenCalledTimes(3);
+  });
+
+  it("render with atmosphericMode='ink-wash' still produces valid output", () => {
+    const ctx = createMockCtx();
+    const props = {
+      ...profileLayerType.createDefault(),
+      ridgeCount: 2,
+      seed: 99,
+      atmosphericMode: "ink-wash",
+      depthLane: "far-background",
+    };
+    profileLayerType.render(props, ctx, BOUNDS, {} as any);
+    expect(ctx.fill).toHaveBeenCalledTimes(2);
+  });
 });
