@@ -12,10 +12,10 @@ const path = require("path");
 
 const root = path.join(__dirname, "examples");
 const GRID_SPACING = 700; // 600px canvas + 100px gap
-const COLS = 7;
-const NOW = "2026-03-11T00:00:00.000Z";
+const COLS = 8;
+const NOW = "2026-03-12T00:00:00.000Z";
 
-// Category definitions with preset IDs
+// Category definitions with preset IDs — mirrors generate-genart-files.cjs
 const CATEGORIES = {
   sky: {
     title: "Sky Presets",
@@ -33,9 +33,93 @@ const CATEGORIES = {
     title: "Water Presets",
     presets: ["still-lake", "choppy-sea", "mountain-stream", "river", "pond"],
   },
+  river: {
+    title: "River Presets",
+    presets: ["gentle-stream", "wide-river", "mountain-creek", "lazy-oxbow", "forest-brook", "delta-channels", "waterfall-stream", "tidal-estuary"],
+  },
+  path: {
+    title: "Path Presets",
+    presets: ["dirt-trail", "cobblestone-road", "gravel-path", "forest-path", "mountain-switchback", "garden-walk", "sand-track", "country-lane"],
+  },
+  shore: {
+    title: "Shore Presets",
+    presets: ["sandy-beach", "rocky-shore", "muddy-riverbank", "grassy-bank", "tidal-flat", "cliff-base"],
+  },
+  field: {
+    title: "Field Presets",
+    presets: ["meadow-grass", "wheat-field", "wildflower-meadow", "lavender-rows", "dry-savanna", "rice-paddy", "autumn-stubble", "snow-covered"],
+  },
+  rock: {
+    title: "Rock Presets",
+    presets: ["granite-boulder", "sandstone-outcrop", "shan-shui-rock", "mossy-rock", "slate-shelf", "volcanic-basalt"],
+  },
+  treeline: {
+    title: "Treeline Presets",
+    presets: ["deciduous-canopy", "conifer-ridge", "autumn-treeline", "misty-forest", "palm-fringe", "winter-bare"],
+  },
+  celestial: {
+    title: "Celestial Presets",
+    presets: ["noon-sun", "golden-hour-sun", "harvest-moon", "crescent-moon", "blood-moon", "polar-star"],
+  },
+  fog: {
+    title: "Fog Presets",
+    presets: ["morning-mist", "mountain-veil", "valley-fog", "shan-shui-cloud-band", "coastal-haar"],
+  },
+  starfield: {
+    title: "Starfield Presets",
+    presets: ["clear-night", "dense-starfield", "milky-way", "sparse-stars", "twilight-stars"],
+  },
+  "cliff-face": {
+    title: "Cliff Face Presets",
+    presets: ["granite-cliff", "sandstone-wall", "basalt-columns", "limestone-face", "shale-cliff"],
+  },
+  snowfield: {
+    title: "Snowfield Presets",
+    presets: ["fresh-powder", "wind-swept", "sun-crust", "deep-snow"],
+  },
+  building: {
+    title: "Building Presets",
+    presets: ["farmhouse", "church-steeple", "tower-ruin", "village-cluster", "temple", "lighthouse"],
+  },
+  bridge: {
+    title: "Bridge Presets",
+    presets: ["stone-arch", "wooden-footbridge", "suspension-bridge", "flat-crossing"],
+  },
+  reflection: {
+    title: "Reflection Presets",
+    presets: ["calm-lake", "rippled-reflection", "dark-water", "golden-reflection"],
+  },
+  "vignette-foliage": {
+    title: "Vignette Foliage Presets",
+    presets: ["overhanging-branches", "grass-border", "leaf-frame", "pine-canopy", "vine-border"],
+  },
+  "forest-floor": {
+    title: "Forest Floor Presets",
+    presets: ["fern-carpet", "mossy-ground", "fallen-leaves", "pine-needles", "mushroom-patch"],
+  },
+  haze: {
+    title: "Haze Presets",
+    presets: ["light-haze", "golden-haze", "cool-mist", "heat-haze"],
+  },
+  fence: {
+    title: "Fence Presets",
+    presets: ["white-picket", "stone-wall", "ranch-rail", "wire-fence"],
+  },
+  boat: {
+    title: "Boat Presets",
+    presets: ["sailboat", "rowboat", "fishing-boat", "cargo-ship"],
+  },
+  erosion: {
+    title: "Erosion Presets",
+    presets: ["rain-streaks", "wind-erosion", "frost-cracks", "lichen-growth"],
+  },
   landscape: {
     title: "Landscape Composites",
     presets: ["mountain-dawn", "rolling-pastoral", "desert-sunset", "coastal-storm", "lake-at-night", "mountain-stream-scene"],
+  },
+  scenes: {
+    title: "Scene Recipes",
+    presets: ["mountain-valley", "river-scene", "coastal-moonlight", "park-riverside", "shan-shui", "pastoral", "forest-clearing", "alpine-lake", "japanese-garden", "desert-expanse", "winter-woodland", "tropical-coast"],
   },
 };
 
@@ -65,8 +149,10 @@ for (const [cat, def] of Object.entries(CATEGORIES)) {
     },
   }));
 
+  const outDir = path.join(root, cat);
+  fs.mkdirSync(outDir, { recursive: true });
   const ws = buildWorkspace(`terrain-${cat}`, def.title, sketches);
-  const outFile = path.join(root, cat, `${cat}.genart-workspace`);
+  const outFile = path.join(outDir, `${cat}.genart-workspace`);
   fs.writeFileSync(outFile, JSON.stringify(ws, null, 2) + "\n");
   console.log(`  ${path.relative(root, outFile)} (${sketches.length} sketches)`);
   totalFiles++;
@@ -92,7 +178,7 @@ for (const [cat, def] of Object.entries(CATEGORIES)) {
 }
 
 const galleryWs = buildWorkspace("terrain-gallery", "Terrain Preset Gallery", allSketches);
-galleryWs.viewport.zoom = 0.15;
+galleryWs.viewport.zoom = 0.1;
 const galleryFile = path.join(root, "terrain-gallery.genart-workspace");
 fs.writeFileSync(galleryFile, JSON.stringify(galleryWs, null, 2) + "\n");
 console.log(`  ${path.relative(root, galleryFile)} (${allSketches.length} sketches)`);

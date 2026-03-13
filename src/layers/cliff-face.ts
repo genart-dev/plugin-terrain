@@ -163,6 +163,34 @@ export const cliffFaceLayerType: LayerTypeDefinition = {
     ctx.closePath();
     ctx.fill();
 
+    // Clip all subsequent rendering to the cliff silhouette
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(cliffX, cliffBottom);
+    for (let i = 0; i <= segments; i++) {
+      const t = i / segments;
+      const y = cliffBottom - t * cliffH;
+      const n = noise(t * 8, p.seed * 0.01);
+      const edgeOffset = (n - 0.5) * cliffW * 0.15 * p.roughness;
+      ctx.lineTo(cliffX + edgeOffset, y);
+    }
+    for (let i = 0; i <= topSegments; i++) {
+      const t = i / topSegments;
+      const x = cliffX + t * cliffW;
+      const n = noise(t * 6 + 100, p.seed * 0.01);
+      const topOffset = (n - 0.5) * cliffH * 0.1 * p.roughness;
+      ctx.lineTo(x, cliffTop + topOffset);
+    }
+    for (let i = segments; i >= 0; i--) {
+      const t = i / segments;
+      const y = cliffBottom - t * cliffH;
+      const n = noise(t * 8 + 50, p.seed * 0.01 + 10);
+      const edgeOffset = (n - 0.5) * cliffW * 0.1 * p.roughness;
+      ctx.lineTo(cliffX + cliffW + edgeOffset, y);
+    }
+    ctx.closePath();
+    ctx.clip();
+
     // Texture based on mode
     if (p.textureMode === "sandstone") {
       // Horizontal strata lines
@@ -244,6 +272,9 @@ export const cliffFaceLayerType: LayerTypeDefinition = {
       ctx.fillStyle = `rgba(${lr},${lg},${lb},0.2)`;
       ctx.fillRect(cliffX, ledgeY - 1, cliffW, 1);
     }
+
+    // Restore context (end silhouette clipping)
+    ctx.restore();
   },
 
   validate(properties): ValidationError[] | null {

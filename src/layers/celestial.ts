@@ -52,6 +52,7 @@ const CELESTIAL_PROPERTIES: LayerPropertySchema[] = [
   { key: "glowRadius", label: "Glow Radius", type: "number", default: 0.15, min: 0.0, max: 0.5, step: 0.01, group: "glow" },
   { key: "glowColor", label: "Glow Color", type: "color", default: "#FFFDE0", group: "glow" },
   { key: "bodyColor", label: "Body Color", type: "color", default: "#FFFFFF", group: "body" },
+  { key: "moonPhase", label: "Moon Phase", type: "number", default: 1.0, min: 0.0, max: 1.0, step: 0.05, group: "body" },
   { key: "lightPathEnabled", label: "Light Path", type: "boolean", default: false, group: "light-path" },
   { key: "lightPathColor", label: "Light Path Color", type: "color", default: "#FFFFFF", group: "light-path" },
   createDepthLaneProperty("sky"),
@@ -67,6 +68,7 @@ function resolveProps(properties: LayerProperties): {
   glowRadius: number;
   glowColor: string;
   bodyColor: string;
+  moonPhase: number;
   lightPathEnabled: boolean;
   lightPathColor: string;
   depthLane: string;
@@ -85,6 +87,7 @@ function resolveProps(properties: LayerProperties): {
     glowRadius: (properties.glowRadius as number) ?? cp?.glowRadius ?? 0.15,
     glowColor: (properties.glowColor as string) || cp?.glowColor || "#FFFDE0",
     bodyColor: (properties.bodyColor as string) || cp?.bodyColor || "#FFFFFF",
+    moonPhase: (properties.moonPhase as number) ?? (cp as any)?.moonPhase ?? 1.0,
     lightPathEnabled: (properties.lightPathEnabled as boolean) ?? cp?.lightPathEnabled ?? false,
     lightPathColor: (properties.lightPathColor as string) || cp?.lightPathColor || "#FFFFFF",
     depthLane: (properties.depthLane as string) ?? "sky",
@@ -191,27 +194,50 @@ export const celestialLayerType: LayerTypeDefinition = {
       ctx.stroke();
       ctx.globalAlpha = 1;
     } else if (p.bodyType === "moon") {
-      // Moon: full disk (crescent effect would need shadow masking)
-      ctx.fillStyle = bodyColor;
-      ctx.beginPath();
-      ctx.arc(cx, cy, bodyRadius, 0, Math.PI * 2);
-      ctx.fill();
+      // Moon: render to temp canvas for crescent masking
+      const moonSize = Math.ceil(bodyRadius * 2.5);
+      const moonCanvas = new OffscreenCanvas(moonSize * 2, moonSize * 2);
+      const moonCtx = moonCanvas.getContext("2d")!;
+      const mcx = moonSize;
+      const mcy = moonSize;
 
-      // Subtle surface texture (craters) for moon
-      ctx.globalAlpha = 0.15;
+      // Draw full moon disk
+      moonCtx.fillStyle = bodyColor;
+      moonCtx.beginPath();
+      moonCtx.arc(mcx, mcy, bodyRadius, 0, Math.PI * 2);
+      moonCtx.fill();
+
+      // Subtle surface texture (craters)
+      moonCtx.globalAlpha = 0.15;
       for (let i = 0; i < 5; i++) {
         const angle = rng() * Math.PI * 2;
         const dist = rng() * bodyRadius * 0.6;
         const craterR = bodyRadius * (0.05 + rng() * 0.12);
-        const craterX = cx + Math.cos(angle) * dist;
-        const craterY = cy + Math.sin(angle) * dist;
+        const craterX = mcx + Math.cos(angle) * dist;
+        const craterY = mcy + Math.sin(angle) * dist;
         const [r, g, b] = parseHex(bodyColor);
-        ctx.fillStyle = `rgba(${Math.max(0, r - 40)},${Math.max(0, g - 40)},${Math.max(0, b - 40)},0.3)`;
-        ctx.beginPath();
-        ctx.arc(craterX, craterY, craterR, 0, Math.PI * 2);
-        ctx.fill();
+        moonCtx.fillStyle = `rgba(${Math.max(0, r - 40)},${Math.max(0, g - 40)},${Math.max(0, b - 40)},0.3)`;
+        moonCtx.beginPath();
+        moonCtx.arc(craterX, craterY, craterR, 0, Math.PI * 2);
+        moonCtx.fill();
       }
-      ctx.globalAlpha = 1;
+      moonCtx.globalAlpha = 1;
+
+      // Crescent masking: carve shadow for non-full phases
+      if (p.moonPhase < 0.98) {
+        moonCtx.globalCompositeOperation = "destination-out";
+        moonCtx.fillStyle = "#000000";
+        // Shadow circle offset: small offset = thin crescent, large = full moon
+        // phase 0 = new moon (shadow centered, fully masked), 1 = full moon
+        const shadowOffset = bodyRadius * 2 * p.moonPhase;
+        moonCtx.beginPath();
+        moonCtx.arc(mcx + shadowOffset, mcy, bodyRadius * 1.05, 0, Math.PI * 2);
+        moonCtx.fill();
+        moonCtx.globalCompositeOperation = "source-over";
+      }
+
+      // Composite moon onto main canvas
+      ctx.drawImage(moonCanvas, cx - moonSize, cy - moonSize);
     } else {
       // Sun: bright disk
       ctx.fillStyle = bodyColor;

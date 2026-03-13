@@ -1,0 +1,147 @@
+{
+  "genart": "1.3",
+  "id": "terrain-leaf-frame",
+  "title": "Leaf Frame",
+  "created": "2026-03-12T00:00:00.000Z",
+  "modified": "2026-03-12T00:00:00.000Z",
+  "renderer": {
+    "type": "canvas2d"
+  },
+  "canvas": {
+    "width": 600,
+    "height": 600
+  },
+  "parameters": [],
+  "colors": [],
+  "state": {
+    "seed": 42,
+    "params": {},
+    "colorPalette": []
+  },
+  "algorithm": "function sketch(ctx, state) {}",
+  "layers": [
+    {
+      "id": "sky-layer-layer",
+      "type": "terrain:sky",
+      "name": "Noon",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "blendMode": "normal",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 600,
+        "rotation": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "anchorX": 0,
+        "anchorY": 0
+      },
+      "properties": {
+        "preset": "noon",
+        "zenithColor": "#1E3A6E",
+        "horizonColor": "#87CEEB",
+        "hazeColor": "#B0D4E8",
+        "hazeIntensity": 0.15,
+        "hazePosition": 0.9,
+        "hazeWidth": 0.1,
+        "horizonLine": 1
+      }
+    },
+    {
+      "id": "bg-profile-layer",
+      "type": "terrain:profile",
+      "name": "Foothills",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "blendMode": "normal",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 600,
+        "rotation": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "anchorX": 0,
+        "anchorY": 0
+      },
+      "properties": {
+        "preset": "foothills",
+        "ridgeCount": 4,
+        "roughness": 0.35,
+        "elevationMin": 0.5,
+        "elevationMax": 0.7,
+        "noiseScale": 2,
+        "jaggedness": 0.25,
+        "foregroundColor": "#3A5030",
+        "backgroundRidgeColor": "#7090A0",
+        "depthValueShift": 0.45,
+        "depthEasing": "quadratic",
+        "seed": 1300
+      }
+    },
+    {
+      "id": "bg-treeline-layer",
+      "type": "terrain:treeline",
+      "name": "Deciduous Canopy",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "blendMode": "normal",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 600,
+        "rotation": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "anchorX": 0,
+        "anchorY": 0
+      },
+      "properties": {
+        "preset": "deciduous-canopy",
+        "canopyStyle": "rounded",
+        "color": "#3A6A2A",
+        "highlightColor": "#5A8A4A",
+        "shadowColor": "#1A4A10",
+        "density": 0.8,
+        "height": 0.15,
+        "irregularity": 0.4
+      }
+    },
+    {
+      "id": "vignette-foliage-layer",
+      "type": "terrain:vignette-foliage",
+      "name": "Leaf Frame",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "blendMode": "normal",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 600,
+        "rotation": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "anchorX": 0,
+        "anchorY": 0
+      },
+      "properties": {
+        "preset": "leaf-frame",
+        "foliageStyle": "leaves",
+        "color": "#2A5020",
+        "secondaryColor": "#408030",
+        "density": 0.6,
+        "depth": 0.18,
+        "edges": "all"
+      }
+    }
+  ]
+}

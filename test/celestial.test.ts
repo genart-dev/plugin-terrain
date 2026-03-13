@@ -2,6 +2,23 @@ import { describe, it, expect, vi } from "vitest";
 import { celestialLayerType } from "../src/layers/celestial.js";
 import { CELESTIAL_PRESETS } from "../src/presets/celestial.js";
 
+vi.stubGlobal("OffscreenCanvas", class {
+  width: number;
+  height: number;
+  constructor(w: number, h: number) { this.width = w; this.height = h; }
+  getContext() {
+    return {
+      putImageData: vi.fn(),
+      beginPath: vi.fn(),
+      arc: vi.fn(),
+      fill: vi.fn(),
+      fillStyle: "",
+      globalAlpha: 1,
+      globalCompositeOperation: "source-over",
+    };
+  }
+});
+
 function createMockCtx() {
   return {
     fillRect: vi.fn(),
@@ -9,12 +26,16 @@ function createMockCtx() {
     strokeStyle: "",
     lineWidth: 0,
     globalAlpha: 1,
+    globalCompositeOperation: "source-over",
     createRadialGradient: vi.fn(() => ({
       addColorStop: vi.fn(),
     })),
     createLinearGradient: vi.fn(() => ({
       addColorStop: vi.fn(),
     })),
+    drawImage: vi.fn(),
+    save: vi.fn(),
+    restore: vi.fn(),
     beginPath: vi.fn(),
     moveTo: vi.fn(),
     lineTo: vi.fn(),

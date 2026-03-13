@@ -11,6 +11,7 @@ function createMockCtx() {
     globalAlpha: 1,
     save: vi.fn(),
     restore: vi.fn(),
+    clip: vi.fn(),
     createLinearGradient: vi.fn(() => ({
       addColorStop: vi.fn(),
     })),

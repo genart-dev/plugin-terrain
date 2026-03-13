@@ -120,7 +120,8 @@ export const cloudsLayerType: LayerTypeDefinition = {
     if (bandHeight <= 0) return;
 
     // Cloud threshold from coverage: lower threshold = more clouds
-    const threshold = 1 - p.coverage + noiseParams.threshold;
+    // Formula tuned so coverage=0.2 cirrus still produces visible clouds
+    const threshold = 0.3 + (1 - p.coverage) * 0.4 + noiseParams.threshold * 0.15;
 
     const [cr, cg, cb] = parseHex(p.cloudColor);
     const [sr, sg, sb] = parseHex(p.shadowColor);
@@ -149,8 +150,8 @@ export const cloudsLayerType: LayerTypeDefinition = {
 
         if (n > threshold) {
           // Distance above threshold determines opacity
-          const aboveThreshold = (n - threshold) / (1 - threshold);
-          const alpha = Math.min(1, aboveThreshold / p.softness);
+          const aboveThreshold = (n - threshold) / Math.max(0.01, 1 - threshold);
+          const alpha = Math.min(1, aboveThreshold / Math.max(0.15, p.softness * 0.6));
 
           // Shadow on cloud undersides (lower portion of cloud form)
           const shadowVal = shadowNoise(nx + 0.5, ny + 0.3);

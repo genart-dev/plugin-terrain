@@ -2,6 +2,15 @@ import { describe, it, expect, vi } from "vitest";
 import { fogLayerType } from "../src/layers/fog.js";
 import { FOG_PRESETS } from "../src/presets/fog.js";
 
+vi.stubGlobal("OffscreenCanvas", class {
+  width: number;
+  height: number;
+  constructor(w: number, h: number) { this.width = w; this.height = h; }
+  getContext() {
+    return { putImageData: vi.fn() };
+  }
+});
+
 function createMockCtx() {
   return {
     fillRect: vi.fn(),
@@ -15,6 +24,13 @@ function createMockCtx() {
     createRadialGradient: vi.fn(() => ({
       addColorStop: vi.fn(),
     })),
+    createImageData: vi.fn((w: number, h: number) => ({
+      data: new Uint8ClampedArray(w * h * 4),
+      width: w,
+      height: h,
+    })),
+    putImageData: vi.fn(),
+    drawImage: vi.fn(),
     beginPath: vi.fn(),
     moveTo: vi.fn(),
     lineTo: vi.fn(),
@@ -87,8 +103,8 @@ describe("terrain:fog-layer", () => {
     const props = fogLayerType.createDefault();
     fogLayerType.render(props, ctx, BOUNDS, {} as any);
 
-    expect(ctx.createLinearGradient).toHaveBeenCalled();
-    expect(ctx.fillRect).toHaveBeenCalled();
+    expect(ctx.createImageData).toHaveBeenCalled();
+    expect(ctx.drawImage).toHaveBeenCalled();
   });
 
   it("render works with all fog types", () => {

@@ -2,12 +2,12 @@
   "genart-workspace": "1.0",
   "id": "terrain-gallery",
   "title": "Terrain Preset Gallery",
-  "created": "2026-03-11T00:00:00.000Z",
-  "modified": "2026-03-11T00:00:00.000Z",
+  "created": "2026-03-12T00:00:00.000Z",
+  "modified": "2026-03-12T00:00:00.000Z",
   "viewport": {
     "x": 0,
     "y": 0,
-    "zoom": 0.15
+    "zoom": 0.1
   },
   "sketches": [
     {
@@ -158,45 +158,878 @@
       }
     },
     {
-      "file": "landscape/mountain-dawn.genart",
+      "file": "river/gentle-stream.genart",
       "position": {
         "x": 0,
         "y": 2800
       }
     },
     {
-      "file": "landscape/rolling-pastoral.genart",
+      "file": "river/wide-river.genart",
       "position": {
         "x": 700,
         "y": 2800
       }
     },
     {
-      "file": "landscape/desert-sunset.genart",
+      "file": "river/mountain-creek.genart",
       "position": {
         "x": 1400,
         "y": 2800
       }
     },
     {
-      "file": "landscape/coastal-storm.genart",
+      "file": "river/lazy-oxbow.genart",
       "position": {
         "x": 2100,
         "y": 2800
       }
     },
     {
-      "file": "landscape/lake-at-night.genart",
+      "file": "river/forest-brook.genart",
       "position": {
         "x": 2800,
         "y": 2800
       }
     },
     {
-      "file": "landscape/mountain-stream-scene.genart",
+      "file": "river/delta-channels.genart",
       "position": {
         "x": 3500,
         "y": 2800
+      }
+    },
+    {
+      "file": "river/waterfall-stream.genart",
+      "position": {
+        "x": 4200,
+        "y": 2800
+      }
+    },
+    {
+      "file": "river/tidal-estuary.genart",
+      "position": {
+        "x": 4900,
+        "y": 2800
+      }
+    },
+    {
+      "file": "path/dirt-trail.genart",
+      "position": {
+        "x": 0,
+        "y": 4200
+      }
+    },
+    {
+      "file": "path/cobblestone-road.genart",
+      "position": {
+        "x": 700,
+        "y": 4200
+      }
+    },
+    {
+      "file": "path/gravel-path.genart",
+      "position": {
+        "x": 1400,
+        "y": 4200
+      }
+    },
+    {
+      "file": "path/forest-path.genart",
+      "position": {
+        "x": 2100,
+        "y": 4200
+      }
+    },
+    {
+      "file": "path/mountain-switchback.genart",
+      "position": {
+        "x": 2800,
+        "y": 4200
+      }
+    },
+    {
+      "file": "path/garden-walk.genart",
+      "position": {
+        "x": 3500,
+        "y": 4200
+      }
+    },
+    {
+      "file": "path/sand-track.genart",
+      "position": {
+        "x": 4200,
+        "y": 4200
+      }
+    },
+    {
+      "file": "path/country-lane.genart",
+      "position": {
+        "x": 4900,
+        "y": 4200
+      }
+    },
+    {
+      "file": "shore/sandy-beach.genart",
+      "position": {
+        "x": 0,
+        "y": 5600
+      }
+    },
+    {
+      "file": "shore/rocky-shore.genart",
+      "position": {
+        "x": 700,
+        "y": 5600
+      }
+    },
+    {
+      "file": "shore/muddy-riverbank.genart",
+      "position": {
+        "x": 1400,
+        "y": 5600
+      }
+    },
+    {
+      "file": "shore/grassy-bank.genart",
+      "position": {
+        "x": 2100,
+        "y": 5600
+      }
+    },
+    {
+      "file": "shore/tidal-flat.genart",
+      "position": {
+        "x": 2800,
+        "y": 5600
+      }
+    },
+    {
+      "file": "shore/cliff-base.genart",
+      "position": {
+        "x": 3500,
+        "y": 5600
+      }
+    },
+    {
+      "file": "field/meadow-grass.genart",
+      "position": {
+        "x": 0,
+        "y": 6300
+      }
+    },
+    {
+      "file": "field/wheat-field.genart",
+      "position": {
+        "x": 700,
+        "y": 6300
+      }
+    },
+    {
+      "file": "field/wildflower-meadow.genart",
+      "position": {
+        "x": 1400,
+        "y": 6300
+      }
+    },
+    {
+      "file": "field/lavender-rows.genart",
+      "position": {
+        "x": 2100,
+        "y": 6300
+      }
+    },
+    {
+      "file": "field/dry-savanna.genart",
+      "position": {
+        "x": 2800,
+        "y": 6300
+      }
+    },
+    {
+      "file": "field/rice-paddy.genart",
+      "position": {
+        "x": 3500,
+        "y": 6300
+      }
+    },
+    {
+      "file": "field/autumn-stubble.genart",
+      "position": {
+        "x": 4200,
+        "y": 6300
+      }
+    },
+    {
+      "file": "field/snow-covered.genart",
+      "position": {
+        "x": 4900,
+        "y": 6300
+      }
+    },
+    {
+      "file": "rock/granite-boulder.genart",
+      "position": {
+        "x": 0,
+        "y": 7700
+      }
+    },
+    {
+      "file": "rock/sandstone-outcrop.genart",
+      "position": {
+        "x": 700,
+        "y": 7700
+      }
+    },
+    {
+      "file": "rock/shan-shui-rock.genart",
+      "position": {
+        "x": 1400,
+        "y": 7700
+      }
+    },
+    {
+      "file": "rock/mossy-rock.genart",
+      "position": {
+        "x": 2100,
+        "y": 7700
+      }
+    },
+    {
+      "file": "rock/slate-shelf.genart",
+      "position": {
+        "x": 2800,
+        "y": 7700
+      }
+    },
+    {
+      "file": "rock/volcanic-basalt.genart",
+      "position": {
+        "x": 3500,
+        "y": 7700
+      }
+    },
+    {
+      "file": "treeline/deciduous-canopy.genart",
+      "position": {
+        "x": 0,
+        "y": 8400
+      }
+    },
+    {
+      "file": "treeline/conifer-ridge.genart",
+      "position": {
+        "x": 700,
+        "y": 8400
+      }
+    },
+    {
+      "file": "treeline/autumn-treeline.genart",
+      "position": {
+        "x": 1400,
+        "y": 8400
+      }
+    },
+    {
+      "file": "treeline/misty-forest.genart",
+      "position": {
+        "x": 2100,
+        "y": 8400
+      }
+    },
+    {
+      "file": "treeline/palm-fringe.genart",
+      "position": {
+        "x": 2800,
+        "y": 8400
+      }
+    },
+    {
+      "file": "treeline/winter-bare.genart",
+      "position": {
+        "x": 3500,
+        "y": 8400
+      }
+    },
+    {
+      "file": "celestial/noon-sun.genart",
+      "position": {
+        "x": 0,
+        "y": 9100
+      }
+    },
+    {
+      "file": "celestial/golden-hour-sun.genart",
+      "position": {
+        "x": 700,
+        "y": 9100
+      }
+    },
+    {
+      "file": "celestial/harvest-moon.genart",
+      "position": {
+        "x": 1400,
+        "y": 9100
+      }
+    },
+    {
+      "file": "celestial/crescent-moon.genart",
+      "position": {
+        "x": 2100,
+        "y": 9100
+      }
+    },
+    {
+      "file": "celestial/blood-moon.genart",
+      "position": {
+        "x": 2800,
+        "y": 9100
+      }
+    },
+    {
+      "file": "celestial/polar-star.genart",
+      "position": {
+        "x": 3500,
+        "y": 9100
+      }
+    },
+    {
+      "file": "fog/morning-mist.genart",
+      "position": {
+        "x": 0,
+        "y": 9800
+      }
+    },
+    {
+      "file": "fog/mountain-veil.genart",
+      "position": {
+        "x": 700,
+        "y": 9800
+      }
+    },
+    {
+      "file": "fog/valley-fog.genart",
+      "position": {
+        "x": 1400,
+        "y": 9800
+      }
+    },
+    {
+      "file": "fog/shan-shui-cloud-band.genart",
+      "position": {
+        "x": 2100,
+        "y": 9800
+      }
+    },
+    {
+      "file": "fog/coastal-haar.genart",
+      "position": {
+        "x": 2800,
+        "y": 9800
+      }
+    },
+    {
+      "file": "starfield/clear-night.genart",
+      "position": {
+        "x": 0,
+        "y": 10500
+      }
+    },
+    {
+      "file": "starfield/dense-starfield.genart",
+      "position": {
+        "x": 700,
+        "y": 10500
+      }
+    },
+    {
+      "file": "starfield/milky-way.genart",
+      "position": {
+        "x": 1400,
+        "y": 10500
+      }
+    },
+    {
+      "file": "starfield/sparse-stars.genart",
+      "position": {
+        "x": 2100,
+        "y": 10500
+      }
+    },
+    {
+      "file": "starfield/twilight-stars.genart",
+      "position": {
+        "x": 2800,
+        "y": 10500
+      }
+    },
+    {
+      "file": "cliff-face/granite-cliff.genart",
+      "position": {
+        "x": 0,
+        "y": 11200
+      }
+    },
+    {
+      "file": "cliff-face/sandstone-wall.genart",
+      "position": {
+        "x": 700,
+        "y": 11200
+      }
+    },
+    {
+      "file": "cliff-face/basalt-columns.genart",
+      "position": {
+        "x": 1400,
+        "y": 11200
+      }
+    },
+    {
+      "file": "cliff-face/limestone-face.genart",
+      "position": {
+        "x": 2100,
+        "y": 11200
+      }
+    },
+    {
+      "file": "cliff-face/shale-cliff.genart",
+      "position": {
+        "x": 2800,
+        "y": 11200
+      }
+    },
+    {
+      "file": "snowfield/fresh-powder.genart",
+      "position": {
+        "x": 0,
+        "y": 11900
+      }
+    },
+    {
+      "file": "snowfield/wind-swept.genart",
+      "position": {
+        "x": 700,
+        "y": 11900
+      }
+    },
+    {
+      "file": "snowfield/sun-crust.genart",
+      "position": {
+        "x": 1400,
+        "y": 11900
+      }
+    },
+    {
+      "file": "snowfield/deep-snow.genart",
+      "position": {
+        "x": 2100,
+        "y": 11900
+      }
+    },
+    {
+      "file": "building/farmhouse.genart",
+      "position": {
+        "x": 0,
+        "y": 12600
+      }
+    },
+    {
+      "file": "building/church-steeple.genart",
+      "position": {
+        "x": 700,
+        "y": 12600
+      }
+    },
+    {
+      "file": "building/tower-ruin.genart",
+      "position": {
+        "x": 1400,
+        "y": 12600
+      }
+    },
+    {
+      "file": "building/village-cluster.genart",
+      "position": {
+        "x": 2100,
+        "y": 12600
+      }
+    },
+    {
+      "file": "building/temple.genart",
+      "position": {
+        "x": 2800,
+        "y": 12600
+      }
+    },
+    {
+      "file": "building/lighthouse.genart",
+      "position": {
+        "x": 3500,
+        "y": 12600
+      }
+    },
+    {
+      "file": "bridge/stone-arch.genart",
+      "position": {
+        "x": 0,
+        "y": 13300
+      }
+    },
+    {
+      "file": "bridge/wooden-footbridge.genart",
+      "position": {
+        "x": 700,
+        "y": 13300
+      }
+    },
+    {
+      "file": "bridge/suspension-bridge.genart",
+      "position": {
+        "x": 1400,
+        "y": 13300
+      }
+    },
+    {
+      "file": "bridge/flat-crossing.genart",
+      "position": {
+        "x": 2100,
+        "y": 13300
+      }
+    },
+    {
+      "file": "reflection/calm-lake.genart",
+      "position": {
+        "x": 0,
+        "y": 14000
+      }
+    },
+    {
+      "file": "reflection/rippled-reflection.genart",
+      "position": {
+        "x": 700,
+        "y": 14000
+      }
+    },
+    {
+      "file": "reflection/dark-water.genart",
+      "position": {
+        "x": 1400,
+        "y": 14000
+      }
+    },
+    {
+      "file": "reflection/golden-reflection.genart",
+      "position": {
+        "x": 2100,
+        "y": 14000
+      }
+    },
+    {
+      "file": "vignette-foliage/overhanging-branches.genart",
+      "position": {
+        "x": 0,
+        "y": 14700
+      }
+    },
+    {
+      "file": "vignette-foliage/grass-border.genart",
+      "position": {
+        "x": 700,
+        "y": 14700
+      }
+    },
+    {
+      "file": "vignette-foliage/leaf-frame.genart",
+      "position": {
+        "x": 1400,
+        "y": 14700
+      }
+    },
+    {
+      "file": "vignette-foliage/pine-canopy.genart",
+      "position": {
+        "x": 2100,
+        "y": 14700
+      }
+    },
+    {
+      "file": "vignette-foliage/vine-border.genart",
+      "position": {
+        "x": 2800,
+        "y": 14700
+      }
+    },
+    {
+      "file": "forest-floor/fern-carpet.genart",
+      "position": {
+        "x": 0,
+        "y": 15400
+      }
+    },
+    {
+      "file": "forest-floor/mossy-ground.genart",
+      "position": {
+        "x": 700,
+        "y": 15400
+      }
+    },
+    {
+      "file": "forest-floor/fallen-leaves.genart",
+      "position": {
+        "x": 1400,
+        "y": 15400
+      }
+    },
+    {
+      "file": "forest-floor/pine-needles.genart",
+      "position": {
+        "x": 2100,
+        "y": 15400
+      }
+    },
+    {
+      "file": "forest-floor/mushroom-patch.genart",
+      "position": {
+        "x": 2800,
+        "y": 15400
+      }
+    },
+    {
+      "file": "haze/light-haze.genart",
+      "position": {
+        "x": 0,
+        "y": 16100
+      }
+    },
+    {
+      "file": "haze/golden-haze.genart",
+      "position": {
+        "x": 700,
+        "y": 16100
+      }
+    },
+    {
+      "file": "haze/cool-mist.genart",
+      "position": {
+        "x": 1400,
+        "y": 16100
+      }
+    },
+    {
+      "file": "haze/heat-haze.genart",
+      "position": {
+        "x": 2100,
+        "y": 16100
+      }
+    },
+    {
+      "file": "fence/white-picket.genart",
+      "position": {
+        "x": 0,
+        "y": 16800
+      }
+    },
+    {
+      "file": "fence/stone-wall.genart",
+      "position": {
+        "x": 700,
+        "y": 16800
+      }
+    },
+    {
+      "file": "fence/ranch-rail.genart",
+      "position": {
+        "x": 1400,
+        "y": 16800
+      }
+    },
+    {
+      "file": "fence/wire-fence.genart",
+      "position": {
+        "x": 2100,
+        "y": 16800
+      }
+    },
+    {
+      "file": "boat/sailboat.genart",
+      "position": {
+        "x": 0,
+        "y": 17500
+      }
+    },
+    {
+      "file": "boat/rowboat.genart",
+      "position": {
+        "x": 700,
+        "y": 17500
+      }
+    },
+    {
+      "file": "boat/fishing-boat.genart",
+      "position": {
+        "x": 1400,
+        "y": 17500
+      }
+    },
+    {
+      "file": "boat/cargo-ship.genart",
+      "position": {
+        "x": 2100,
+        "y": 17500
+      }
+    },
+    {
+      "file": "erosion/rain-streaks.genart",
+      "position": {
+        "x": 0,
+        "y": 18200
+      }
+    },
+    {
+      "file": "erosion/wind-erosion.genart",
+      "position": {
+        "x": 700,
+        "y": 18200
+      }
+    },
+    {
+      "file": "erosion/frost-cracks.genart",
+      "position": {
+        "x": 1400,
+        "y": 18200
+      }
+    },
+    {
+      "file": "erosion/lichen-growth.genart",
+      "position": {
+        "x": 2100,
+        "y": 18200
+      }
+    },
+    {
+      "file": "landscape/mountain-dawn.genart",
+      "position": {
+        "x": 0,
+        "y": 18900
+      }
+    },
+    {
+      "file": "landscape/rolling-pastoral.genart",
+      "position": {
+        "x": 700,
+        "y": 18900
+      }
+    },
+    {
+      "file": "landscape/desert-sunset.genart",
+      "position": {
+        "x": 1400,
+        "y": 18900
+      }
+    },
+    {
+      "file": "landscape/coastal-storm.genart",
+      "position": {
+        "x": 2100,
+        "y": 18900
+      }
+    },
+    {
+      "file": "landscape/lake-at-night.genart",
+      "position": {
+        "x": 2800,
+        "y": 18900
+      }
+    },
+    {
+      "file": "landscape/mountain-stream-scene.genart",
+      "position": {
+        "x": 3500,
+        "y": 18900
+      }
+    },
+    {
+      "file": "scenes/mountain-valley.genart",
+      "position": {
+        "x": 0,
+        "y": 19600
+      }
+    },
+    {
+      "file": "scenes/river-scene.genart",
+      "position": {
+        "x": 700,
+        "y": 19600
+      }
+    },
+    {
+      "file": "scenes/coastal-moonlight.genart",
+      "position": {
+        "x": 1400,
+        "y": 19600
+      }
+    },
+    {
+      "file": "scenes/park-riverside.genart",
+      "position": {
+        "x": 2100,
+        "y": 19600
+      }
+    },
+    {
+      "file": "scenes/shan-shui.genart",
+      "position": {
+        "x": 2800,
+        "y": 19600
+      }
+    },
+    {
+      "file": "scenes/pastoral.genart",
+      "position": {
+        "x": 3500,
+        "y": 19600
+      }
+    },
+    {
+      "file": "scenes/forest-clearing.genart",
+      "position": {
+        "x": 4200,
+        "y": 19600
+      }
+    },
+    {
+      "file": "scenes/alpine-lake.genart",
+      "position": {
+        "x": 4900,
+        "y": 19600
+      }
+    },
+    {
+      "file": "scenes/japanese-garden.genart",
+      "position": {
+        "x": 0,
+        "y": 20300
+      }
+    },
+    {
+      "file": "scenes/desert-expanse.genart",
+      "position": {
+        "x": 700,
+        "y": 20300
+      }
+    },
+    {
+      "file": "scenes/winter-woodland.genart",
+      "position": {
+        "x": 1400,
+        "y": 20300
+      }
+    },
+    {
+      "file": "scenes/tropical-coast.genart",
+      "position": {
+        "x": 2100,
+        "y": 20300
       }
     }
   ],

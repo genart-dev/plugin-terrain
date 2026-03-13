@@ -2,6 +2,15 @@ import { describe, it, expect, vi } from "vitest";
 import { starfieldLayerType } from "../src/layers/starfield.js";
 import { STARFIELD_PRESETS } from "../src/presets/starfield.js";
 
+vi.stubGlobal("OffscreenCanvas", class {
+  width: number;
+  height: number;
+  constructor(w: number, h: number) { this.width = w; this.height = h; }
+  getContext() {
+    return { putImageData: vi.fn() };
+  }
+});
+
 function createMockCtx() {
   return {
     fillRect: vi.fn(),
@@ -12,6 +21,13 @@ function createMockCtx() {
     createLinearGradient: vi.fn(() => ({
       addColorStop: vi.fn(),
     })),
+    createImageData: vi.fn((w: number, h: number) => ({
+      data: new Uint8ClampedArray(w * h * 4),
+      width: w,
+      height: h,
+    })),
+    putImageData: vi.fn(),
+    drawImage: vi.fn(),
     beginPath: vi.fn(),
     moveTo: vi.fn(),
     lineTo: vi.fn(),

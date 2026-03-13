@@ -1,0 +1,241 @@
+{
+  "genart": "1.3",
+  "id": "terrain-park-riverside",
+  "title": "Park Riverside",
+  "created": "2026-03-12T00:00:00.000Z",
+  "modified": "2026-03-12T00:00:00.000Z",
+  "renderer": {
+    "type": "canvas2d"
+  },
+  "canvas": {
+    "width": 600,
+    "height": 600
+  },
+  "parameters": [],
+  "colors": [],
+  "state": {
+    "seed": 42,
+    "params": {},
+    "colorPalette": []
+  },
+  "algorithm": "function sketch(ctx, state) {}",
+  "layers": [
+    {
+      "id": "sky-0-layer",
+      "type": "terrain:sky",
+      "name": "Noon",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "blendMode": "normal",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 600,
+        "rotation": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "anchorX": 0,
+        "anchorY": 0
+      },
+      "properties": {
+        "preset": "noon",
+        "zenithColor": "#1E3A6E",
+        "horizonColor": "#87CEEB",
+        "hazeColor": "#B0D4E8",
+        "hazeIntensity": 0.15,
+        "hazePosition": 0.9,
+        "hazeWidth": 0.1
+      }
+    },
+    {
+      "id": "terrain-1-layer",
+      "type": "terrain:profile",
+      "name": "Foothills",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "blendMode": "normal",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 600,
+        "rotation": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "anchorX": 0,
+        "anchorY": 0
+      },
+      "properties": {
+        "preset": "foothills",
+        "ridgeCount": 4,
+        "roughness": 0.35,
+        "elevationMin": 0.5,
+        "elevationMax": 0.7,
+        "noiseScale": 2,
+        "jaggedness": 0.25,
+        "foregroundColor": "#3A5030",
+        "backgroundRidgeColor": "#7090A0",
+        "depthValueShift": 0.45,
+        "depthEasing": "quadratic",
+        "seed": 4444
+      }
+    },
+    {
+      "id": "river-2-layer",
+      "type": "terrain:river",
+      "name": "Gentle Stream",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "blendMode": "normal",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 600,
+        "rotation": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "anchorX": 0,
+        "anchorY": 0
+      },
+      "properties": {
+        "preset": "gentle-stream",
+        "pathPreset": "meandering",
+        "widthNear": 80,
+        "widthFar": 15,
+        "waterColor": "#4A7A8A",
+        "bankColor": "#5C6B3A",
+        "rippleScale": 0.3,
+        "rippleIntensity": 0.2,
+        "reflectionIntensity": 0.3,
+        "flowDirection": 1,
+        "bankStyle": "soft-grass"
+      }
+    },
+    {
+      "id": "path-3-layer",
+      "type": "terrain:path",
+      "name": "Dirt Trail",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "blendMode": "normal",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 600,
+        "rotation": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "anchorX": 0,
+        "anchorY": 0
+      },
+      "properties": {
+        "preset": "dirt-trail",
+        "pathPreset": "winding",
+        "widthNear": 60,
+        "widthFar": 10,
+        "surfaceColor": "#8B7355",
+        "surfaceStyle": "dirt",
+        "edgeTreatment": "grass-encroach",
+        "wear": 0.5
+      }
+    },
+    {
+      "id": "treeline-4-layer",
+      "type": "terrain:treeline",
+      "name": "Deciduous Canopy",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "blendMode": "normal",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 600,
+        "rotation": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "anchorX": 0,
+        "anchorY": 0
+      },
+      "properties": {
+        "preset": "deciduous-canopy",
+        "canopyStyle": "rounded",
+        "color": "#3A6A2A",
+        "highlightColor": "#5A8A4A",
+        "shadowColor": "#1A4A10",
+        "density": 0.8,
+        "height": 0.15,
+        "irregularity": 0.4
+      }
+    },
+    {
+      "id": "field-5-layer",
+      "type": "terrain:field",
+      "name": "Meadow Grass",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "blendMode": "normal",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 600,
+        "rotation": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "anchorX": 0,
+        "anchorY": 0
+      },
+      "properties": {
+        "preset": "meadow-grass",
+        "vegetationType": "grass",
+        "color": "#5A8A3A",
+        "secondaryColor": "#7AAA5A",
+        "density": 0.6,
+        "markLength": 8,
+        "windDirection": 45,
+        "windStrength": 0.3,
+        "seasonalTint": "summer"
+      }
+    },
+    {
+      "id": "building-6-layer",
+      "type": "terrain:building",
+      "name": "Farmhouse",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "blendMode": "normal",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 600,
+        "rotation": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "anchorX": 0,
+        "anchorY": 0
+      },
+      "properties": {
+        "preset": "farmhouse",
+        "buildingType": "farmhouse",
+        "color": "#5A5050",
+        "roofColor": "#704030",
+        "scale": 1,
+        "xPosition": 0.5,
+        "yPosition": 0.6,
+        "windowCount": 2
+      }
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "genart": "1.3",
+  "id": "terrain-polar-star",
+  "title": "Polar Star",
+  "created": "2026-03-12T00:00:00.000Z",
+  "modified": "2026-03-12T00:00:00.000Z",
+  "renderer": {
+    "type": "canvas2d"
+  },
+  "canvas": {
+    "width": 600,
+    "height": 600
+  },
+  "parameters": [],
+  "colors": [],
+  "state": {
+    "seed": 42,
+    "params": {},
+    "colorPalette": []
+  },
+  "algorithm": "function sketch(ctx, state) {}",
+  "layers": [
+    {
+      "id": "sky-layer-layer",
+      "type": "terrain:sky",
+      "name": "Night",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "blendMode": "normal",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 600,
+        "rotation": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "anchorX": 0,
+        "anchorY": 0
+      },
+      "properties": {
+        "preset": "night",
+        "zenithColor": "#050510",
+        "horizonColor": "#0E1A2B",
+        "hazeColor": "#1A2540",
+        "hazeIntensity": 0.1,
+        "hazePosition": 0.9,
+        "hazeWidth": 0.1,
+        "horizonLine": 1
+      }
+    },
+    {
+      "id": "celestial-layer",
+      "type": "terrain:celestial",
+      "name": "Polar Star",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "blendMode": "normal",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 600,
+        "rotation": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "anchorX": 0,
+        "anchorY": 0
+      },
+      "properties": {
+        "preset": "polar-star",
+        "bodyType": "star",
+        "elevation": 0.9,
+        "azimuth": 0.5,
+        "size": 0.015,
+        "glowRadius": 0.06,
+        "glowColor": "#E0E8FF",
+        "bodyColor": "#FFFFFF",
+        "lightPathEnabled": false,
+        "lightPathColor": "#E0E8FF"
+      }
+    }
+  ]
+}

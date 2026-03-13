@@ -1,15 +1,23 @@
 import { describe, it, expect, vi } from "vitest";
 import { cloudsLayerType } from "../src/layers/clouds.js";
 
-function createMockCtx() {
-  const imageData = {
-    data: new Uint8ClampedArray(400 * 120 * 4),
-    width: 400,
-    height: 120,
-  };
+vi.stubGlobal("OffscreenCanvas", class {
+  width: number;
+  height: number;
+  constructor(w: number, h: number) { this.width = w; this.height = h; }
+  getContext() {
+    return { putImageData: vi.fn() };
+  }
+});
 
+function createMockCtx() {
   return {
-    createImageData: vi.fn(() => imageData),
+    createImageData: vi.fn((w: number, h: number) => ({
+      data: new Uint8ClampedArray(w * h * 4),
+      width: w,
+      height: h,
+    })),
+    putImageData: vi.fn(),
     drawImage: vi.fn(),
   } as unknown as CanvasRenderingContext2D;
 }

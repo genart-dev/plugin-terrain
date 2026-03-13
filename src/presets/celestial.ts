@@ -59,6 +59,7 @@ export const CELESTIAL_PRESETS: CelestialPreset[] = [
     elevation: 0.7,
     azimuth: 0.7,
     size: 0.035,
+    moonPhase: 0.15,
     glowRadius: 0.08,
     glowColor: "#C0D8FF",
     bodyColor: "#E8F0FF",

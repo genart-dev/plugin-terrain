@@ -162,210 +162,250 @@ Each lane supports sub-levels (`-1`, `-2`, `-3`) for fine-grained ordering withi
 
 ### River (8)
 
-| ID | Name | Description | Tags |
-|---|---|---|---|
-| `gentle-stream` | Gentle Stream | Calm, meandering stream with soft banks | calm, stream, gentle, peaceful |
-| `wide-river` | Wide River | Broad river with steady flow | wide, river, flowing, deep |
-| `mountain-creek` | Mountain Creek | Fast-flowing rocky creek | mountain, creek, fast, rocky |
-| `lazy-oxbow` | Lazy Oxbow | Slow, winding oxbow curve | slow, oxbow, winding, marshy |
-| `forest-brook` | Forest Brook | Narrow brook through woodland | forest, brook, narrow, shaded |
-| `delta-channels` | Delta Channels | Branching delta waterways | delta, channels, branching, coastal |
-| `waterfall-stream` | Waterfall Stream | Stream with cascading flow | waterfall, cascade, rushing, rocky |
-| `tidal-estuary` | Tidal Estuary | Wide tidal estuary meeting the sea | tidal, estuary, wide, coastal |
+[![River gallery](galleries/river-gallery.png)](#river-8)
+
+| Preview | ID | Name | Description | Tags |
+|---|---|---|---|---|
+| [![](examples/river/gentle-stream.png)](examples/river/gentle-stream.png) | `gentle-stream` | Gentle Stream | Calm, meandering stream with soft banks | calm, stream, gentle, peaceful |
+| [![](examples/river/wide-river.png)](examples/river/wide-river.png) | `wide-river` | Wide River | Broad river with steady flow | wide, river, flowing, deep |
+| [![](examples/river/mountain-creek.png)](examples/river/mountain-creek.png) | `mountain-creek` | Mountain Creek | Fast-flowing rocky creek | mountain, creek, fast, rocky |
+| [![](examples/river/lazy-oxbow.png)](examples/river/lazy-oxbow.png) | `lazy-oxbow` | Lazy Oxbow | Slow, winding oxbow curve | slow, oxbow, winding, marshy |
+| [![](examples/river/forest-brook.png)](examples/river/forest-brook.png) | `forest-brook` | Forest Brook | Narrow brook through woodland | forest, brook, narrow, shaded |
+| [![](examples/river/delta-channels.png)](examples/river/delta-channels.png) | `delta-channels` | Delta Channels | Branching delta waterways | delta, channels, branching, coastal |
+| [![](examples/river/waterfall-stream.png)](examples/river/waterfall-stream.png) | `waterfall-stream` | Waterfall Stream | Stream with cascading flow | waterfall, cascade, rushing, rocky |
+| [![](examples/river/tidal-estuary.png)](examples/river/tidal-estuary.png) | `tidal-estuary` | Tidal Estuary | Wide tidal estuary meeting the sea | tidal, estuary, wide, coastal |
 
 ### Path (8)
 
-| ID | Name | Description | Tags |
-|---|---|---|---|
-| `dirt-trail` | Dirt Trail | Worn dirt path through open terrain | dirt, trail, worn, natural |
-| `cobblestone-road` | Cobblestone Road | Old cobblestone road with uneven stones | cobblestone, road, old, stone |
-| `gravel-path` | Gravel Path | Crunchy gravel garden path | gravel, path, garden, neat |
-| `forest-path` | Forest Path | Shaded path through dense woodland | forest, path, shaded, mossy |
-| `mountain-switchback` | Mountain Switchback | Steep zigzag trail up a mountain | mountain, switchback, steep, exposed |
-| `garden-walk` | Garden Walk | Manicured garden walkway | garden, walk, manicured, formal |
-| `sand-track` | Sand Track | Sandy track through dunes or beach | sand, track, beach, desert |
-| `country-lane` | Country Lane | Quiet lane through rolling countryside | country, lane, quiet, pastoral |
+[![Path gallery](galleries/path-gallery.png)](#path-8)
+
+| Preview | ID | Name | Description | Tags |
+|---|---|---|---|---|
+| [![](examples/path/dirt-trail.png)](examples/path/dirt-trail.png) | `dirt-trail` | Dirt Trail | Worn dirt path through open terrain | dirt, trail, worn, natural |
+| [![](examples/path/cobblestone-road.png)](examples/path/cobblestone-road.png) | `cobblestone-road` | Cobblestone Road | Old cobblestone road with uneven stones | cobblestone, road, old, stone |
+| [![](examples/path/gravel-path.png)](examples/path/gravel-path.png) | `gravel-path` | Gravel Path | Crunchy gravel garden path | gravel, path, garden, neat |
+| [![](examples/path/forest-path.png)](examples/path/forest-path.png) | `forest-path` | Forest Path | Shaded path through dense woodland | forest, path, shaded, mossy |
+| [![](examples/path/mountain-switchback.png)](examples/path/mountain-switchback.png) | `mountain-switchback` | Mountain Switchback | Steep zigzag trail up a mountain | mountain, switchback, steep, exposed |
+| [![](examples/path/garden-walk.png)](examples/path/garden-walk.png) | `garden-walk` | Garden Walk | Manicured garden walkway | garden, walk, manicured, formal |
+| [![](examples/path/sand-track.png)](examples/path/sand-track.png) | `sand-track` | Sand Track | Sandy track through dunes or beach | sand, track, beach, desert |
+| [![](examples/path/country-lane.png)](examples/path/country-lane.png) | `country-lane` | Country Lane | Quiet lane through rolling countryside | country, lane, quiet, pastoral |
 
 ### Shore (6)
 
-| ID | Name | Description | Tags |
-|---|---|---|---|
-| `sandy-beach` | Sandy Beach | Wide sandy beach with gentle slope | sandy, beach, wide, warm |
-| `rocky-shore` | Rocky Shore | Rugged shoreline with boulders | rocky, shore, rugged, dramatic |
-| `muddy-riverbank` | Muddy Riverbank | Soft muddy bank along a river | muddy, riverbank, soft, marshy |
-| `grassy-bank` | Grassy Bank | Green grass growing down to water's edge | grassy, bank, green, gentle |
-| `tidal-flat` | Tidal Flat | Exposed tidal flat at low tide | tidal, flat, exposed, coastal |
-| `cliff-base` | Cliff Base | Base of a cliff where rock meets water | cliff, base, rock, dramatic |
+[![Shore gallery](galleries/shore-gallery.png)](#shore-6)
+
+| Preview | ID | Name | Description | Tags |
+|---|---|---|---|---|
+| [![](examples/shore/sandy-beach.png)](examples/shore/sandy-beach.png) | `sandy-beach` | Sandy Beach | Wide sandy beach with gentle slope | sandy, beach, wide, warm |
+| [![](examples/shore/rocky-shore.png)](examples/shore/rocky-shore.png) | `rocky-shore` | Rocky Shore | Rugged shoreline with boulders | rocky, shore, rugged, dramatic |
+| [![](examples/shore/muddy-riverbank.png)](examples/shore/muddy-riverbank.png) | `muddy-riverbank` | Muddy Riverbank | Soft muddy bank along a river | muddy, riverbank, soft, marshy |
+| [![](examples/shore/grassy-bank.png)](examples/shore/grassy-bank.png) | `grassy-bank` | Grassy Bank | Green grass growing down to water's edge | grassy, bank, green, gentle |
+| [![](examples/shore/tidal-flat.png)](examples/shore/tidal-flat.png) | `tidal-flat` | Tidal Flat | Exposed tidal flat at low tide | tidal, flat, exposed, coastal |
+| [![](examples/shore/cliff-base.png)](examples/shore/cliff-base.png) | `cliff-base` | Cliff Base | Base of a cliff where rock meets water | cliff, base, rock, dramatic |
 
 ### Field (8)
 
-| ID | Name | Description | Tags |
-|---|---|---|---|
-| `meadow-grass` | Meadow Grass | Lush green meadow with mixed grasses | meadow, grass, green, lush |
-| `wheat-field` | Wheat Field | Golden wheat field ready for harvest | wheat, golden, harvest, warm |
-| `wildflower-meadow` | Wildflower Meadow | Colorful wildflower-dotted grassland | wildflower, meadow, colorful, spring |
-| `lavender-rows` | Lavender Rows | Orderly rows of lavender in bloom | lavender, rows, purple, fragrant |
-| `dry-savanna` | Dry Savanna | Dry golden savanna grassland | savanna, dry, golden, hot |
-| `rice-paddy` | Rice Paddy | Flooded rice paddy with green shoots | rice, paddy, green, water |
-| `autumn-stubble` | Autumn Stubble | Harvested field with stubble remaining | autumn, stubble, brown, harvested |
-| `snow-covered` | Snow Covered | Field covered in a blanket of snow | snow, covered, white, winter |
+[![Field gallery](galleries/field-gallery.png)](#field-8)
+
+| Preview | ID | Name | Description | Tags |
+|---|---|---|---|---|
+| [![](examples/field/meadow-grass.png)](examples/field/meadow-grass.png) | `meadow-grass` | Meadow Grass | Lush green meadow with mixed grasses | meadow, grass, green, lush |
+| [![](examples/field/wheat-field.png)](examples/field/wheat-field.png) | `wheat-field` | Wheat Field | Golden wheat field ready for harvest | wheat, golden, harvest, warm |
+| [![](examples/field/wildflower-meadow.png)](examples/field/wildflower-meadow.png) | `wildflower-meadow` | Wildflower Meadow | Colorful wildflower-dotted grassland | wildflower, meadow, colorful, spring |
+| [![](examples/field/lavender-rows.png)](examples/field/lavender-rows.png) | `lavender-rows` | Lavender Rows | Orderly rows of lavender in bloom | lavender, rows, purple, fragrant |
+| [![](examples/field/dry-savanna.png)](examples/field/dry-savanna.png) | `dry-savanna` | Dry Savanna | Dry golden savanna grassland | savanna, dry, golden, hot |
+| [![](examples/field/rice-paddy.png)](examples/field/rice-paddy.png) | `rice-paddy` | Rice Paddy | Flooded rice paddy with green shoots | rice, paddy, green, water |
+| [![](examples/field/autumn-stubble.png)](examples/field/autumn-stubble.png) | `autumn-stubble` | Autumn Stubble | Harvested field with stubble remaining | autumn, stubble, brown, harvested |
+| [![](examples/field/snow-covered.png)](examples/field/snow-covered.png) | `snow-covered` | Snow Covered | Field covered in a blanket of snow | snow, covered, white, winter |
 
 ### Rock (6)
 
-| ID | Name | Description | Tags |
-|---|---|---|---|
-| `granite-boulder` | Granite Boulder | Large granite boulder with rough texture | granite, boulder, grey, rough |
-| `sandstone-outcrop` | Sandstone Outcrop | Layered sandstone outcrop with warm tones | sandstone, outcrop, warm, layered |
-| `shan-shui-rock` | Shan Shui Rock | Stylized Chinese landscape rock | shan-shui, rock, stylized, eastern |
-| `mossy-rock` | Mossy Rock | Weathered rock covered in green moss | mossy, rock, green, old |
-| `slate-shelf` | Slate Shelf | Flat shelf of layered slate | slate, shelf, flat, dark |
-| `volcanic-basalt` | Volcanic Basalt | Dark volcanic basalt columns | volcanic, basalt, dark, columnar |
+[![Rock gallery](galleries/rock-gallery.png)](#rock-6)
+
+| Preview | ID | Name | Description | Tags |
+|---|---|---|---|---|
+| [![](examples/rock/granite-boulder.png)](examples/rock/granite-boulder.png) | `granite-boulder` | Granite Boulder | Large granite boulder with rough texture | granite, boulder, grey, rough |
+| [![](examples/rock/sandstone-outcrop.png)](examples/rock/sandstone-outcrop.png) | `sandstone-outcrop` | Sandstone Outcrop | Layered sandstone outcrop with warm tones | sandstone, outcrop, warm, layered |
+| [![](examples/rock/shan-shui-rock.png)](examples/rock/shan-shui-rock.png) | `shan-shui-rock` | Shan Shui Rock | Stylized Chinese landscape rock | shan-shui, rock, stylized, eastern |
+| [![](examples/rock/mossy-rock.png)](examples/rock/mossy-rock.png) | `mossy-rock` | Mossy Rock | Weathered rock covered in green moss | mossy, rock, green, old |
+| [![](examples/rock/slate-shelf.png)](examples/rock/slate-shelf.png) | `slate-shelf` | Slate Shelf | Flat shelf of layered slate | slate, shelf, flat, dark |
+| [![](examples/rock/volcanic-basalt.png)](examples/rock/volcanic-basalt.png) | `volcanic-basalt` | Volcanic Basalt | Dark volcanic basalt columns | volcanic, basalt, dark, columnar |
 
 ### Treeline (6)
 
-| ID | Name | Description | Tags |
-|---|---|---|---|
-| `deciduous-canopy` | Deciduous Canopy | Lush deciduous tree canopy in summer | deciduous, canopy, green, summer |
-| `conifer-ridge` | Conifer Ridge | Dense conifer ridge silhouette | conifer, ridge, dark, evergreen |
-| `autumn-treeline` | Autumn Treeline | Treeline in full autumn color | autumn, treeline, colorful, warm |
-| `misty-forest` | Misty Forest | Forest edge shrouded in mist | misty, forest, atmospheric, soft |
-| `palm-fringe` | Palm Fringe | Tropical palm tree silhouettes | palm, tropical, silhouette, coastal |
-| `winter-bare` | Winter Bare | Bare winter trees with no leaves | winter, bare, stark, cold |
+[![Treeline gallery](galleries/treeline-gallery.png)](#treeline-6)
+
+| Preview | ID | Name | Description | Tags |
+|---|---|---|---|---|
+| [![](examples/treeline/deciduous-canopy.png)](examples/treeline/deciduous-canopy.png) | `deciduous-canopy` | Deciduous Canopy | Lush deciduous tree canopy in summer | deciduous, canopy, green, summer |
+| [![](examples/treeline/conifer-ridge.png)](examples/treeline/conifer-ridge.png) | `conifer-ridge` | Conifer Ridge | Dense conifer ridge silhouette | conifer, ridge, dark, evergreen |
+| [![](examples/treeline/autumn-treeline.png)](examples/treeline/autumn-treeline.png) | `autumn-treeline` | Autumn Treeline | Treeline in full autumn color | autumn, treeline, colorful, warm |
+| [![](examples/treeline/misty-forest.png)](examples/treeline/misty-forest.png) | `misty-forest` | Misty Forest | Forest edge shrouded in mist | misty, forest, atmospheric, soft |
+| [![](examples/treeline/palm-fringe.png)](examples/treeline/palm-fringe.png) | `palm-fringe` | Palm Fringe | Tropical palm tree silhouettes | palm, tropical, silhouette, coastal |
+| [![](examples/treeline/winter-bare.png)](examples/treeline/winter-bare.png) | `winter-bare` | Winter Bare | Bare winter trees with no leaves | winter, bare, stark, cold |
 
 ### Celestial (6)
 
-| ID | Name | Description | Tags |
-|---|---|---|---|
-| `noon-sun` | Noon Sun | Bright overhead sun | sun, noon, bright, warm |
-| `golden-hour-sun` | Golden Hour Sun | Low sun with golden glow | sun, golden, warm, atmospheric |
-| `harvest-moon` | Harvest Moon | Large amber harvest moon | moon, harvest, amber, warm |
-| `crescent-moon` | Crescent Moon | Thin crescent moon | moon, crescent, cool, night |
-| `blood-moon` | Blood Moon | Deep red lunar eclipse moon | moon, blood, red, dramatic |
-| `polar-star` | Polar Star | Bright northern star with glow | star, polar, bright, night |
+[![Celestial gallery](galleries/celestial-gallery.png)](#celestial-6)
+
+| Preview | ID | Name | Description | Tags |
+|---|---|---|---|---|
+| [![](examples/celestial/noon-sun.png)](examples/celestial/noon-sun.png) | `noon-sun` | Noon Sun | Bright overhead sun | sun, noon, bright, warm |
+| [![](examples/celestial/golden-hour-sun.png)](examples/celestial/golden-hour-sun.png) | `golden-hour-sun` | Golden Hour Sun | Low sun with golden glow | sun, golden, warm, atmospheric |
+| [![](examples/celestial/harvest-moon.png)](examples/celestial/harvest-moon.png) | `harvest-moon` | Harvest Moon | Large amber harvest moon | moon, harvest, amber, warm |
+| [![](examples/celestial/crescent-moon.png)](examples/celestial/crescent-moon.png) | `crescent-moon` | Crescent Moon | Thin crescent moon | moon, crescent, cool, night |
+| [![](examples/celestial/blood-moon.png)](examples/celestial/blood-moon.png) | `blood-moon` | Blood Moon | Deep red lunar eclipse moon | moon, blood, red, dramatic |
+| [![](examples/celestial/polar-star.png)](examples/celestial/polar-star.png) | `polar-star` | Polar Star | Bright northern star with glow | star, polar, bright, night |
 
 ### Fog (5)
 
-| ID | Name | Description | Tags |
-|---|---|---|---|
-| `morning-mist` | Morning Mist | Light morning mist in low areas | morning, mist, light, soft |
-| `mountain-veil` | Mountain Veil | Fog wrapping around mountain bases | mountain, veil, thick, atmospheric |
-| `valley-fog` | Valley Fog | Dense fog filling a valley | valley, fog, dense, cold |
-| `shan-shui-cloud-band` | Shan Shui Cloud Band | Stylized cloud band for ink-wash landscapes | shan-shui, cloud, band, eastern |
-| `coastal-haar` | Coastal Haar | Sea fog rolling in from the coast | coastal, haar, rolling, cool |
+[![Fog gallery](galleries/fog-gallery.png)](#fog-5)
+
+| Preview | ID | Name | Description | Tags |
+|---|---|---|---|---|
+| [![](examples/fog/morning-mist.png)](examples/fog/morning-mist.png) | `morning-mist` | Morning Mist | Light morning mist in low areas | morning, mist, light, soft |
+| [![](examples/fog/mountain-veil.png)](examples/fog/mountain-veil.png) | `mountain-veil` | Mountain Veil | Fog wrapping around mountain bases | mountain, veil, thick, atmospheric |
+| [![](examples/fog/valley-fog.png)](examples/fog/valley-fog.png) | `valley-fog` | Valley Fog | Dense fog filling a valley | valley, fog, dense, cold |
+| [![](examples/fog/shan-shui-cloud-band.png)](examples/fog/shan-shui-cloud-band.png) | `shan-shui-cloud-band` | Shan Shui Cloud Band | Stylized cloud band for ink-wash landscapes | shan-shui, cloud, band, eastern |
+| [![](examples/fog/coastal-haar.png)](examples/fog/coastal-haar.png) | `coastal-haar` | Coastal Haar | Sea fog rolling in from the coast | coastal, haar, rolling, cool |
 
 ### Starfield (5)
 
-| ID | Name | Description | Tags |
-|---|---|---|---|
-| `clear-night` | Clear Night | Clear night sky with scattered stars | clear, night, scattered, standard |
-| `dense-starfield` | Dense Starfield | Densely packed star field | dense, starfield, packed, bright |
-| `milky-way` | Milky Way | Milky Way band across the sky | milky-way, band, galactic, dramatic |
-| `sparse-stars` | Sparse Stars | Few scattered stars in early twilight | sparse, stars, twilight, subtle |
-| `twilight-stars` | Twilight Stars | Stars emerging at dusk | twilight, stars, emerging, dusk |
+[![Starfield gallery](galleries/starfield-gallery.png)](#starfield-5)
+
+| Preview | ID | Name | Description | Tags |
+|---|---|---|---|---|
+| [![](examples/starfield/clear-night.png)](examples/starfield/clear-night.png) | `clear-night` | Clear Night | Clear night sky with scattered stars | clear, night, scattered, standard |
+| [![](examples/starfield/dense-starfield.png)](examples/starfield/dense-starfield.png) | `dense-starfield` | Dense Starfield | Densely packed star field | dense, starfield, packed, bright |
+| [![](examples/starfield/milky-way.png)](examples/starfield/milky-way.png) | `milky-way` | Milky Way | Milky Way band across the sky | milky-way, band, galactic, dramatic |
+| [![](examples/starfield/sparse-stars.png)](examples/starfield/sparse-stars.png) | `sparse-stars` | Sparse Stars | Few scattered stars in early twilight | sparse, stars, twilight, subtle |
+| [![](examples/starfield/twilight-stars.png)](examples/starfield/twilight-stars.png) | `twilight-stars` | Twilight Stars | Stars emerging at dusk | twilight, stars, emerging, dusk |
 
 ### Cliff Face (5)
 
-| ID | Name | Description | Tags |
-|---|---|---|---|
-| `granite-cliff` | Granite Cliff | Sheer granite cliff face | granite, cliff, sheer, grey |
-| `sandstone-wall` | Sandstone Wall | Warm sandstone cliff wall | sandstone, wall, warm, layered |
-| `basalt-columns` | Basalt Columns | Columnar basalt cliff formation | basalt, columns, dark, geometric |
-| `limestone-face` | Limestone Face | Pale limestone cliff with erosion | limestone, face, pale, eroded |
-| `shale-cliff` | Shale Cliff | Dark layered shale cliff | shale, cliff, dark, layered |
+[![Cliff Face gallery](galleries/cliff-face-gallery.png)](#cliff-face-5)
+
+| Preview | ID | Name | Description | Tags |
+|---|---|---|---|---|
+| [![](examples/cliff-face/granite-cliff.png)](examples/cliff-face/granite-cliff.png) | `granite-cliff` | Granite Cliff | Sheer granite cliff face | granite, cliff, sheer, grey |
+| [![](examples/cliff-face/sandstone-wall.png)](examples/cliff-face/sandstone-wall.png) | `sandstone-wall` | Sandstone Wall | Warm sandstone cliff wall | sandstone, wall, warm, layered |
+| [![](examples/cliff-face/basalt-columns.png)](examples/cliff-face/basalt-columns.png) | `basalt-columns` | Basalt Columns | Columnar basalt cliff formation | basalt, columns, dark, geometric |
+| [![](examples/cliff-face/limestone-face.png)](examples/cliff-face/limestone-face.png) | `limestone-face` | Limestone Face | Pale limestone cliff with erosion | limestone, face, pale, eroded |
+| [![](examples/cliff-face/shale-cliff.png)](examples/cliff-face/shale-cliff.png) | `shale-cliff` | Shale Cliff | Dark layered shale cliff | shale, cliff, dark, layered |
 
 ### Snowfield (4)
 
-| ID | Name | Description | Tags |
-|---|---|---|---|
-| `fresh-powder` | Fresh Powder | Freshly fallen undisturbed snow | fresh, powder, white, pristine |
-| `wind-swept` | Wind Swept | Wind-sculpted snow with ridges | wind, swept, ridges, textured |
-| `sun-crust` | Sun Crust | Sun-crusted snow with icy surface | sun, crust, icy, sparkling |
-| `deep-snow` | Deep Snow | Deep snow with soft contours | deep, snow, soft, heavy |
+[![Snowfield gallery](galleries/snowfield-gallery.png)](#snowfield-4)
+
+| Preview | ID | Name | Description | Tags |
+|---|---|---|---|---|
+| [![](examples/snowfield/fresh-powder.png)](examples/snowfield/fresh-powder.png) | `fresh-powder` | Fresh Powder | Freshly fallen undisturbed snow | fresh, powder, white, pristine |
+| [![](examples/snowfield/wind-swept.png)](examples/snowfield/wind-swept.png) | `wind-swept` | Wind Swept | Wind-sculpted snow with ridges | wind, swept, ridges, textured |
+| [![](examples/snowfield/sun-crust.png)](examples/snowfield/sun-crust.png) | `sun-crust` | Sun Crust | Sun-crusted snow with icy surface | sun, crust, icy, sparkling |
+| [![](examples/snowfield/deep-snow.png)](examples/snowfield/deep-snow.png) | `deep-snow` | Deep Snow | Deep snow with soft contours | deep, snow, soft, heavy |
 
 ### Building (6)
 
-| ID | Name | Description | Tags |
-|---|---|---|---|
-| `farmhouse` | Farmhouse | Rustic farmhouse silhouette | farmhouse, rustic, rural, warm |
-| `church-steeple` | Church Steeple | Church with pointed steeple | church, steeple, tall, village |
-| `tower-ruin` | Tower Ruin | Ruined tower silhouette | tower, ruin, old, dramatic |
-| `village-cluster` | Village Cluster | Cluster of small buildings | village, cluster, small, grouped |
-| `temple` | Temple | Temple or shrine structure | temple, shrine, eastern, ornate |
-| `lighthouse` | Lighthouse | Tall lighthouse silhouette | lighthouse, tall, coastal, beacon |
+[![Building gallery](galleries/building-gallery.png)](#building-6)
+
+| Preview | ID | Name | Description | Tags |
+|---|---|---|---|---|
+| [![](examples/building/farmhouse.png)](examples/building/farmhouse.png) | `farmhouse` | Farmhouse | Rustic farmhouse silhouette | farmhouse, rustic, rural, warm |
+| [![](examples/building/church-steeple.png)](examples/building/church-steeple.png) | `church-steeple` | Church Steeple | Church with pointed steeple | church, steeple, tall, village |
+| [![](examples/building/tower-ruin.png)](examples/building/tower-ruin.png) | `tower-ruin` | Tower Ruin | Ruined tower silhouette | tower, ruin, old, dramatic |
+| [![](examples/building/village-cluster.png)](examples/building/village-cluster.png) | `village-cluster` | Village Cluster | Cluster of small buildings | village, cluster, small, grouped |
+| [![](examples/building/temple.png)](examples/building/temple.png) | `temple` | Temple | Temple or shrine structure | temple, shrine, eastern, ornate |
+| [![](examples/building/lighthouse.png)](examples/building/lighthouse.png) | `lighthouse` | Lighthouse | Tall lighthouse silhouette | lighthouse, tall, coastal, beacon |
 
 ### Bridge (4)
 
-| ID | Name | Description | Tags |
-|---|---|---|---|
-| `stone-arch` | Stone Arch | Classic stone arch bridge | stone, arch, classic, old |
-| `wooden-footbridge` | Wooden Footbridge | Simple wooden foot bridge | wooden, footbridge, simple, rustic |
-| `suspension-bridge` | Suspension Bridge | Suspension bridge with cables | suspension, bridge, cables, modern |
-| `flat-crossing` | Flat Crossing | Low flat bridge or ford | flat, crossing, low, simple |
+[![Bridge gallery](galleries/bridge-gallery.png)](#bridge-4)
+
+| Preview | ID | Name | Description | Tags |
+|---|---|---|---|---|
+| [![](examples/bridge/stone-arch.png)](examples/bridge/stone-arch.png) | `stone-arch` | Stone Arch | Classic stone arch bridge | stone, arch, classic, old |
+| [![](examples/bridge/wooden-footbridge.png)](examples/bridge/wooden-footbridge.png) | `wooden-footbridge` | Wooden Footbridge | Simple wooden foot bridge | wooden, footbridge, simple, rustic |
+| [![](examples/bridge/suspension-bridge.png)](examples/bridge/suspension-bridge.png) | `suspension-bridge` | Suspension Bridge | Suspension bridge with cables | suspension, bridge, cables, modern |
+| [![](examples/bridge/flat-crossing.png)](examples/bridge/flat-crossing.png) | `flat-crossing` | Flat Crossing | Low flat bridge or ford | flat, crossing, low, simple |
 
 ### Reflection (4)
 
-| ID | Name | Description | Tags |
-|---|---|---|---|
-| `calm-lake` | Calm Lake | Mirror-still lake reflection | calm, lake, mirror, peaceful |
-| `rippled-reflection` | Rippled Reflection | Gently rippled water reflection | rippled, reflection, gentle, moving |
-| `dark-water` | Dark Water | Dark, deep water reflection | dark, water, deep, moody |
-| `golden-reflection` | Golden Reflection | Warm golden light reflected in water | golden, reflection, warm, sunset |
+[![Reflection gallery](galleries/reflection-gallery.png)](#reflection-4)
+
+| Preview | ID | Name | Description | Tags |
+|---|---|---|---|---|
+| [![](examples/reflection/calm-lake.png)](examples/reflection/calm-lake.png) | `calm-lake` | Calm Lake | Mirror-still lake reflection | calm, lake, mirror, peaceful |
+| [![](examples/reflection/rippled-reflection.png)](examples/reflection/rippled-reflection.png) | `rippled-reflection` | Rippled Reflection | Gently rippled water reflection | rippled, reflection, gentle, moving |
+| [![](examples/reflection/dark-water.png)](examples/reflection/dark-water.png) | `dark-water` | Dark Water | Dark, deep water reflection | dark, water, deep, moody |
+| [![](examples/reflection/golden-reflection.png)](examples/reflection/golden-reflection.png) | `golden-reflection` | Golden Reflection | Warm golden light reflected in water | golden, reflection, warm, sunset |
 
 ### Vignette Foliage (5)
 
-| ID | Name | Description | Tags |
-|---|---|---|---|
-| `overhanging-branches` | Overhanging Branches | Tree branches framing from above | branches, overhanging, framing, canopy |
-| `grass-border` | Grass Border | Tall grass along the bottom edge | grass, border, bottom, foreground |
-| `leaf-frame` | Leaf Frame | Decorative leaf border around edges | leaf, frame, border, decorative |
-| `pine-canopy` | Pine Canopy | Pine branches framing from above | pine, canopy, dark, evergreen |
-| `vine-border` | Vine Border | Climbing vines along the edges | vine, border, climbing, organic |
+[![Vignette Foliage gallery](galleries/vignette-foliage-gallery.png)](#vignette-foliage-5)
+
+| Preview | ID | Name | Description | Tags |
+|---|---|---|---|---|
+| [![](examples/vignette-foliage/overhanging-branches.png)](examples/vignette-foliage/overhanging-branches.png) | `overhanging-branches` | Overhanging Branches | Tree branches framing from above | branches, overhanging, framing, canopy |
+| [![](examples/vignette-foliage/grass-border.png)](examples/vignette-foliage/grass-border.png) | `grass-border` | Grass Border | Tall grass along the bottom edge | grass, border, bottom, foreground |
+| [![](examples/vignette-foliage/leaf-frame.png)](examples/vignette-foliage/leaf-frame.png) | `leaf-frame` | Leaf Frame | Decorative leaf border around edges | leaf, frame, border, decorative |
+| [![](examples/vignette-foliage/pine-canopy.png)](examples/vignette-foliage/pine-canopy.png) | `pine-canopy` | Pine Canopy | Pine branches framing from above | pine, canopy, dark, evergreen |
+| [![](examples/vignette-foliage/vine-border.png)](examples/vignette-foliage/vine-border.png) | `vine-border` | Vine Border | Climbing vines along the edges | vine, border, climbing, organic |
 
 ### Forest Floor (5)
 
-| ID | Name | Description | Tags |
-|---|---|---|---|
-| `fern-carpet` | Fern Carpet | Dense fern undergrowth | fern, carpet, green, dense |
-| `mossy-ground` | Mossy Ground | Moss-covered forest floor | mossy, ground, green, soft |
-| `fallen-leaves` | Fallen Leaves | Carpet of fallen autumn leaves | fallen, leaves, autumn, colorful |
-| `pine-needles` | Pine Needles | Pine needle floor covering | pine, needles, brown, soft |
-| `mushroom-patch` | Mushroom Patch | Forest floor with scattered mushrooms | mushroom, patch, forest, whimsical |
+[![Forest Floor gallery](galleries/forest-floor-gallery.png)](#forest-floor-5)
+
+| Preview | ID | Name | Description | Tags |
+|---|---|---|---|---|
+| [![](examples/forest-floor/fern-carpet.png)](examples/forest-floor/fern-carpet.png) | `fern-carpet` | Fern Carpet | Dense fern undergrowth | fern, carpet, green, dense |
+| [![](examples/forest-floor/mossy-ground.png)](examples/forest-floor/mossy-ground.png) | `mossy-ground` | Mossy Ground | Moss-covered forest floor | mossy, ground, green, soft |
+| [![](examples/forest-floor/fallen-leaves.png)](examples/forest-floor/fallen-leaves.png) | `fallen-leaves` | Fallen Leaves | Carpet of fallen autumn leaves | fallen, leaves, autumn, colorful |
+| [![](examples/forest-floor/pine-needles.png)](examples/forest-floor/pine-needles.png) | `pine-needles` | Pine Needles | Pine needle floor covering | pine, needles, brown, soft |
+| [![](examples/forest-floor/mushroom-patch.png)](examples/forest-floor/mushroom-patch.png) | `mushroom-patch` | Mushroom Patch | Forest floor with scattered mushrooms | mushroom, patch, forest, whimsical |
 
 ### Haze (4)
 
-| ID | Name | Description | Tags |
-|---|---|---|---|
-| `light-haze` | Light Haze | Subtle atmospheric haze | light, haze, subtle, atmospheric |
-| `golden-haze` | Golden Haze | Warm golden atmospheric haze | golden, haze, warm, sunset |
-| `cool-mist` | Cool Mist | Cool blue-grey mist | cool, mist, blue, morning |
-| `heat-haze` | Heat Haze | Shimmering heat distortion | heat, haze, shimmer, hot |
+[![Haze gallery](galleries/haze-gallery.png)](#haze-4)
+
+| Preview | ID | Name | Description | Tags |
+|---|---|---|---|---|
+| [![](examples/haze/light-haze.png)](examples/haze/light-haze.png) | `light-haze` | Light Haze | Subtle atmospheric haze | light, haze, subtle, atmospheric |
+| [![](examples/haze/golden-haze.png)](examples/haze/golden-haze.png) | `golden-haze` | Golden Haze | Warm golden atmospheric haze | golden, haze, warm, sunset |
+| [![](examples/haze/cool-mist.png)](examples/haze/cool-mist.png) | `cool-mist` | Cool Mist | Cool blue-grey mist | cool, mist, blue, morning |
+| [![](examples/haze/heat-haze.png)](examples/haze/heat-haze.png) | `heat-haze` | Heat Haze | Shimmering heat distortion | heat, haze, shimmer, hot |
 
 ### Fence (4)
 
-| ID | Name | Description | Tags |
-|---|---|---|---|
-| `white-picket` | White Picket | Classic white picket fence | white, picket, classic, garden |
-| `stone-wall` | Stone Wall | Low dry-stone wall | stone, wall, rustic, rural |
-| `ranch-rail` | Ranch Rail | Horizontal ranch rail fence | ranch, rail, wooden, pastoral |
-| `wire-fence` | Wire Fence | Simple wire fence with posts | wire, fence, simple, rural |
+[![Fence gallery](galleries/fence-gallery.png)](#fence-4)
+
+| Preview | ID | Name | Description | Tags |
+|---|---|---|---|---|
+| [![](examples/fence/white-picket.png)](examples/fence/white-picket.png) | `white-picket` | White Picket | Classic white picket fence | white, picket, classic, garden |
+| [![](examples/fence/stone-wall.png)](examples/fence/stone-wall.png) | `stone-wall` | Stone Wall | Low dry-stone wall | stone, wall, rustic, rural |
+| [![](examples/fence/ranch-rail.png)](examples/fence/ranch-rail.png) | `ranch-rail` | Ranch Rail | Horizontal ranch rail fence | ranch, rail, wooden, pastoral |
+| [![](examples/fence/wire-fence.png)](examples/fence/wire-fence.png) | `wire-fence` | Wire Fence | Simple wire fence with posts | wire, fence, simple, rural |
 
 ### Boat (4)
 
-| ID | Name | Description | Tags |
-|---|---|---|---|
-| `sailboat` | Sailboat | Single-mast sailboat | sailboat, sail, coastal, classic |
-| `rowboat` | Rowboat | Small rowboat | rowboat, small, lake, simple |
-| `fishing-boat` | Fishing Boat | Working fishing boat | fishing, boat, working, coastal |
-| `cargo-ship` | Cargo Ship | Large cargo vessel silhouette | cargo, ship, large, industrial |
+[![Boat gallery](galleries/boat-gallery.png)](#boat-4)
+
+| Preview | ID | Name | Description | Tags |
+|---|---|---|---|---|
+| [![](examples/boat/sailboat.png)](examples/boat/sailboat.png) | `sailboat` | Sailboat | Single-mast sailboat | sailboat, sail, coastal, classic |
+| [![](examples/boat/rowboat.png)](examples/boat/rowboat.png) | `rowboat` | Rowboat | Small rowboat | rowboat, small, lake, simple |
+| [![](examples/boat/fishing-boat.png)](examples/boat/fishing-boat.png) | `fishing-boat` | Fishing Boat | Working fishing boat | fishing, boat, working, coastal |
+| [![](examples/boat/cargo-ship.png)](examples/boat/cargo-ship.png) | `cargo-ship` | Cargo Ship | Large cargo vessel silhouette | cargo, ship, large, industrial |
 
 ### Erosion (4)
 
-| ID | Name | Description | Tags |
-|---|---|---|---|
-| `rain-streaks` | Rain Streaks | Vertical rain erosion streaks | rain, streaks, vertical, wet |
-| `wind-erosion` | Wind Erosion | Horizontal wind erosion marks | wind, erosion, horizontal, dry |
-| `frost-cracks` | Frost Cracks | Frost-heave crack patterns | frost, cracks, cold, fractured |
-| `lichen-growth` | Lichen Growth | Patches of lichen on rock surfaces | lichen, growth, organic, old |
+[![Erosion gallery](galleries/erosion-gallery.png)](#erosion-4)
+
+| Preview | ID | Name | Description | Tags |
+|---|---|---|---|---|
+| [![](examples/erosion/rain-streaks.png)](examples/erosion/rain-streaks.png) | `rain-streaks` | Rain Streaks | Vertical rain erosion streaks | rain, streaks, vertical, wet |
+| [![](examples/erosion/wind-erosion.png)](examples/erosion/wind-erosion.png) | `wind-erosion` | Wind Erosion | Horizontal wind erosion marks | wind, erosion, horizontal, dry |
+| [![](examples/erosion/frost-cracks.png)](examples/erosion/frost-cracks.png) | `frost-cracks` | Frost Cracks | Frost-heave crack patterns | frost, cracks, cold, fractured |
+| [![](examples/erosion/lichen-growth.png)](examples/erosion/lichen-growth.png) | `lichen-growth` | Lichen Growth | Patches of lichen on rock surfaces | lichen, growth, organic, old |
 
 ### Landscape Composites (6)
 
@@ -382,18 +422,60 @@ Multi-layer scenes combining sky, terrain, clouds, and water:
 | [![](examples/landscape/lake-at-night.png)](examples/landscape/lake-at-night.png) | `lake-at-night` | Lake at Night | night sky + foothills profile + still-lake water |
 | [![](examples/landscape/mountain-stream-scene.png)](examples/landscape/mountain-stream-scene.png) | `mountain-stream-scene` | Mountain Stream | noon sky + alpine-range profile + scattered clouds + mountain-stream water |
 
+### Scene Recipes (12)
+
+[![Scenes gallery](galleries/scenes-gallery.png)](#scene-recipes-12)
+
+Multi-layer scenes assembled by the scene recipe MCP tools:
+
+| Preview | ID | Name | Layers |
+|---|---|---|---|
+| [![](examples/scenes/mountain-valley.png)](examples/scenes/mountain-valley.png) | `mountain-valley` | Mountain Valley | sky + alpine ridges + fog + treeline + field + haze |
+| [![](examples/scenes/river-scene.png)](examples/scenes/river-scene.png) | `river-scene` | River Scene | sky + hills + river + shore + treeline + reflection |
+| [![](examples/scenes/coastal-moonlight.png)](examples/scenes/coastal-moonlight.png) | `coastal-moonlight` | Coastal Moonlight | night sky + starfield + moon + water + shore + reflection |
+| [![](examples/scenes/park-riverside.png)](examples/scenes/park-riverside.png) | `park-riverside` | Park Riverside | sky + terrain + river + path + treeline + field + building |
+| [![](examples/scenes/shan-shui.png)](examples/scenes/shan-shui.png) | `shan-shui` | Shan Shui | sky + peaks + fog + rock + water + haze |
+| [![](examples/scenes/pastoral.png)](examples/scenes/pastoral.png) | `pastoral` | Pastoral | golden-hour sky + hills + wheat field + path + fence + building + haze |
+| [![](examples/scenes/forest-clearing.png)](examples/scenes/forest-clearing.png) | `forest-clearing` | Forest Clearing | sky + treeline + vignette + forest floor + fog + path |
+| [![](examples/scenes/alpine-lake.png)](examples/scenes/alpine-lake.png) | `alpine-lake` | Alpine Lake | sky + alpine range + snowfield + water + reflection + cliff + haze |
+| [![](examples/scenes/japanese-garden.png)](examples/scenes/japanese-garden.png) | `japanese-garden` | Japanese Garden | sky + water + bridge + rock + treeline + reflection + haze |
+| [![](examples/scenes/desert-expanse.png)](examples/scenes/desert-expanse.png) | `desert-expanse` | Desert Expanse | sky + mesa + cliff + field + haze + erosion |
+| [![](examples/scenes/winter-woodland.png)](examples/scenes/winter-woodland.png) | `winter-woodland` | Winter Woodland | sky + terrain + snow + treeline + vignette + fog |
+| [![](examples/scenes/tropical-coast.png)](examples/scenes/tropical-coast.png) | `tropical-coast` | Tropical Coast | golden-hour sky + water + shore + boat + reflection + vignette + haze |
+
 ## Examples
 
-The `examples/` directory contains `.genart` sketch files organized by category, with `.png` thumbnails and `.genart-workspace` files:
+The `examples/` directory contains 146 `.genart` sketch files organized by category, with `.png` thumbnails and `.genart-workspace` files:
 
 ```
 examples/
-├── sky/              5 sky gradient presets + workspace
-├── profile/          6 terrain ridgeline presets + workspace
-├── clouds/           5 cloud formation presets + workspace
-├── water/            5 water surface presets + workspace
-├── landscape/        6 composite scenes + workspace
-└── terrain-gallery.genart-workspace   (all sketches)
+├── sky/               5 sky gradient presets
+├── profile/           6 terrain ridgeline presets
+├── clouds/            5 cloud formation presets
+├── water/             5 water surface presets
+├── river/             8 perspective river presets
+├── path/              8 trail and road presets
+├── shore/             6 shoreline transition presets
+├── field/             8 vegetation field presets
+├── rock/              6 natural rock form presets
+├── treeline/          6 canopy silhouette presets
+├── celestial/         6 sun/moon/star presets
+├── fog/               5 fog and mist presets
+├── starfield/         5 star field presets
+├── cliff-face/        5 cliff wall presets
+├── snowfield/         4 snow ground presets
+├── building/          6 architectural silhouette presets
+├── bridge/            4 bridge structure presets
+├── reflection/        4 water reflection presets
+├── vignette-foliage/  5 framing foliage presets
+├── forest-floor/      5 ground cover presets
+├── haze/              4 atmospheric haze presets
+├── fence/             4 fence/wall presets
+├── boat/              4 boat silhouette presets
+├── erosion/           4 weathering texture presets
+├── landscape/         6 v1 composite scenes
+├── scenes/           12 v2 scene recipe compositions
+└── terrain-gallery.genart-workspace  (all sketches)
 ```
 
 **Regenerating examples:**
@@ -401,8 +483,8 @@ examples/
 ```bash
 node generate-genart-files.cjs        # Create .genart files from presets
 node generate-workspace-files.cjs     # Create .genart-workspace files
-node render-examples.cjs              # Render .png thumbnails (requires genart CLI)
-bash generate-galleries.sh            # Create category gallery montages
+node render-examples.cjs              # Render .png thumbnails (requires local CLI)
+node generate-galleries.cjs           # Create category gallery montages
 ```
 
 ## MCP Tools (41)

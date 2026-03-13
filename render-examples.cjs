@@ -42,7 +42,7 @@ for (const absFile of files) {
 
   try {
     execSync(
-      `${process.env.GENART_CLI || "npx @genart-dev/cli"} render "${absFile}" -o "${outFile}" --width 600 --height 600`,
+      `${process.env.GENART_CLI || "node " + path.join(root, "..", "cli", "dist", "index.js")} render "${absFile}" -o "${outFile}" --width 600 --height 600`,
       { stdio: "pipe", timeout: 30_000 }
     );
     console.log("OK");

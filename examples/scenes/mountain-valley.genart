@@ -1,0 +1,207 @@
+{
+  "genart": "1.3",
+  "id": "terrain-mountain-valley",
+  "title": "Mountain Valley",
+  "created": "2026-03-12T00:00:00.000Z",
+  "modified": "2026-03-12T00:00:00.000Z",
+  "renderer": {
+    "type": "canvas2d"
+  },
+  "canvas": {
+    "width": 600,
+    "height": 600
+  },
+  "parameters": [],
+  "colors": [],
+  "state": {
+    "seed": 42,
+    "params": {},
+    "colorPalette": []
+  },
+  "algorithm": "function sketch(ctx, state) {}",
+  "layers": [
+    {
+      "id": "sky-0-layer",
+      "type": "terrain:sky",
+      "name": "Noon",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "blendMode": "normal",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 600,
+        "rotation": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "anchorX": 0,
+        "anchorY": 0
+      },
+      "properties": {
+        "preset": "noon",
+        "zenithColor": "#1E3A6E",
+        "horizonColor": "#87CEEB",
+        "hazeColor": "#B0D4E8",
+        "hazeIntensity": 0.15,
+        "hazePosition": 0.9,
+        "hazeWidth": 0.1
+      }
+    },
+    {
+      "id": "terrain-1-layer",
+      "type": "terrain:profile",
+      "name": "Alpine Range",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "blendMode": "normal",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 600,
+        "rotation": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "anchorX": 0,
+        "anchorY": 0
+      },
+      "properties": {
+        "preset": "alpine-range",
+        "ridgeCount": 5,
+        "roughness": 0.8,
+        "elevationMin": 0.2,
+        "elevationMax": 0.6,
+        "noiseScale": 3,
+        "jaggedness": 0.7,
+        "foregroundColor": "#2D3B2D",
+        "backgroundRidgeColor": "#8BA4B8",
+        "depthValueShift": 0.6,
+        "depthEasing": "quadratic",
+        "seed": 1111
+      }
+    },
+    {
+      "id": "fog-2-layer",
+      "type": "terrain:fog-layer",
+      "name": "Valley Fog",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "blendMode": "normal",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 600,
+        "rotation": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "anchorX": 0,
+        "anchorY": 0
+      },
+      "properties": {
+        "preset": "valley-fog",
+        "fogType": "band",
+        "opacity": 0.7,
+        "height": 0.25,
+        "yPosition": 0.6,
+        "color": "#E8E8F0",
+        "edgeSoftness": 0.6,
+        "wispDensity": 0.2
+      }
+    },
+    {
+      "id": "treeline-3-layer",
+      "type": "terrain:treeline",
+      "name": "Conifer Ridge",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "blendMode": "normal",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 600,
+        "rotation": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "anchorX": 0,
+        "anchorY": 0
+      },
+      "properties": {
+        "preset": "conifer-ridge",
+        "canopyStyle": "pointed",
+        "color": "#2A4A2A",
+        "highlightColor": "#3A6A3A",
+        "shadowColor": "#0A2A0A",
+        "density": 0.9,
+        "height": 0.2,
+        "irregularity": 0.6
+      }
+    },
+    {
+      "id": "field-4-layer",
+      "type": "terrain:field",
+      "name": "Meadow Grass",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "blendMode": "normal",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 600,
+        "rotation": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "anchorX": 0,
+        "anchorY": 0
+      },
+      "properties": {
+        "preset": "meadow-grass",
+        "vegetationType": "grass",
+        "color": "#5A8A3A",
+        "secondaryColor": "#7AAA5A",
+        "density": 0.6,
+        "markLength": 8,
+        "windDirection": 45,
+        "windStrength": 0.3,
+        "seasonalTint": "summer"
+      }
+    },
+    {
+      "id": "haze-5-layer",
+      "type": "terrain:haze",
+      "name": "Light Haze",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "blendMode": "normal",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 600,
+        "rotation": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "anchorX": 0,
+        "anchorY": 0
+      },
+      "properties": {
+        "preset": "light-haze",
+        "color": "#E0E8F0",
+        "opacity": 0.2,
+        "yPosition": 0.5,
+        "height": 0.4,
+        "gradientDirection": "bottom-up",
+        "noiseAmount": 0.3
+      }
+    }
+  ]
+}

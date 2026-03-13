@@ -1,0 +1,72 @@
+{
+  "genart-workspace": "1.0",
+  "id": "terrain-field",
+  "title": "Field Presets",
+  "created": "2026-03-12T00:00:00.000Z",
+  "modified": "2026-03-12T00:00:00.000Z",
+  "viewport": {
+    "x": 0,
+    "y": 0,
+    "zoom": 0.4
+  },
+  "sketches": [
+    {
+      "file": "./meadow-grass.genart",
+      "position": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "file": "./wheat-field.genart",
+      "position": {
+        "x": 700,
+        "y": 0
+      }
+    },
+    {
+      "file": "./wildflower-meadow.genart",
+      "position": {
+        "x": 1400,
+        "y": 0
+      }
+    },
+    {
+      "file": "./lavender-rows.genart",
+      "position": {
+        "x": 2100,
+        "y": 0
+      }
+    },
+    {
+      "file": "./dry-savanna.genart",
+      "position": {
+        "x": 2800,
+        "y": 0
+      }
+    },
+    {
+      "file": "./rice-paddy.genart",
+      "position": {
+        "x": 3500,
+        "y": 0
+      }
+    },
+    {
+      "file": "./autumn-stubble.genart",
+      "position": {
+        "x": 4200,
+        "y": 0
+      }
+    },
+    {
+      "file": "./snow-covered.genart",
+      "position": {
+        "x": 4900,
+        "y": 0
+      }
+    }
+  ],
+  "groups": [],
+  "series": []
+}

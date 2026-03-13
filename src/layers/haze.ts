@@ -111,50 +111,62 @@ export const hazeLayerType: LayerTypeDefinition = {
     const topY = centerY - bandH / 2;
     const bottomY = centerY + bandH / 2;
 
-    // Render haze as vertical slices with noise modulation
-    const sliceCount = Math.ceil(w / 3);
-    for (let i = 0; i < sliceCount; i++) {
-      const nx = i / sliceCount;
-      const x = bounds.x + nx * w;
-      const sliceW = w / sliceCount + 1;
+    // Render haze as per-pixel ImageData to avoid vertical banding
+    const renderTop = Math.max(0, Math.round(topY - bandH * 0.3));
+    const renderBottom = Math.min(Math.round(bounds.y + h), Math.round(bottomY + bandH * 0.3));
+    const renderH = renderBottom - renderTop;
+    if (renderH <= 0) return;
 
-      // Noise modulation for edge variation
-      const noiseVal = noise(nx * 5 + p.seed * 0.01, p.seed * 0.02);
-      const noiseOffset = (noiseVal - 0.5) * bandH * p.noiseAmount;
+    const rw = Math.round(w);
+    const imageData = ctx.createImageData(rw, renderH);
+    const data = imageData.data;
 
-      const sliceTop = topY + noiseOffset;
-      const sliceBottom = bottomY - noiseOffset * 0.5;
-      if (sliceBottom <= sliceTop) continue;
+    for (let py = 0; py < renderH; py++) {
+      const worldY = (renderTop + py - topY) / bandH; // 0 at topY, 1 at bottomY
+      for (let px = 0; px < rw; px++) {
+        const worldX = px / rw;
 
-      const sliceH = sliceBottom - sliceTop;
+        // Noise modulates edge positions
+        const noiseVal = noise(worldX * 5 + p.seed * 0.01, worldY * 3 + p.seed * 0.02);
+        const noiseOffset = (noiseVal - 0.5) * p.noiseAmount;
 
-      // Gradient based on direction
-      let gradient: CanvasGradient;
-      if (p.gradientDirection === "bottom-up") {
-        gradient = ctx.createLinearGradient(x, sliceBottom, x, sliceTop);
-        gradient.addColorStop(0, `rgba(${r},${g},${b},${p.opacity})`);
-        gradient.addColorStop(1, `rgba(${r},${g},${b},0)`);
-      } else if (p.gradientDirection === "top-down") {
-        gradient = ctx.createLinearGradient(x, sliceTop, x, sliceBottom);
-        gradient.addColorStop(0, `rgba(${r},${g},${b},${p.opacity})`);
-        gradient.addColorStop(1, `rgba(${r},${g},${b},0)`);
-      } else if (p.gradientDirection === "center-out") {
-        gradient = ctx.createLinearGradient(x, sliceTop, x, sliceBottom);
-        gradient.addColorStop(0, `rgba(${r},${g},${b},0)`);
-        gradient.addColorStop(0.5, `rgba(${r},${g},${b},${p.opacity})`);
-        gradient.addColorStop(1, `rgba(${r},${g},${b},0)`);
-      } else {
-        // uniform
-        gradient = ctx.createLinearGradient(x, sliceTop, x, sliceBottom);
-        gradient.addColorStop(0, `rgba(${r},${g},${b},${p.opacity * 0.7})`);
-        gradient.addColorStop(0.1, `rgba(${r},${g},${b},${p.opacity})`);
-        gradient.addColorStop(0.9, `rgba(${r},${g},${b},${p.opacity})`);
-        gradient.addColorStop(1, `rgba(${r},${g},${b},${p.opacity * 0.7})`);
+        // Adjusted position with noise
+        const adjustedY = worldY - noiseOffset;
+
+        // Gradient-based alpha
+        let alpha: number;
+        if (p.gradientDirection === "bottom-up") {
+          alpha = Math.max(0, Math.min(1, 1 - adjustedY));
+        } else if (p.gradientDirection === "top-down") {
+          alpha = Math.max(0, Math.min(1, adjustedY));
+        } else if (p.gradientDirection === "center-out") {
+          const dist = Math.abs(adjustedY - 0.5) * 2;
+          alpha = Math.max(0, 1 - dist);
+        } else {
+          // uniform
+          alpha = (adjustedY >= 0 && adjustedY <= 1) ? 1 : 0;
+        }
+
+        // Smooth edges at band boundaries
+        if (adjustedY < 0) alpha *= Math.max(0, 1 + adjustedY * 3);
+        if (adjustedY > 1) alpha *= Math.max(0, 1 - (adjustedY - 1) * 3);
+
+        alpha *= p.opacity;
+
+        if (alpha > 0.002) {
+          const idx = (py * rw + px) * 4;
+          data[idx] = r;
+          data[idx + 1] = g;
+          data[idx + 2] = b;
+          data[idx + 3] = Math.round(alpha * 255);
+        }
       }
-
-      ctx.fillStyle = gradient;
-      ctx.fillRect(x, sliceTop, sliceW, sliceH);
     }
+
+    const tempCanvas = new OffscreenCanvas(rw, renderH);
+    const tempCtx = tempCanvas.getContext("2d")!;
+    tempCtx.putImageData(imageData, 0, 0);
+    ctx.drawImage(tempCanvas, bounds.x, renderTop, w, renderH);
   },
 
   validate(properties): ValidationError[] | null {

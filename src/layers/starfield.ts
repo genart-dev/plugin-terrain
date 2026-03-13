@@ -111,41 +111,55 @@ export const starfieldLayerType: LayerTypeDefinition = {
 
     const [sr, sg, sb] = parseHex(starColor);
 
-    // Milky Way band (rendered first, behind stars)
+    // Milky Way band (rendered as soft diffuse band via ImageData)
     if (p.milkyWayEnabled) {
       const angleRad = (p.milkyWayAngle * Math.PI) / 180;
-      const cos = Math.cos(angleRad);
-      const sin = Math.sin(angleRad);
+      const cosA = Math.cos(angleRad);
+      const sinA = Math.sin(angleRad);
       const bandWidth = h * 0.25;
-      const steps = 80;
 
-      for (let i = 0; i < steps; i++) {
-        const t = (i / steps) * 2 - 1; // -1 to 1
-        const offsetPerp = t * bandWidth;
-        // Draw dots along the band
-        const dotCount = 15;
-        for (let j = 0; j < dotCount; j++) {
-          const along = (j / dotCount - 0.5) * w * 1.4;
-          const nx = along * 0.01;
-          const ny = t * 2;
-          const n = noise(nx + p.seed * 0.1, ny);
-          const perpJitter = (n - 0.5) * bandWidth * 0.3;
+      // Render milky way at half resolution for performance
+      const mwScale = 0.5;
+      const mwW = Math.max(1, Math.round(w * mwScale));
+      const mwH = Math.max(1, Math.round(h * mwScale));
+      const mwData = ctx.createImageData(mwW, mwH);
+      const mwPx = mwData.data;
 
-          const dx = bounds.x + w * 0.5 + along * cos - (offsetPerp + perpJitter) * sin;
-          const dy = bounds.y + h * 0.5 + along * sin + (offsetPerp + perpJitter) * cos;
+      for (let py = 0; py < mwH; py++) {
+        for (let px = 0; px < mwW; px++) {
+          // World position relative to center
+          const wx = (px / mwW - 0.5) * w;
+          const wy = (py / mwH - 0.5) * h;
 
-          if (dx < bounds.x || dx > bounds.x + w || dy < bounds.y || dy > bounds.y + h) continue;
+          // Rotate to band-aligned coordinates
+          const along = wx * cosA + wy * sinA;
+          const perp = -wx * sinA + wy * cosA;
 
-          const falloff = 1 - Math.abs(t);
-          const alpha = p.milkyWayIntensity * falloff * falloff * (0.5 + n * 0.5);
-          const size = 2 + rng() * 4;
+          // Perpendicular falloff (Gaussian-like)
+          const perpT = perp / bandWidth;
+          const falloff = Math.exp(-perpT * perpT * 3);
+          if (falloff < 0.01) continue;
 
-          ctx.fillStyle = `rgba(${sr},${sg},${sb},${alpha})`;
-          ctx.beginPath();
-          ctx.arc(dx, dy, size, 0, Math.PI * 2);
-          ctx.fill();
+          // Noise for cloud-like structure
+          const n1 = noise(along * 0.008 + p.seed * 0.1, perpT * 2);
+          const n2 = noise(along * 0.02 + 50, perpT * 4 + 30);
+          const cloudiness = n1 * 0.7 + n2 * 0.3;
+
+          const alpha = p.milkyWayIntensity * falloff * cloudiness;
+          if (alpha < 0.003) continue;
+
+          const idx = (py * mwW + px) * 4;
+          mwPx[idx] = sr;
+          mwPx[idx + 1] = sg;
+          mwPx[idx + 2] = sb;
+          mwPx[idx + 3] = Math.round(Math.min(1, alpha) * 255);
         }
       }
+
+      const mwCanvas = new OffscreenCanvas(mwW, mwH);
+      const mwCtx = mwCanvas.getContext("2d")!;
+      mwCtx.putImageData(mwData, 0, 0);
+      ctx.drawImage(mwCanvas, bounds.x, bounds.y, w, h);
     }
 
     // Generate constellation hint points (connected bright stars)
@@ -176,12 +190,13 @@ export const starfieldLayerType: LayerTypeDefinition = {
         b = Math.min(255, sb + 30);
       }
 
-      // Twinkle: small glow around brighter stars
+      // Twinkle: small glow around brighter stars (capped radius)
       if (size > p.maxSize * 0.6) {
-        const glowAlpha = brightness * 0.15;
+        const glowRadius = Math.min(size * 1.5, 4);
+        const glowAlpha = brightness * 0.12;
         ctx.fillStyle = `rgba(${r},${g},${b},${glowAlpha})`;
         ctx.beginPath();
-        ctx.arc(x, y, size * 3, 0, Math.PI * 2);
+        ctx.arc(x, y, glowRadius, 0, Math.PI * 2);
         ctx.fill();
 
         // Collect for constellation hints

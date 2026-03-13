@@ -126,33 +126,54 @@ export const fogLayerType: LayerTypeDefinition = {
     // Edge softness determines how far the fade extends beyond the band
     const fadeExtent = p.edgeSoftness * bandH * 0.5;
 
-    // Render horizontal fog band with noise-modulated edges
-    const sliceCount = Math.ceil(w / 2);
-    for (let i = 0; i < sliceCount; i++) {
-      const x = bounds.x + (i / sliceCount) * w;
-      const sliceW = w / sliceCount + 1;
+    // Render fog band as per-pixel ImageData to avoid vertical banding
+    const renderTop = Math.max(0, Math.round(topY - fadeExtent - bandH * 0.2));
+    const renderBottom = Math.min(Math.round(bounds.y + h), Math.round(bottomY + fadeExtent + bandH * 0.2));
+    const renderH = renderBottom - renderTop;
+    if (renderH <= 0) return;
 
-      // Noise modulates the vertical position of edges
-      const nx = i / sliceCount;
-      const noiseVal = noise(nx * 4, p.seed * 0.01);
-      const edgeOffset = (noiseVal - 0.5) * bandH * 0.3;
+    const rw = Math.round(w);
+    const imageData = ctx.createImageData(rw, renderH);
+    const data = imageData.data;
 
-      const sliceTop = topY + edgeOffset;
-      const sliceBottom = bottomY - edgeOffset * 0.5;
-      const sliceH = sliceBottom - sliceTop;
+    for (let py = 0; py < renderH; py++) {
+      const absY = renderTop + py;
+      for (let px = 0; px < rw; px++) {
+        const worldX = px / rw;
 
-      if (sliceH <= 0) continue;
+        // Noise modulates edge position per-pixel
+        const noiseVal = noise(worldX * 4, (py / renderH) * 3 + p.seed * 0.01);
+        const edgeOffset = (noiseVal - 0.5) * bandH * 0.3;
 
-      // Vertical gradient for soft edges
-      const gradient = ctx.createLinearGradient(x, sliceTop - fadeExtent, x, sliceBottom + fadeExtent);
-      gradient.addColorStop(0, `rgba(${r},${g},${b},0)`);
-      gradient.addColorStop(fadeExtent > 0 ? fadeExtent / (sliceH + fadeExtent * 2) : 0, `rgba(${r},${g},${b},${p.opacity})`);
-      gradient.addColorStop(fadeExtent > 0 ? 1 - fadeExtent / (sliceH + fadeExtent * 2) : 1, `rgba(${r},${g},${b},${p.opacity})`);
-      gradient.addColorStop(1, `rgba(${r},${g},${b},0)`);
+        const localTop = topY + edgeOffset;
+        const localBottom = bottomY - edgeOffset * 0.5;
 
-      ctx.fillStyle = gradient;
-      ctx.fillRect(x, sliceTop - fadeExtent, sliceW, sliceH + fadeExtent * 2);
+        // Distance from fog band edges
+        let alpha: number;
+        if (absY < localTop - fadeExtent || absY > localBottom + fadeExtent) {
+          alpha = 0;
+        } else if (absY < localTop) {
+          alpha = p.opacity * ((absY - (localTop - fadeExtent)) / fadeExtent);
+        } else if (absY > localBottom) {
+          alpha = p.opacity * (((localBottom + fadeExtent) - absY) / fadeExtent);
+        } else {
+          alpha = p.opacity;
+        }
+
+        if (alpha > 0.002) {
+          const idx = (py * rw + px) * 4;
+          data[idx] = r;
+          data[idx + 1] = g;
+          data[idx + 2] = b;
+          data[idx + 3] = Math.round(Math.min(1, alpha) * 255);
+        }
+      }
     }
+
+    const tempCanvas = new OffscreenCanvas(rw, renderH);
+    const tempCtx = tempCanvas.getContext("2d")!;
+    tempCtx.putImageData(imageData, 0, 0);
+    ctx.drawImage(tempCanvas, bounds.x, renderTop, w, renderH);
 
     // Draw wisps (small tendrils extending from the main fog body)
     if (p.wispDensity > 0) {

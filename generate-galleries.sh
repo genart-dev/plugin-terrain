@@ -1,5 +1,5 @@
 #!/bin/bash
-# Generate per-category gallery PNGs using genart CLI montage.
+# Generate per-category gallery PNGs using ImageMagick montage.
 # Usage: bash generate-galleries.sh
 #
 # Prerequisite: PNGs must already exist in examples/<category>/*.png
@@ -7,20 +7,20 @@
 
 set -euo pipefail
 
-CLI="${GENART_CLI:-npx @genart-dev/cli}"
 OUT="galleries"
-COLS=7
+COLS=8
 TILE="150x150"
-GAP=6
-PAD=10
 BG="#1a1a2e"
-LABEL_COLOR="#cccccc"
-FONT=11
 
 mkdir -p "$OUT"
 
 CATEGORIES=(
-  sky profile clouds water landscape
+  sky profile clouds water
+  river path shore field rock treeline
+  celestial fog starfield cliff-face snowfield
+  building bridge reflection vignette-foliage forest-floor haze
+  fence boat erosion
+  landscape scenes
 )
 
 total=0
@@ -30,17 +30,23 @@ for cat in "${CATEGORIES[@]}"; do
     echo "SKIP $cat (no directory)"
     continue
   fi
-  count=$(ls "$dir"/*.png 2>/dev/null | wc -l | tr -d ' ')
+  pngs=($(ls "$dir"/*.png 2>/dev/null || true))
+  count=${#pngs[@]}
   if [ "$count" -eq 0 ]; then
     echo "SKIP $cat (no PNGs)"
     continue
   fi
   echo "Generating $cat gallery ($count images)..."
-  $CLI montage "$dir" \
-    --tile-size "$TILE" --columns "$COLS" --label filename \
-    --gap "$GAP" --padding "$PAD" --background "$BG" \
-    --label-color "$LABEL_COLOR" --label-font-size "$FONT" \
-    -o "$OUT/${cat}-gallery.png"
+
+  # Use ImageMagick montage
+  montage "${pngs[@]}" \
+    -tile "${COLS}x" \
+    -geometry "${TILE}+6+6" \
+    -background "$BG" \
+    +set label \
+    -label '' \
+    "$OUT/${cat}-gallery.png"
+
   total=$((total + 1))
 done
 

@@ -1,0 +1,149 @@
+{
+  "genart": "1.3",
+  "id": "terrain-mountain-switchback",
+  "title": "Mountain Switchback",
+  "created": "2026-03-12T00:00:00.000Z",
+  "modified": "2026-03-12T00:00:00.000Z",
+  "renderer": {
+    "type": "canvas2d"
+  },
+  "canvas": {
+    "width": 600,
+    "height": 600
+  },
+  "parameters": [],
+  "colors": [],
+  "state": {
+    "seed": 42,
+    "params": {},
+    "colorPalette": []
+  },
+  "algorithm": "function sketch(ctx, state) {}",
+  "layers": [
+    {
+      "id": "sky-layer-layer",
+      "type": "terrain:sky",
+      "name": "Noon",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "blendMode": "normal",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 600,
+        "rotation": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "anchorX": 0,
+        "anchorY": 0
+      },
+      "properties": {
+        "preset": "noon",
+        "zenithColor": "#1E3A6E",
+        "horizonColor": "#87CEEB",
+        "hazeColor": "#B0D4E8",
+        "hazeIntensity": 0.15,
+        "hazePosition": 0.9,
+        "hazeWidth": 0.1,
+        "horizonLine": 1
+      }
+    },
+    {
+      "id": "bg-profile-layer",
+      "type": "terrain:profile",
+      "name": "Rolling Hills",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "blendMode": "normal",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 600,
+        "rotation": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "anchorX": 0,
+        "anchorY": 0
+      },
+      "properties": {
+        "preset": "rolling-hills",
+        "ridgeCount": 3,
+        "roughness": 0.2,
+        "elevationMin": 0.5,
+        "elevationMax": 0.75,
+        "noiseScale": 1.5,
+        "jaggedness": 0.1,
+        "foregroundColor": "#3B5E3B",
+        "backgroundRidgeColor": "#7A9E8A",
+        "depthValueShift": 0.4,
+        "depthEasing": "linear",
+        "seed": 200
+      }
+    },
+    {
+      "id": "bg-field-layer",
+      "type": "terrain:field",
+      "name": "Meadow Grass",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "blendMode": "normal",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 600,
+        "rotation": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "anchorX": 0,
+        "anchorY": 0
+      },
+      "properties": {
+        "preset": "meadow-grass",
+        "vegetationType": "grass",
+        "color": "#5A8A3A",
+        "secondaryColor": "#7AAA5A",
+        "density": 0.6,
+        "markLength": 8,
+        "windDirection": 45,
+        "windStrength": 0.3,
+        "seasonalTint": "summer"
+      }
+    },
+    {
+      "id": "path-layer",
+      "type": "terrain:path",
+      "name": "Mountain Switchback",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "blendMode": "normal",
+      "transform": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 600,
+        "rotation": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "anchorX": 0,
+        "anchorY": 0
+      },
+      "properties": {
+        "preset": "mountain-switchback",
+        "pathPreset": "switchback",
+        "widthNear": 45,
+        "widthFar": 8,
+        "surfaceColor": "#7A6A55",
+        "surfaceStyle": "gravel",
+        "edgeTreatment": "scattered-stones",
+        "wear": 0.6
+      }
+    }
+  ]
+}

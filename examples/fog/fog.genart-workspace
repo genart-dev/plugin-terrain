@@ -1,0 +1,51 @@
+{
+  "genart-workspace": "1.0",
+  "id": "terrain-fog",
+  "title": "Fog Presets",
+  "created": "2026-03-12T00:00:00.000Z",
+  "modified": "2026-03-12T00:00:00.000Z",
+  "viewport": {
+    "x": 0,
+    "y": 0,
+    "zoom": 0.4
+  },
+  "sketches": [
+    {
+      "file": "./morning-mist.genart",
+      "position": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "file": "./mountain-veil.genart",
+      "position": {
+        "x": 700,
+        "y": 0
+      }
+    },
+    {
+      "file": "./valley-fog.genart",
+      "position": {
+        "x": 1400,
+        "y": 0
+      }
+    },
+    {
+      "file": "./shan-shui-cloud-band.genart",
+      "position": {
+        "x": 2100,
+        "y": 0
+      }
+    },
+    {
+      "file": "./coastal-haar.genart",
+      "position": {
+        "x": 2800,
+        "y": 0
+      }
+    }
+  ],
+  "groups": [],
+  "series": []
+}

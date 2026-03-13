@@ -1,0 +1,100 @@
+{
+  "genart-workspace": "1.0",
+  "id": "terrain-scenes",
+  "title": "Scene Recipes",
+  "created": "2026-03-12T00:00:00.000Z",
+  "modified": "2026-03-12T00:00:00.000Z",
+  "viewport": {
+    "x": 0,
+    "y": 0,
+    "zoom": 0.4
+  },
+  "sketches": [
+    {
+      "file": "./mountain-valley.genart",
+      "position": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "file": "./river-scene.genart",
+      "position": {
+        "x": 700,
+        "y": 0
+      }
+    },
+    {
+      "file": "./coastal-moonlight.genart",
+      "position": {
+        "x": 1400,
+        "y": 0
+      }
+    },
+    {
+      "file": "./park-riverside.genart",
+      "position": {
+        "x": 2100,
+        "y": 0
+      }
+    },
+    {
+      "file": "./shan-shui.genart",
+      "position": {
+        "x": 2800,
+        "y": 0
+      }
+    },
+    {
+      "file": "./pastoral.genart",
+      "position": {
+        "x": 3500,
+        "y": 0
+      }
+    },
+    {
+      "file": "./forest-clearing.genart",
+      "position": {
+        "x": 4200,
+        "y": 0
+      }
+    },
+    {
+      "file": "./alpine-lake.genart",
+      "position": {
+        "x": 4900,
+        "y": 0
+      }
+    },
+    {
+      "file": "./japanese-garden.genart",
+      "position": {
+        "x": 0,
+        "y": 700
+      }
+    },
+    {
+      "file": "./desert-expanse.genart",
+      "position": {
+        "x": 700,
+        "y": 700
+      }
+    },
+    {
+      "file": "./winter-woodland.genart",
+      "position": {
+        "x": 1400,
+        "y": 700
+      }
+    },
+    {
+      "file": "./tropical-coast.genart",
+      "position": {
+        "x": 2100,
+        "y": 700
+      }
+    }
+  ],
+  "groups": [],
+  "series": []
+}

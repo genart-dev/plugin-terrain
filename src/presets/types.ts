@@ -144,6 +144,7 @@ export interface CelestialPreset extends BasePreset {
   glowRadius: number;
   glowColor: string;
   bodyColor: string;
+  moonPhase?: number;
   lightPathEnabled: boolean;
   lightPathColor: string;
 }
