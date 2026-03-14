@@ -158,27 +158,31 @@ export const riverLayerType: LayerTypeDefinition = {
     const deepColor = darken(waterColor, 0.6);
     drawPerspectiveRibbon(ctx, curve, samples, waterColor);
 
-    // Draw depth darkening gradient along the length
+    // Draw depth darkening as a narrower ribbon along the center
     const rng = mulberry32(p.seed + 100);
-    for (let i = 1; i < samples.length; i++) {
+    const centerWidthScale = 0.3;
+    ctx.fillStyle = deepColor;
+    ctx.beginPath();
+    // Left edge of center ribbon (near → far)
+    for (let i = 0; i < samples.length; i++) {
       const s = samples[i]!;
-      const prev = samples[i - 1]!;
       const normal = evalBezierNormal(curve, s.t);
-      const halfW = s.width * 0.5;
-
-      // Darken center of river slightly
-      const centerAlpha = 0.15 * (1 - s.t);
-      if (centerAlpha > 0.01) {
-        ctx.globalAlpha = centerAlpha;
-        ctx.fillStyle = deepColor;
-        ctx.fillRect(
-          Math.min(s.x, prev.x) - halfW * 0.3,
-          Math.min(s.y, prev.y),
-          halfW * 0.6,
-          Math.abs(s.y - prev.y) + 1,
-        );
-      }
+      const halfW = s.width * centerWidthScale * 0.5;
+      const lx = s.x + normal.x * halfW;
+      const ly = s.y + normal.y * halfW;
+      if (i === 0) ctx.moveTo(lx, ly);
+      else ctx.lineTo(lx, ly);
     }
+    // Right edge of center ribbon (far → near)
+    for (let i = samples.length - 1; i >= 0; i--) {
+      const s = samples[i]!;
+      const normal = evalBezierNormal(curve, s.t);
+      const halfW = s.width * centerWidthScale * 0.5;
+      ctx.lineTo(s.x - normal.x * halfW, s.y - normal.y * halfW);
+    }
+    ctx.closePath();
+    ctx.globalAlpha = 0.15;
+    ctx.fill();
     ctx.globalAlpha = 1;
 
     // Draw ripple lines across the river

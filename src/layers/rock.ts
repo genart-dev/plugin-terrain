@@ -113,7 +113,17 @@ function generateRockSilhouette(
   const points: Array<{ x: number; y: number }> = [];
   const segments = 24;
 
+  // Pre-generate per-segment jitter so first and last point match (closing the polygon
+  // without a notch artifact at the seam on the right edge).
+  const rxJitter: number[] = [];
+  const ryJitter: number[] = [];
+  for (let i = 0; i < segments; i++) {
+    rxJitter.push(rng());
+    ryJitter.push(rng());
+  }
+
   for (let i = 0; i <= segments; i++) {
+    const idx = i % segments; // wrap: last point reuses first point's jitter
     const t = i / segments;
     const angle = t * Math.PI * 2;
 
@@ -122,21 +132,21 @@ function generateRockSilhouette(
 
     // Shape variation based on rock type
     if (rockType === "boulder") {
-      rx *= 0.9 + roughness * (rng() - 0.5) * 0.4;
-      ry *= 0.8 + roughness * (rng() - 0.5) * 0.3;
+      rx *= 0.9 + roughness * (rxJitter[idx]! - 0.5) * 0.4;
+      ry *= 0.8 + roughness * (ryJitter[idx]! - 0.5) * 0.3;
     } else if (rockType === "outcrop") {
       // More angular, wider than tall
-      rx *= 1.1 + roughness * (rng() - 0.5) * 0.5;
-      ry *= 0.7 + roughness * (rng() - 0.5) * 0.4;
+      rx *= 1.1 + roughness * (rxJitter[idx]! - 0.5) * 0.5;
+      ry *= 0.7 + roughness * (ryJitter[idx]! - 0.5) * 0.4;
     } else if (rockType === "pinnacle") {
       // Tall and narrow, tapered top
       const taper = 1 - Math.abs(Math.sin(angle)) * 0.4;
-      rx *= 0.6 * taper + roughness * (rng() - 0.5) * 0.3;
-      ry *= 1.3 + roughness * (rng() - 0.5) * 0.3;
+      rx *= 0.6 * taper + roughness * (rxJitter[idx]! - 0.5) * 0.3;
+      ry *= 1.3 + roughness * (ryJitter[idx]! - 0.5) * 0.3;
     } else if (rockType === "shelf") {
       // Flat and wide
-      rx *= 1.3 + roughness * (rng() - 0.5) * 0.3;
-      ry *= 0.4 + roughness * (rng() - 0.5) * 0.2;
+      rx *= 1.3 + roughness * (rxJitter[idx]! - 0.5) * 0.3;
+      ry *= 0.4 + roughness * (ryJitter[idx]! - 0.5) * 0.2;
     }
 
     points.push({
@@ -206,6 +216,16 @@ export const rockLayerType: LayerTypeDefinition = {
     ctx.closePath();
     ctx.fill();
 
+    // Clip texture and highlights to the rock silhouette
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(silhouette[0]!.x, silhouette[0]!.y);
+    for (let i = 1; i < silhouette.length; i++) {
+      ctx.lineTo(silhouette[i]!.x, silhouette[i]!.y);
+    }
+    ctx.closePath();
+    ctx.clip();
+
     // Apply texture
     if (p.textureMode === "speckled") {
       renderSpeckledTexture(ctx, rng, cx, cy, w, h, color, p.roughness);
@@ -228,6 +248,8 @@ export const rockLayerType: LayerTypeDefinition = {
       ctx.fillRect(hx, hy, 1 + rng() * 3, 1 + rng() * 2);
     }
     ctx.globalAlpha = 1;
+
+    ctx.restore();
   },
 
   validate(properties): ValidationError[] | null {

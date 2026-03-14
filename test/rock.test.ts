@@ -19,6 +19,10 @@ function createMockCtx() {
     fill: vi.fn(),
     stroke: vi.fn(),
     quadraticCurveTo: vi.fn(),
+    arc: vi.fn(),
+    clip: vi.fn(),
+    save: vi.fn(),
+    restore: vi.fn(),
   } as unknown as CanvasRenderingContext2D;
 }
 

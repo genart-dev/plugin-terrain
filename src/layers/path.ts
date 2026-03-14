@@ -216,12 +216,16 @@ function drawSurfaceTexture(
       }
       case "dirt":
       default: {
-        // Subtle tonal variation
-        const n = noise(s.x * 0.01, s.y * 0.01);
-        if (n > 0.55) {
-          ctx.globalAlpha = (n - 0.55) * 0.4;
-          ctx.fillStyle = darken(color, 0.85);
-          ctx.fillRect(s.x - halfW * 0.5, s.y, halfW, 1);
+        // Subtle tonal variation — small scattered marks instead of axis-aligned rects
+        const count = Math.max(1, Math.round(halfW / 6));
+        for (let j = 0; j < count; j++) {
+          const n = noise((s.x + j * 3) * 0.01, s.y * 0.01);
+          if (n > 0.55) {
+            const offset = (rng() - 0.5) * halfW * 2;
+            ctx.globalAlpha = (n - 0.55) * 0.3;
+            ctx.fillStyle = darken(color, 0.85);
+            ctx.fillRect(s.x + offset, s.y, 2 + rng() * 2, 1);
+          }
         }
         break;
       }
@@ -336,19 +340,27 @@ export const pathLayerType: LayerTypeDefinition = {
     // Draw edge treatment
     drawEdgeTreatment(ctx, curve, samples, p.edgeTreatment, surfaceColor, p.seed);
 
-    // Wear marks — darker ruts/tracks down the center
+    // Wear marks — darker ruts/tracks down the center, drawn as path-following lines
     if (p.wear > 0.3) {
-      const rng = mulberry32(p.seed + 500);
       const wornColor = darken(surfaceColor, 0.8);
-      for (let i = 2; i < samples.length - 2; i++) {
-        const s = samples[i]!;
-        const wearAlpha = p.wear * 0.12 * (1 - s.t);
-        if (rng() > 0.6) continue;
-        ctx.globalAlpha = wearAlpha;
-        ctx.fillStyle = wornColor;
-        const trackW = s.width * 0.15;
-        ctx.fillRect(s.x - trackW * 1.2, s.y, trackW, 1);
-        ctx.fillRect(s.x + trackW * 0.2, s.y, trackW, 1);
+      ctx.strokeStyle = wornColor;
+
+      // Draw two track lines (left rut and right rut) along the curve
+      for (const trackOffset of [-0.2, 0.2]) {
+        ctx.beginPath();
+        let started = false;
+        for (let i = 2; i < samples.length - 2; i++) {
+          const s = samples[i]!;
+          const normal = evalBezierNormal(curve, s.t);
+          const offset = s.width * trackOffset;
+          const tx = s.x + normal.x * offset;
+          const ty = s.y + normal.y * offset;
+          if (!started) { ctx.moveTo(tx, ty); started = true; }
+          else ctx.lineTo(tx, ty);
+        }
+        ctx.globalAlpha = p.wear * 0.12;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
       }
       ctx.globalAlpha = 1;
     }
