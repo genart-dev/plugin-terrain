@@ -41,47 +41,13 @@
       },
       "properties": {
         "preset": "noon",
-        "zenithColor": "#1E3A6E",
-        "horizonColor": "#87CEEB",
-        "hazeColor": "#B0D4E8",
-        "hazeIntensity": 0.15,
-        "hazePosition": 0.9,
-        "hazeWidth": 0.1,
+        "zenithColor": "#3A6EA8",
+        "horizonColor": "#B8D8F0",
+        "hazeColor": "#D0E8F8",
+        "hazeIntensity": 0.1,
+        "hazePosition": 0.85,
+        "hazeWidth": 0.12,
         "horizonLine": 1
-      }
-    },
-    {
-      "id": "bg-profile-layer",
-      "type": "terrain:profile",
-      "name": "Alpine Range",
-      "visible": true,
-      "locked": false,
-      "opacity": 1,
-      "blendMode": "normal",
-      "transform": {
-        "x": 0,
-        "y": 0,
-        "width": 600,
-        "height": 600,
-        "rotation": 0,
-        "scaleX": 1,
-        "scaleY": 1,
-        "anchorX": 0,
-        "anchorY": 0
-      },
-      "properties": {
-        "preset": "alpine-range",
-        "ridgeCount": 5,
-        "roughness": 0.8,
-        "elevationMin": 0.2,
-        "elevationMax": 0.6,
-        "noiseScale": 3,
-        "jaggedness": 0.7,
-        "foregroundColor": "#2D3B2D",
-        "backgroundRidgeColor": "#8BA4B8",
-        "depthValueShift": 0.6,
-        "depthEasing": "quadratic",
-        "seed": 800
       }
     },
     {
@@ -105,14 +71,15 @@
       },
       "properties": {
         "preset": "limestone-face",
+        "xPosition": -0.025,
+        "seed": 42,
         "textureMode": "limestone",
-        "color": "#C0C0B0",
-        "shadowColor": "#808070",
-        "height": 0.55,
-        "xPosition": 0,
-        "width": 0.3,
-        "roughness": 0.5,
-        "ledgeCount": 3
+        "color": "#C8C8B8",
+        "shadowColor": "#787868",
+        "height": 0.72,
+        "width": 1.05,
+        "roughness": 0.6,
+        "ledgeCount": 7
       }
     }
   ]

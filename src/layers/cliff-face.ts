@@ -244,7 +244,9 @@ function renderSandstoneTexture(
   }
 }
 
-// Granite: vertical joint sets (parallel fracture lines)
+// Granite: vertical master joints + crosscutting joints + exfoliation sheets
+// References: master joints 5-15% cliff width apart, near-vertical with slight splay;
+// crosscutting joints at 20-50° different angle; exfoliation sheets broad horizontal curves.
 function renderGraniteTexture(
   ctx: CanvasRenderingContext2D,
   cliffLeft: number,
@@ -259,41 +261,64 @@ function renderGraniteTexture(
 ): void {
   const [sr, sg, sb] = parseHex(shadowColor);
 
-  // Vertical joint sets: 2 sets of roughly parallel lines at different angles
-  const setCount = 2;
-  for (let s = 0; s < setCount; s++) {
-    // Each joint set has a slightly different angle offset
-    const setAngle = (rng() - 0.5) * 0.08; // ~5° tilt
-    const jointSpacing = cliffW / (4 + Math.round(roughness * 8 + ledgeCount));
-    const jointCount = Math.ceil(cliffW / jointSpacing);
+  // Master vertical joints: 4-8 total, irregularly spaced 8-20% of cliff width
+  const masterCount = 4 + Math.round(roughness * 4);
+  let x = cliffLeft + cliffW * (0.05 + rng() * 0.08);
+  for (let j = 0; j < masterCount && x < cliffLeft + cliffW * 0.95; j++) {
+    const jAlpha = 0.12 + rng() * 0.16; // more visible than before
+    const jWidth = 0.5 + rng() * 1.2;
+    const jLenFraction = 0.55 + rng() * 0.45;
+    const jStartY = cliffTop + rng() * cliffH * 0.15;
+    const jEndY = Math.min(cliffBottom, jStartY + cliffH * jLenFraction);
+    const splay = (rng() - 0.5) * cliffW * 0.04; // slight tilt ±2% of cliff width
 
-    for (let j = 0; j < jointCount; j++) {
-      const jx = cliffLeft + j * jointSpacing + (rng() - 0.5) * jointSpacing * 0.5;
-      const jAlpha = 0.08 + rng() * 0.12;
-      const jWidth = 0.3 + rng() * 0.7;
-      const jLenFraction = 0.4 + rng() * 0.6; // joint spans 40-100% of cliff height
-      const jTop = cliffTop + rng() * cliffH * 0.2;
-      const jBottom = jTop + cliffH * jLenFraction;
-      const tiltShift = cliffH * setAngle;
+    ctx.strokeStyle = `rgba(${sr},${sg},${sb},${jAlpha})`;
+    ctx.lineWidth = jWidth;
+    ctx.beginPath();
+    ctx.moveTo(x, jStartY);
+    // Slight bezier waviness — rock joints aren't perfectly straight
+    const cpx = x + (rng() - 0.5) * cliffW * 0.015;
+    ctx.quadraticCurveTo(cpx, jStartY + (jEndY - jStartY) * 0.5, x + splay, jEndY);
+    ctx.stroke();
 
-      ctx.strokeStyle = `rgba(${sr},${sg},${sb},${jAlpha})`;
-      ctx.lineWidth = jWidth;
-      ctx.beginPath();
-      ctx.moveTo(jx, jTop);
-      ctx.lineTo(jx + tiltShift, Math.min(cliffBottom, jBottom));
-      ctx.stroke();
-    }
+    // Advance by an irregular gap (8-20% of cliff width)
+    x += cliffW * (0.08 + rng() * 0.12);
   }
 
-  // Broad horizontal exfoliation sheets (large scale, not strata)
-  const sheetCount = Math.max(1, Math.round(1 + roughness * 2));
-  for (let i = 0; i < sheetCount; i++) {
-    const sy = cliffTop + (i + 1) / (sheetCount + 1) * cliffH;
-    ctx.strokeStyle = `rgba(${sr},${sg},${sb},${0.10 + rng() * 0.08})`;
-    ctx.lineWidth = 0.8 + rng() * 1.5;
+  // Crosscutting joints: 2-4 joints at significantly different angle (20-45°)
+  const crossCount = 2 + Math.round(roughness * 2);
+  const crossAngle = 0.35 + rng() * 0.45; // 20-45° from vertical
+  for (let j = 0; j < crossCount; j++) {
+    const cx = cliffLeft + (0.1 + rng() * 0.8) * cliffW;
+    const cy = cliffTop + rng() * cliffH * 0.5;
+    const crossLen = cliffH * (0.25 + rng() * 0.35);
+    const cAlpha = 0.07 + rng() * 0.09;
+
+    ctx.strokeStyle = `rgba(${sr},${sg},${sb},${cAlpha})`;
+    ctx.lineWidth = 0.4 + rng() * 0.8;
     ctx.beginPath();
-    ctx.moveTo(cliffLeft, sy + (rng() - 0.5) * 8);
-    ctx.lineTo(cliffLeft + cliffW, sy + (rng() - 0.5) * 8);
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(
+      cx + Math.sin(crossAngle) * crossLen,
+      Math.min(cliffBottom, cy + Math.cos(crossAngle) * crossLen),
+    );
+    ctx.stroke();
+  }
+
+  // Broad exfoliation sheets: 2-4 large, slightly curved horizontal sweeps
+  const sheetCount = Math.max(2, Math.round(2 + roughness * 2));
+  for (let i = 0; i < sheetCount; i++) {
+    const sy = cliffTop + (i + 0.5) / sheetCount * cliffH * 0.85;
+    const alpha = 0.12 + rng() * 0.10;
+    const arcBow = (rng() - 0.5) * cliffH * 0.04; // slight bow in the sheet
+    ctx.strokeStyle = `rgba(${sr},${sg},${sb},${alpha})`;
+    ctx.lineWidth = 1.0 + rng() * 2.0;
+    ctx.beginPath();
+    ctx.moveTo(cliffLeft + cliffW * 0.05, sy + (rng() - 0.5) * 6);
+    ctx.quadraticCurveTo(
+      cliffLeft + cliffW * 0.5, sy + arcBow,
+      cliffLeft + cliffW * 0.95, sy + (rng() - 0.5) * 6,
+    );
     ctx.stroke();
   }
 }

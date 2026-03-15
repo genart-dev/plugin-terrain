@@ -79,6 +79,7 @@ function buildSurfaceProfile(
   top: number,
   coverH: number,
   canvasW: number,
+  canvasH: number,
   seed: number,
 ): number[] {
   const STEPS = 120;
@@ -89,22 +90,23 @@ function buildSurfaceProfile(
   const isWindSwept = preset === "wind-swept";
   const isSunCrust = preset === "sun-crust";
 
-  // Amplitude: 2-4% of coverH at mid-intensity (references: mid-distance open field)
+  // Amplitude: 2-4% of canvas height (references: mid-distance open field)
   // Wind-swept: very low amplitude, near-flat surface with streaking
   // Sun-crust: slightly higher amplitude with sharper crests
   const baseAmp = isWindSwept
-    ? coverH * 0.008 * (0.5 + driftIntensity * 0.5)  // near-flat
+    ? canvasH * 0.010 * (0.5 + driftIntensity * 0.5)  // near-flat
     : isSunCrust
-      ? coverH * 0.045 * (0.5 + driftIntensity)       // slightly more pronounced, sharper
-      : coverH * 0.030 * (0.5 + driftIntensity);       // standard 2-4%
+      ? canvasH * 0.040 * (0.5 + driftIntensity)       // slightly more pronounced, sharper
+      : canvasH * 0.025 * (0.5 + driftIntensity);       // standard 2-4% of canvas height
 
   // Noise frequency: long wavelength (0.5-1.5 full cycles across canvas)
   const freq = isWindSwept ? 0.5 : isSunCrust ? 1.8 : 1.0;
 
   for (let i = 0; i <= STEPS; i++) {
     const t = i / STEPS;
-    const nv = noise(t * freq, 0.0);
-    // nv is approximately 0-1; offset to center around top
+    // Sample at y=0.5 to avoid the degenerate y=0 axis where value noise
+    // returns exactly 0.5 at integer x-coordinates, collapsing profile amplitude.
+    const nv = noise(t * freq, 0.5);
     profile.push(top + baseAmp * (1 - 2 * nv));
   }
 
@@ -153,7 +155,7 @@ export const snowfieldLayerType: LayerTypeDefinition = {
 
     // Build snow surface wave profile
     const surfaceProfile = buildSurfaceProfile(
-      presetId, p.driftIntensity, top, coverH, w, p.seed,
+      presetId, p.driftIntensity, top, coverH, w, h, p.seed,
     );
 
     // --- Fill the snow body from surface profile down to coverageBottom ---
@@ -179,29 +181,32 @@ export const snowfieldLayerType: LayerTypeDefinition = {
     ctx.clip();
 
     // --- Drift shadow system ---
-    // Find crest (local max) and valley (local min) positions in the profile.
-    // Shadow gradient angles into each valley from the crest above it.
-    // References: shadow alpha blend 40-60% for Homer-style, 25-40% for Hiroshige/Wyeth.
-    const shadowAlpha = 0.35 + p.driftIntensity * 0.25; // 0.35-0.60 range
+    // Shadow depth at each x is proportional to how much lower that surface point is
+    // relative to the highest crest across the profile.
+    // References: Homer shadows are continuous cool washes that pool in valleys.
+    // Approach: depth-map — no crest-detection needed. Works for any noise shape.
+    const shadowAlpha = 0.35 + p.driftIntensity * 0.25; // 0.35–0.60
+    const shadowDepth = coverH * 0.22; // shadow fades ~22% of cover height into snow body
+    const minProfileY = Math.min(...surfaceProfile); // global crest = y-minimum
+    const maxProfileY = Math.max(...surfaceProfile); // deepest valley = y-maximum
+    const profileRange = maxProfileY - minProfileY;
 
-    // Scan profile for local minima (valleys)
-    for (let i = 1; i < STEPS; i++) {
-      const prev = surfaceProfile[i - 1]!;
-      const curr = surfaceProfile[i]!;
-      const next = surfaceProfile[i + 1]!;
-      if (curr > prev && curr > next) {
-        // local maximum of y = a valley in the surface (y increases downward)
-        const valleyX = bounds.x + (i / STEPS) * w;
-        const valleyY = curr;
-        const valleyWidth = w / STEPS * 8; // shadow spreads ~8 steps from valley center
+    if (profileRange > 4) { // only render if there's meaningful surface relief
+      const stepW = w / STEPS;
+      for (let i = 0; i < STEPS; i++) {
+        const surfY = surfaceProfile[i]!;
+        const depth = (surfY - minProfileY) / profileRange; // 0=crest, 1=valley
+        if (depth < 0.12) continue; // skip near-crest positions
 
-        // Shadow: vertical gradient from valley peak downward
-        const shadowGrad = ctx.createLinearGradient(valleyX, valleyY - coverH * 0.04, valleyX, valleyY + coverH * 0.12);
-        shadowGrad.addColorStop(0.0, `rgba(${shR},${shG},${shB},0)`);
-        shadowGrad.addColorStop(0.5, `rgba(${shR},${shG},${shB},${shadowAlpha})`);
-        shadowGrad.addColorStop(1.0, `rgba(${shR},${shG},${shB},0)`);
-        ctx.fillStyle = shadowGrad;
-        ctx.fillRect(valleyX - valleyWidth * 0.5, valleyY - coverH * 0.04, valleyWidth, coverH * 0.16);
+        const alpha = depth * shadowAlpha;
+        const x = bounds.x + (i / STEPS) * w;
+
+        // Vertical gradient: shadow peaks at the surface and fades downward into the snow
+        const vGrad = ctx.createLinearGradient(x, surfY, x, surfY + shadowDepth);
+        vGrad.addColorStop(0.0, `rgba(${shR},${shG},${shB},${alpha})`);
+        vGrad.addColorStop(1.0, `rgba(${shR},${shG},${shB},0)`);
+        ctx.fillStyle = vGrad;
+        ctx.fillRect(x, surfY, stepW + 0.5, shadowDepth);
       }
     }
 
@@ -263,10 +268,9 @@ export const snowfieldLayerType: LayerTypeDefinition = {
       // A sparse scattering of bright dots on the brightest crest areas
       const dotCount = Math.round(p.sparkleIntensity * 60 * (w / 800));
       for (let i = 0; i < dotCount; i++) {
-        // Find a random crest y-zone
+        // Find a random x, then look up the surface y at that x
         const sx = bounds.x + rng() * w;
-        // Find profile y at this x
-        const profileIdx = Math.min(STEPS, Math.round((rng()) * STEPS));
+        const profileIdx = Math.min(STEPS, Math.round(((sx - bounds.x) / w) * STEPS));
         const crestY = surfaceProfile[profileIdx] ?? top;
         // Only place sparkles within ~5% of coverH above the surface
         const sy = crestY - rng() * coverH * 0.04;

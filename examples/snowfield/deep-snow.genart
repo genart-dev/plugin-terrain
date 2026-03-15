@@ -109,7 +109,7 @@
         "shadowColor": "#90A0C0",
         "driftIntensity": 0.6,
         "sparkleIntensity": 0.15,
-        "coverageTop": 0.3,
+        "coverageTop": 0.22,
         "coverageBottom": 1
       }
     }
