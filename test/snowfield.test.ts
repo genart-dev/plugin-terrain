@@ -9,6 +9,9 @@ function createMockCtx() {
     strokeStyle: "",
     lineWidth: 0,
     globalAlpha: 1,
+    save: vi.fn(),
+    restore: vi.fn(),
+    clip: vi.fn(),
     createLinearGradient: vi.fn(() => ({
       addColorStop: vi.fn(),
     })),
@@ -42,8 +45,8 @@ describe("terrain:snowfield", () => {
     const defaults = snowfieldLayerType.createDefault();
     expect(defaults.preset).toBe("fresh-powder");
     expect(defaults.snowColor).toBe("#F0F4F8");
-    expect(defaults.shadowColor).toBe("#B0C0D8");
-    expect(defaults.driftIntensity).toBe(0.4);
+    expect(defaults.shadowColor).toBe("#A8B8D0");
+    expect(defaults.driftIntensity).toBe(0.5);
     expect(defaults.sparkleIntensity).toBe(0.3);
     expect(defaults.coverageTop).toBe(0.5);
     expect(defaults.coverageBottom).toBe(1.0);
