@@ -1,7 +1,7 @@
 {
   "name": "@genart-dev/plugin-terrain",
-  "version": "0.4.1",
-  "description": "Natural landscape element layers for genart.dev — 24 layer types, 128 presets, 41 MCP tools including 12 scene recipes",
+  "version": "0.5.0",
+  "description": "Natural landscape element layers for genart.dev — 21 layer types, 41 MCP tools including 12 scene recipes",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

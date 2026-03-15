@@ -30,7 +30,7 @@ function getTool(name: string) {
 
 describe("terrain MCP tools", () => {
   it("exports 41 tools", () => {
-    expect(terrainMcpTools).toHaveLength(41);
+    expect(terrainMcpTools).toHaveLength(38);
   });
 
   it("all tools have name, description, and handler", () => {
@@ -962,7 +962,7 @@ describe("terrain MCP tools", () => {
     it("lists all presets when no filter", async () => {
       const ctx = createMockContext();
       const result = await getTool("list_terrain_presets").handler({}, ctx);
-      expect(result.content[0]!.text).toContain("128 presets");
+      expect(result.content[0]!.text).toContain("114 presets");
     });
 
     it("filters by category", async () => {
@@ -1292,39 +1292,6 @@ describe("terrain MCP tools", () => {
     });
   });
 
-  describe("add_erosion", () => {
-    it("adds an erosion layer with default preset", async () => {
-      const ctx = createMockContext();
-      const result = await getTool("add_erosion").handler({}, ctx);
-      expect(result.isError).toBeUndefined();
-      expect(ctx.layers.add).toHaveBeenCalled();
-      expect(ctx.emitChange).toHaveBeenCalledWith("layer-added");
-    });
-
-    it("adds erosion with custom preset", async () => {
-      const ctx = createMockContext();
-      const result = await getTool("add_erosion").handler({ preset: "frost-cracks" }, ctx);
-      expect(result.content[0]!.text).toContain("frost-cracks");
-    });
-
-    it("returns error for unknown preset", async () => {
-      const ctx = createMockContext();
-      const result = await getTool("add_erosion").handler({ preset: "acid-rain" }, ctx);
-      expect(result.isError).toBe(true);
-    });
-
-    it("accepts erosion type override", async () => {
-      const ctx = createMockContext();
-      const result = await getTool("add_erosion").handler({ erosionType: "lichen" }, ctx);
-      expect(result.isError).toBeUndefined();
-    });
-
-    it("rejects invalid depth lane", async () => {
-      const ctx = createMockContext();
-      const result = await getTool("add_erosion").handler({ depthLane: "invalid" }, ctx);
-      expect(result.isError).toBe(true);
-    });
-  });
 
   // -------------------------------------------------------------------------
   // Scene recipe tools

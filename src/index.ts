@@ -1,10 +1,9 @@
 /**
  * @genart-dev/plugin-terrain — Natural landscape element layers
  *
- * 24 layer types (sky, profile, clouds, water, river, path, shore, field, rock, treeline, celestial, fog-layer,
- * starfield, cliff-face, snowfield, building, bridge, reflection, vignette-foliage, forest-floor, haze,
- * fence, boat, erosion),
- * 128 presets, 41 MCP tools.
+ * 21 layer types (sky, profile, clouds, water, river, path, shore, field, rock, treeline, celestial, fog,
+ * starfield, cliff-face, snowfield, building, bridge, reflection, haze, fence, boat),
+ * 38 MCP tools.
  */
 
 import type { DesignPlugin, PluginContext } from "@genart-dev/core";
@@ -28,28 +27,24 @@ import {
   buildingLayerType,
   bridgeLayerType,
   reflectionLayerType,
-  vignetteFoliageLayerType,
-  forestFloorLayerType,
   hazeLayerType,
   fenceLayerType,
   boatLayerType,
-  erosionLayerType,
 } from "./layers/index.js";
 
 const terrainPlugin: DesignPlugin = {
   id: "terrain",
   name: "Terrain",
-  version: "0.3.0",
+  version: "0.5.0",
   description:
     "Natural landscape element layers: sky gradients, terrain profiles, cloud formations, " +
     "water surfaces, perspective rivers, paths/trails, shore transitions, vegetation fields, " +
     "natural rock forms, treeline silhouettes, celestial bodies, occluding fog bands, " +
     "star fields, cliff faces, snow fields, building silhouettes, bridges, water reflections, " +
-    "vignette foliage, forest floor undergrowth, atmospheric haze, fences/walls, boats/ships, " +
-    "and erosion/weathering textures. " +
+    "atmospheric haze, fences/walls, and boats/ships. " +
     "12 scene recipe tools for composing complete landscapes. " +
     "Depth lane system for cross-plugin depth coordination. " +
-    "24 layer types, 128 presets, 41 MCP tools.",
+    "21 layer types, 38 MCP tools.",
 
   layerTypes: [
     skyLayerType,
@@ -70,12 +65,9 @@ const terrainPlugin: DesignPlugin = {
     buildingLayerType,
     bridgeLayerType,
     reflectionLayerType,
-    vignetteFoliageLayerType,
-    forestFloorLayerType,
     hazeLayerType,
     fenceLayerType,
     boatLayerType,
-    erosionLayerType,
   ],
   tools: [],
   exportHandlers: [],
@@ -107,12 +99,9 @@ export {
   buildingLayerType,
   bridgeLayerType,
   reflectionLayerType,
-  vignetteFoliageLayerType,
-  forestFloorLayerType,
   hazeLayerType,
   fenceLayerType,
   boatLayerType,
-  erosionLayerType,
 } from "./layers/index.js";
 
 // Re-export presets
@@ -137,12 +126,9 @@ export type {
   BuildingPreset,
   BridgePreset,
   ReflectionPreset,
-  VignetteFoliagePreset,
-  ForestFloorPreset,
   HazePreset,
   FencePreset,
   BoatPreset,
-  ErosionPreset,
   PresetCategory,
 } from "./presets/types.js";
 

@@ -17,12 +17,9 @@ import { SNOWFIELD_PRESETS } from "./snowfield.js";
 import { BUILDING_PRESETS } from "./building.js";
 import { BRIDGE_PRESETS } from "./bridge.js";
 import { REFLECTION_PRESETS } from "./reflection.js";
-import { VIGNETTE_FOLIAGE_PRESETS } from "./vignette-foliage.js";
-import { FOREST_FLOOR_PRESETS } from "./forest-floor.js";
 import { HAZE_PRESETS } from "./haze.js";
 import { FENCE_PRESETS } from "./fence.js";
 import { BOAT_PRESETS } from "./boat.js";
-import { EROSION_PRESETS } from "./erosion.js";
 
 export const ALL_PRESETS: TerrainPreset[] = [
   ...SKY_PRESETS,
@@ -43,12 +40,9 @@ export const ALL_PRESETS: TerrainPreset[] = [
   ...BUILDING_PRESETS,
   ...BRIDGE_PRESETS,
   ...REFLECTION_PRESETS,
-  ...VIGNETTE_FOLIAGE_PRESETS,
-  ...FOREST_FLOOR_PRESETS,
   ...HAZE_PRESETS,
   ...FENCE_PRESETS,
   ...BOAT_PRESETS,
-  ...EROSION_PRESETS,
 ];
 
 /** Look up a preset by ID. */
