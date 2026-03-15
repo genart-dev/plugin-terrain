@@ -99,41 +99,41 @@ export function getPathPresetCurve(preset: PathPresetType, seed: number): Bezier
   const rng = mulberry32(seed);
   const jitter = () => (rng() - 0.5) * 0.08;
 
-  // Far endpoints (p3.y) are placed at ~0.40 so paths/rivers converge
-  // toward the horizon rather than extending into the sky.
-  // Control points are adjusted accordingly to maintain smooth curves.
+  // p0.y = 1.0: rivers/paths start at the bottom canvas edge so they
+  // don't appear to begin from nowhere mid-field.
+  // p3.y ~ 0.40: far endpoints converge toward horizon.
   switch (preset) {
     case "straight":
       return {
-        p0: { x: 0.5 + jitter(), y: 0.95 },
+        p0: { x: 0.5 + jitter(), y: 1.0 },
         p1: { x: 0.5 + jitter(), y: 0.75 },
         p2: { x: 0.5 + jitter(), y: 0.55 },
         p3: { x: 0.5 + jitter(), y: 0.40 },
       };
     case "meandering":
       return {
-        p0: { x: 0.45 + jitter(), y: 0.95 },
+        p0: { x: 0.45 + jitter(), y: 1.0 },
         p1: { x: 0.7 + jitter(), y: 0.75 },
         p2: { x: 0.3 + jitter(), y: 0.55 },
         p3: { x: 0.5 + jitter(), y: 0.40 },
       };
     case "s-curve":
       return {
-        p0: { x: 0.35 + jitter(), y: 0.95 },
+        p0: { x: 0.35 + jitter(), y: 1.0 },
         p1: { x: 0.75 + jitter(), y: 0.78 },
         p2: { x: 0.25 + jitter(), y: 0.55 },
         p3: { x: 0.55 + jitter(), y: 0.40 },
       };
     case "winding":
       return {
-        p0: { x: 0.5 + jitter(), y: 0.95 },
+        p0: { x: 0.5 + jitter(), y: 1.0 },
         p1: { x: 0.8 + jitter(), y: 0.75 },
         p2: { x: 0.2 + jitter(), y: 0.55 },
         p3: { x: 0.6 + jitter(), y: 0.40 },
       };
     case "switchback":
       return {
-        p0: { x: 0.3 + jitter(), y: 0.95 },
+        p0: { x: 0.3 + jitter(), y: 1.0 },
         p1: { x: 0.85 + jitter(), y: 0.80 },
         p2: { x: 0.15 + jitter(), y: 0.55 },
         p3: { x: 0.5 + jitter(), y: 0.40 },
@@ -141,7 +141,7 @@ export function getPathPresetCurve(preset: PathPresetType, seed: number): Bezier
     case "fork":
       // Fork uses a single main branch — fork rendering handled by layer
       return {
-        p0: { x: 0.5 + jitter(), y: 0.95 },
+        p0: { x: 0.5 + jitter(), y: 1.0 },
         p1: { x: 0.55 + jitter(), y: 0.75 },
         p2: { x: 0.45 + jitter(), y: 0.55 },
         p3: { x: 0.5 + jitter(), y: 0.40 },

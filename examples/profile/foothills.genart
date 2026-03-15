@@ -71,16 +71,8 @@
       },
       "properties": {
         "preset": "foothills",
-        "ridgeCount": 4,
-        "roughness": 0.35,
-        "elevationMin": 0.5,
-        "elevationMax": 0.7,
-        "noiseScale": 2,
-        "jaggedness": 0.25,
-        "foregroundColor": "#3A5030",
-        "backgroundRidgeColor": "#7090A0",
-        "depthValueShift": 0.45,
-        "depthEasing": "quadratic"
+        "atmosphericMode": "western",
+        "depthLane": "background"
       }
     }
   ]

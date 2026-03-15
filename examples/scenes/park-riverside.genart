@@ -70,17 +70,8 @@
       },
       "properties": {
         "preset": "foothills",
-        "ridgeCount": 4,
-        "roughness": 0.35,
-        "elevationMin": 0.5,
-        "elevationMax": 0.7,
-        "noiseScale": 2,
-        "jaggedness": 0.25,
-        "foregroundColor": "#3A5030",
-        "backgroundRidgeColor": "#7090A0",
-        "depthValueShift": 0.45,
-        "depthEasing": "quadratic",
-        "seed": 4444
+        "atmosphericMode": "western",
+        "depthLane": "background"
       }
     },
     {
@@ -173,7 +164,8 @@
         "shadowColor": "#1A4A10",
         "density": 0.8,
         "height": 0.15,
-        "irregularity": 0.4
+        "irregularity": 0.4,
+        "atmosphericMode": "western"
       }
     },
     {
@@ -204,7 +196,8 @@
         "markLength": 8,
         "windDirection": 45,
         "windStrength": 0.3,
-        "seasonalTint": "summer"
+        "seasonalTint": "summer",
+        "atmosphericMode": "western"
       }
     },
     {

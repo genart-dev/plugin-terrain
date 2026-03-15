@@ -5,7 +5,7 @@ import type {
   ValidationError,
 } from "@genart-dev/core";
 import { createFractalNoise } from "../shared/noise.js";
-import { lerpColor } from "../shared/color-utils.js";
+import { lerpColor, lighten } from "../shared/color-utils.js";
 import { applyDepthEasing } from "../shared/depth.js";
 import type { DepthEasing } from "../shared/depth.js";
 import {
@@ -118,6 +118,9 @@ export const profileLayerType: LayerTypeDefinition = {
     // Octave count scales with roughness: 1 at 0, 6 at 1
     const octaves = Math.max(1, Math.round(1 + p.roughness * 5));
 
+    // Resolve depth lane once for all ridges
+    const laneConfig = resolveDepthLane(p.depthLane);
+
     for (let i = 0; i < ridgeCount; i++) {
       // t=0 for farthest ridge, t=1 for nearest
       const t = ridgeCount === 1 ? 1 : i / (ridgeCount - 1);
@@ -126,29 +129,38 @@ export const profileLayerType: LayerTypeDefinition = {
       // Per-ridge noise with unique seed offset
       const noise = createFractalNoise(p.seed + i * 7919, octaves, 2.0, 0.5);
 
-      // Baseline Y interpolates elevationMax (far) → elevationMin (near) using depth easing
-      const baselineNorm = p.elevationMax - (p.elevationMax - p.elevationMin) * easedT;
+      // Baseline Y: far ridges (t=0) sit high on screen (near horizon),
+      // near ridges (t=1) sit lower (closer to bottom edge).
+      // elevationMin = baseline Y-fraction for far ridges (high on screen)
+      // elevationMax = baseline Y-fraction for near ridges (low on screen)
+      const baselineNorm = p.elevationMin + (p.elevationMax - p.elevationMin) * easedT;
       const baselineY = by + height * baselineNorm;
 
-      // Elevation range available above baseline
-      const elevRange = baselineNorm * height * 0.4;
+      // Elevation amplitude: far ridges get dramatic peaks above their baseline,
+      // near ridges get moderate variation. Scale with available space above baseline.
+      const ampScale = 0.35 + 0.15 * (1 - easedT);
+      const elevRange = baselineNorm * height * ampScale;
 
-      // Determine colors for this ridge, with optional atmospheric depth
-      let bgColor = p.backgroundRidgeColor;
-      let fgColor = p.foregroundColor;
+      // Determine colors for this ridge.
+      // Use t directly as depth (0=far, 1=near) for maximum ridge-to-ridge
+      // contrast, rather than the narrow depth lane range which compresses
+      // all ridges into similar atmospheric values.
+      let ridgeColor: string;
 
       if (p.atmosphericMode !== "none") {
-        const laneConfig = resolveDepthLane(p.depthLane);
-        if (laneConfig) {
-          // Map ridge t (0=far, 1=near) to depth within the lane's range
-          const ridgeDepth = laneConfig.depthMin + (laneConfig.depthMax - laneConfig.depthMin) * t;
-          // Apply atmosphere to both endpoint colors, then lerp
-          bgColor = applyAtmosphericDepth(bgColor, ridgeDepth, p.atmosphericMode);
-          fgColor = applyAtmosphericDepth(fgColor, ridgeDepth, p.atmosphericMode);
-        }
+        // t=0 (far ridge) → depth 0 → maximum atmospheric effect
+        // t=1 (near ridge) → depth 1 → no atmospheric effect (original colors)
+        const bgColor = applyAtmosphericDepth(p.backgroundRidgeColor, t, p.atmosphericMode);
+        const fgColor = applyAtmosphericDepth(p.foregroundColor, t, p.atmosphericMode);
+        ridgeColor = lerpColor(bgColor, fgColor, t);
+      } else {
+        // Even without atmospheric mode, interpolate from backgroundRidgeColor
+        // (far) to foregroundColor (near) with additional lightening on far
+        // ridges for a basic aerial perspective hint.
+        const baseLerp = lerpColor(p.backgroundRidgeColor, p.foregroundColor, t);
+        const lightenAmount = (1 - t) * p.depthValueShift * 0.5;
+        ridgeColor = lighten(baseLerp, lightenAmount);
       }
-
-      const ridgeColor = lerpColor(bgColor, fgColor, t);
 
       // Generate noise profile and draw filled path
       ctx.beginPath();
@@ -179,8 +191,13 @@ export const profileLayerType: LayerTypeDefinition = {
       ctx.lineTo(bx, by + height);
       ctx.closePath();
 
+      // Far ridges get slight transparency for natural haze
+      if (ridgeCount > 1 && t < 0.3) {
+        ctx.globalAlpha = 0.7 + t;
+      }
       ctx.fillStyle = ridgeColor;
       ctx.fill();
+      ctx.globalAlpha = 1;
     }
   },
 

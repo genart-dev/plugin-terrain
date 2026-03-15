@@ -71,16 +71,8 @@
       },
       "properties": {
         "preset": "sand-dunes",
-        "ridgeCount": 4,
-        "roughness": 0.15,
-        "elevationMin": 0.55,
-        "elevationMax": 0.8,
-        "noiseScale": 1.2,
-        "jaggedness": 0.05,
-        "foregroundColor": "#C4A55A",
-        "backgroundRidgeColor": "#E8D5A0",
-        "depthValueShift": 0.25,
-        "depthEasing": "linear"
+        "atmosphericMode": "western",
+        "depthLane": "background"
       }
     }
   ]

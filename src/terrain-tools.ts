@@ -2274,7 +2274,7 @@ function createSceneRecipe(
     atmosphericMode: {
       type: "string",
       enum: ["none", "western", "ink-wash"],
-      description: "Atmospheric depth mode for terrain layers. Defaults to 'none'.",
+      description: "Atmospheric depth mode for terrain layers. Defaults to 'western'.",
     },
   };
   for (const key of presetOverrideKeys) {
@@ -2290,7 +2290,7 @@ function createSceneRecipe(
     inputSchema: { type: "object", properties: inputProperties },
     async handler(input: Record<string, unknown>, ctx: McpToolContext): Promise<McpToolResult> {
       const seed = (input.seed as number) ?? Math.floor(Math.random() * 100000);
-      const atmoMode = (input.atmosphericMode as string) ?? "none";
+      const atmoMode = (input.atmosphericMode as string) ?? "western";
       const layerIds: string[] = [];
       const summary: string[] = [];
 

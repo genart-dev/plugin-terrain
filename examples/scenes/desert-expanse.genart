@@ -70,17 +70,8 @@
       },
       "properties": {
         "preset": "mesa-plateau",
-        "ridgeCount": 2,
-        "roughness": 0.4,
-        "elevationMin": 0.35,
-        "elevationMax": 0.55,
-        "noiseScale": 2,
-        "jaggedness": 0.9,
-        "foregroundColor": "#8B5E3C",
-        "backgroundRidgeColor": "#C4A882",
-        "depthValueShift": 0.3,
-        "depthEasing": "linear",
-        "seed": 9999
+        "atmosphericMode": "western",
+        "depthLane": "background"
       }
     },
     {
@@ -111,7 +102,8 @@
         "xPosition": 0,
         "width": 0.35,
         "roughness": 0.4,
-        "ledgeCount": 5
+        "ledgeCount": 5,
+        "atmosphericMode": "western"
       }
     },
     {
@@ -142,7 +134,8 @@
         "markLength": 14,
         "windDirection": 60,
         "windStrength": 0.4,
-        "seasonalTint": "autumn"
+        "seasonalTint": "autumn",
+        "atmosphericMode": "western"
       }
     },
     {

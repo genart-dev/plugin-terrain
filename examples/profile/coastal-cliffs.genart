@@ -71,16 +71,8 @@
       },
       "properties": {
         "preset": "coastal-cliffs",
-        "ridgeCount": 2,
-        "roughness": 0.6,
-        "elevationMin": 0.4,
-        "elevationMax": 0.65,
-        "noiseScale": 2.5,
-        "jaggedness": 0.5,
-        "foregroundColor": "#4A4A3A",
-        "backgroundRidgeColor": "#8A9AA0",
-        "depthValueShift": 0.35,
-        "depthEasing": "quadratic"
+        "atmosphericMode": "western",
+        "depthLane": "background"
       }
     }
   ]

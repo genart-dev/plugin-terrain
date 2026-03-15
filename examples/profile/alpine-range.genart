@@ -71,16 +71,8 @@
       },
       "properties": {
         "preset": "alpine-range",
-        "ridgeCount": 5,
-        "roughness": 0.8,
-        "elevationMin": 0.2,
-        "elevationMax": 0.6,
-        "noiseScale": 3,
-        "jaggedness": 0.7,
-        "foregroundColor": "#2D3B2D",
-        "backgroundRidgeColor": "#8BA4B8",
-        "depthValueShift": 0.6,
-        "depthEasing": "quadratic"
+        "atmosphericMode": "western",
+        "depthLane": "background"
       }
     }
   ]
