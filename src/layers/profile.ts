@@ -36,12 +36,26 @@ const PROFILE_PROPERTIES: LayerPropertySchema[] = [
     ],
   },
   { key: "seed", label: "Seed", type: "number", default: 42, min: 0, max: 99999, step: 1, group: "generation" },
+  {
+    key: "terrainType",
+    label: "Terrain Mode",
+    type: "select",
+    default: "mountains",
+    group: "shape",
+    options: [
+      { value: "mountains", label: "Mountains" },
+      { value: "hills", label: "Rolling Hills" },
+      { value: "plains", label: "Plains" },
+    ],
+  },
   { key: "ridgeCount", label: "Ridge Count", type: "number", default: 3, min: 1, max: 8, step: 1, group: "shape" },
   { key: "roughness", label: "Roughness", type: "number", default: 0.35, min: 0, max: 1, step: 0.05, group: "shape" },
   { key: "elevationMin", label: "Elevation Min", type: "number", default: 0.4, min: 0, max: 1, step: 0.05, group: "shape" },
   { key: "elevationMax", label: "Elevation Max", type: "number", default: 0.7, min: 0, max: 1, step: 0.05, group: "shape" },
   { key: "noiseScale", label: "Noise Scale", type: "number", default: 2.0, min: 0.5, max: 8, step: 0.5, group: "shape" },
   { key: "jaggedness", label: "Jaggedness", type: "number", default: 0.3, min: 0, max: 1, step: 0.05, group: "shape" },
+  { key: "subRangeCount", label: "Sub-range Layers", type: "number", default: 0, min: 0, max: 3, step: 1, group: "sub-range" },
+  { key: "subRangeAmplitude", label: "Sub-range Amplitude", type: "number", default: 0.5, min: 0.1, max: 1.0, step: 0.05, group: "sub-range" },
   { key: "foregroundColor", label: "Foreground Color", type: "color", default: "#3B5E3B", group: "colors" },
   { key: "backgroundRidgeColor", label: "Background Color", type: "color", default: "#7A9E8A", group: "colors" },
   { key: "depthValueShift", label: "Depth Value Shift", type: "number", default: 0.4, min: 0, max: 1, step: 0.05, group: "depth" },
@@ -64,6 +78,7 @@ const PROFILE_PROPERTIES: LayerPropertySchema[] = [
 
 function resolveProps(properties: LayerProperties): {
   seed: number;
+  terrainType: "mountains" | "hills" | "plains";
   ridgeCount: number;
   roughness: number;
   elevationMin: number;
@@ -74,6 +89,8 @@ function resolveProps(properties: LayerProperties): {
   backgroundRidgeColor: string;
   depthValueShift: number;
   depthEasing: DepthEasing;
+  subRangeCount: number;
+  subRangeAmplitude: number;
   depthLane: string;
   atmosphericMode: AtmosphericMode;
 } {
@@ -83,6 +100,7 @@ function resolveProps(properties: LayerProperties): {
 
   return {
     seed: (properties.seed as number) ?? 42,
+    terrainType: (properties.terrainType as "mountains" | "hills" | "plains") ?? "mountains",
     ridgeCount: (properties.ridgeCount as number) ?? pp?.ridgeCount ?? 3,
     roughness: (properties.roughness as number) ?? pp?.roughness ?? 0.35,
     elevationMin: (properties.elevationMin as number) ?? pp?.elevationMin ?? 0.4,
@@ -93,6 +111,8 @@ function resolveProps(properties: LayerProperties): {
     backgroundRidgeColor: (properties.backgroundRidgeColor as string) || pp?.backgroundRidgeColor || "#7A9E8A",
     depthValueShift: (properties.depthValueShift as number) ?? pp?.depthValueShift ?? 0.4,
     depthEasing: (properties.depthEasing as DepthEasing) ?? pp?.depthEasing ?? "linear",
+    subRangeCount: (properties.subRangeCount as number) ?? 0,
+    subRangeAmplitude: (properties.subRangeAmplitude as number) ?? 0.5,
     depthLane: (properties.depthLane as string) ?? "background",
     atmosphericMode: (properties.atmosphericMode as AtmosphericMode) ?? "none",
   };
@@ -115,6 +135,10 @@ export const profileLayerType: LayerTypeDefinition = {
     const { width, height, x: bx, y: by } = bounds;
     const ridgeCount = Math.max(1, Math.min(8, p.ridgeCount));
 
+    // Terrain mode: hills and plains get gentler noise (wider wavelength, lower amplitude)
+    const terrainNoiseScaleMultiplier = p.terrainType === "hills" ? 0.4 : p.terrainType === "plains" ? 0.2 : 1.0;
+    const terrainAmpMultiplier = p.terrainType === "hills" ? 0.45 : p.terrainType === "plains" ? 0.15 : 1.0;
+
     // Octave count scales with roughness: 1 at 0, 6 at 1
     const octaves = Math.max(1, Math.round(1 + p.roughness * 5));
 
@@ -124,6 +148,59 @@ export const profileLayerType: LayerTypeDefinition = {
     // Haze color for inter-ridge atmospheric effect
     const hazeHex = p.atmosphericMode === "ink-wash" ? "#E8DDD0" : "#B8C8D8";
     const [hazeR, hazeG, hazeB] = parseHex(hazeHex);
+
+    // --- Sub-range detail ---
+    // Draw secondary ridge systems behind the main range (rendered first, so they appear farther).
+    if (p.subRangeCount > 0) {
+      const subOctaves = Math.max(1, Math.round(1 + p.roughness * 3));
+
+      for (let s = 0; s < p.subRangeCount; s++) {
+        // Sub-ranges sit behind the main range: t values compressed into far zone (0–0.4)
+        const subT = (p.subRangeCount - s) / (p.subRangeCount + 1) * 0.4;
+        const easedSubT = applyDepthEasing(subT, p.depthEasing);
+
+        // Amplitude is a fraction of main range, scaled by subRangeAmplitude property
+        const subAmpScale = p.subRangeAmplitude * (0.15 + 0.1 * (1 - easedSubT)) * terrainAmpMultiplier;
+        const subBaselineNorm = p.elevationMin + (p.elevationMax - p.elevationMin) * easedSubT * 0.7;
+        const subBaselineY = by + height * subBaselineNorm;
+        const subElevRange = subBaselineNorm * height * subAmpScale;
+
+        // Unique seed per sub-range
+        const subNoise = createFractalNoise(p.seed + 50000 + s * 6131, subOctaves, 2.0, 0.5);
+
+        // Color: lighter/hazier than the farthest main ridge
+        let subColor: string;
+        if (p.atmosphericMode !== "none") {
+          subColor = applyAtmosphericDepth(p.backgroundRidgeColor, subT, p.atmosphericMode);
+        } else {
+          subColor = lighten(p.backgroundRidgeColor, (1 - subT) * p.depthValueShift * 0.7);
+        }
+
+        // Build sub-range profile
+        const subStep = Math.max(1, Math.floor(width / 300));
+        const subPoints: Array<{ px: number; py: number }> = [];
+        for (let px = 0; px <= width; px += subStep) {
+          const nx = (px / width) * p.noiseScale * terrainNoiseScaleMultiplier * 1.5;
+          const nv = Math.min(1, Math.max(0, subNoise(nx, s * 7 + 100)));
+          subPoints.push({ px: bx + px, py: subBaselineY - nv * subElevRange });
+        }
+
+        // Draw sub-range fill (slightly transparent to show depth separation)
+        ctx.globalAlpha = 0.6 + subT * 0.3;
+        ctx.fillStyle = subColor;
+        ctx.beginPath();
+        for (let j = 0; j < subPoints.length; j++) {
+          const pt = subPoints[j]!;
+          if (j === 0) ctx.moveTo(pt.px, pt.py);
+          else ctx.lineTo(pt.px, pt.py);
+        }
+        ctx.lineTo(bx + width, by + height);
+        ctx.lineTo(bx, by + height);
+        ctx.closePath();
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+    }
 
     for (let i = 0; i < ridgeCount; i++) {
       // t=0 for farthest ridge, t=1 for nearest
@@ -150,7 +227,8 @@ export const profileLayerType: LayerTypeDefinition = {
 
       // Elevation amplitude: far ridges get dramatic peaks above their baseline,
       // near ridges get moderate variation. Scale with available space above baseline.
-      const ampScale = 0.35 + 0.15 * (1 - easedT);
+      // terrainAmpMultiplier suppresses amplitude for hills/plains modes.
+      const ampScale = (0.35 + 0.15 * (1 - easedT)) * terrainAmpMultiplier;
       const elevRange = baselineNorm * height * ampScale;
 
       // Determine colors for this ridge.
@@ -174,7 +252,7 @@ export const profileLayerType: LayerTypeDefinition = {
       const profilePoints: Array<{ px: number; py: number }> = [];
 
       for (let px = 0; px <= width; px += step) {
-        const nx = (px / width) * p.noiseScale;
+        const nx = (px / width) * p.noiseScale * terrainNoiseScaleMultiplier;
         let noiseVal = noise(nx, i * 10);
 
         if (p.jaggedness > 0.3) {
@@ -233,11 +311,12 @@ export const profileLayerType: LayerTypeDefinition = {
           if (pt.py < minY) minY = pt.py;
         }
 
-        // Vertical volume gradient: transparent at peaks, darker at base
+        // Vertical volume gradient: transparent at peaks, significantly darker at base.
+        // Target ~30% value range (up from ~10%) to show internal ridge body shading.
         const volGrad = ctx.createLinearGradient(0, minY, 0, by + height);
         volGrad.addColorStop(0, "rgba(0,0,0,0)");
-        volGrad.addColorStop(0.5, `rgba(0,0,0,${0.02 + t * 0.03})`);
-        volGrad.addColorStop(1, `rgba(0,0,0,${0.06 + t * 0.06})`);
+        volGrad.addColorStop(0.4, `rgba(0,0,0,${0.06 + t * 0.06})`);
+        volGrad.addColorStop(1, `rgba(0,0,0,${0.22 + t * 0.10})`);
         ctx.fillStyle = volGrad;
         ctx.fillRect(bx, by, width, height);
 

@@ -20,6 +20,7 @@ export interface SkyPreset extends BasePreset {
 /** Terrain profile (ridgeline) preset. */
 export interface ProfilePreset extends BasePreset {
   category: "profile";
+  terrainType?: "mountains" | "hills" | "plains";
   ridgeCount: number;
   roughness: number;
   elevationMin: number;
@@ -30,6 +31,8 @@ export interface ProfilePreset extends BasePreset {
   backgroundRidgeColor: string;
   depthValueShift: number;
   depthEasing: "linear" | "quadratic" | "cubic" | "exponential";
+  subRangeCount?: number;
+  subRangeAmplitude?: number;
 }
 
 /** Cloud preset. */
@@ -248,17 +251,6 @@ export interface BoatPreset extends BasePreset {
   tilt: number;
 }
 
-/** Erosion preset (weathering texture overlay). */
-export interface ErosionPreset extends BasePreset {
-  category: "erosion";
-  erosionType: "rain-wash" | "wind-scour" | "frost-crack" | "lichen";
-  color: string;
-  intensity: number;
-  coverageTop: number;
-  coverageBottom: number;
-  noiseScale: number;
-}
-
 /** Reflection preset (mirror reflection in water surface). */
 export interface ReflectionPreset extends BasePreset {
   category: "reflection";
@@ -269,29 +261,6 @@ export interface ReflectionPreset extends BasePreset {
   rippleAmplitude: number;
   waterlinePosition: number;
   blurAmount: number;
-}
-
-/** Vignette foliage preset (foreground framing foliage). */
-export interface VignetteFoliagePreset extends BasePreset {
-  category: "vignette-foliage";
-  foliageStyle: "branches" | "grass-blades" | "leaves" | "vines";
-  color: string;
-  secondaryColor: string;
-  density: number;
-  depth: number;
-  edges: "top" | "bottom" | "sides" | "top-sides" | "all";
-}
-
-/** Forest floor preset (ground cover with undergrowth). */
-export interface ForestFloorPreset extends BasePreset {
-  category: "forest-floor";
-  coverType: "ferns" | "moss" | "fallen-logs" | "mushrooms";
-  color: string;
-  secondaryColor: string;
-  groundColor: string;
-  density: number;
-  coverageTop: number;
-  coverageBottom: number;
 }
 
 /** Haze preset (subtle atmospheric haze). */
@@ -306,6 +275,6 @@ export interface HazePreset extends BasePreset {
 }
 
 /** Discriminated union of all terrain presets. */
-export type TerrainPreset = SkyPreset | ProfilePreset | CloudPreset | WaterPreset | RiverPreset | PathPreset | ShorePreset | FieldPreset | RockPreset | TreelinePreset | CelestialPreset | FogPreset | StarfieldPreset | CliffFacePreset | SnowfieldPreset | BuildingPreset | BridgePreset | ReflectionPreset | VignetteFoliagePreset | ForestFloorPreset | HazePreset | FencePreset | BoatPreset | ErosionPreset;
+export type TerrainPreset = SkyPreset | ProfilePreset | CloudPreset | WaterPreset | RiverPreset | PathPreset | ShorePreset | FieldPreset | RockPreset | TreelinePreset | CelestialPreset | FogPreset | StarfieldPreset | CliffFacePreset | SnowfieldPreset | BuildingPreset | BridgePreset | ReflectionPreset | HazePreset | FencePreset | BoatPreset;
 
-export type PresetCategory = "sky" | "profile" | "clouds" | "water" | "river" | "path" | "shore" | "field" | "rock" | "treeline" | "celestial" | "fog" | "starfield" | "cliff-face" | "snowfield" | "building" | "bridge" | "reflection" | "vignette-foliage" | "forest-floor" | "haze" | "fence" | "boat" | "erosion";
+export type PresetCategory = "sky" | "profile" | "clouds" | "water" | "river" | "path" | "shore" | "field" | "rock" | "treeline" | "celestial" | "fog" | "starfield" | "cliff-face" | "snowfield" | "building" | "bridge" | "reflection" | "haze" | "fence" | "boat";
