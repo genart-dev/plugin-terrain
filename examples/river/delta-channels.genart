@@ -106,8 +106,8 @@
       "properties": {
         "preset": "delta-channels",
         "pathPreset": "fork",
-        "widthNear": 120,
-        "widthFar": 25,
+        "widthNear": 180,
+        "widthFar": 15,
         "waterColor": "#4A6A70",
         "bankColor": "#6A6A50",
         "rippleScale": 0.2,

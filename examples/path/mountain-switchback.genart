@@ -137,8 +137,8 @@
       "properties": {
         "preset": "mountain-switchback",
         "pathPreset": "switchback",
-        "widthNear": 45,
-        "widthFar": 8,
+        "widthNear": 90,
+        "widthFar": 5,
         "surfaceColor": "#7A6A55",
         "surfaceStyle": "gravel",
         "edgeTreatment": "scattered-stones",

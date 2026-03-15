@@ -106,8 +106,8 @@
       "properties": {
         "preset": "waterfall-stream",
         "pathPreset": "straight",
-        "widthNear": 70,
-        "widthFar": 12,
+        "widthNear": 120,
+        "widthFar": 6,
         "waterColor": "#5A9AAA",
         "bankColor": "#6A6A5A",
         "rippleScale": 1,

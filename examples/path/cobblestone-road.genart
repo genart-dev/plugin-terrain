@@ -137,8 +137,8 @@
       "properties": {
         "preset": "cobblestone-road",
         "pathPreset": "straight",
-        "widthNear": 100,
-        "widthFar": 18,
+        "widthNear": 200,
+        "widthFar": 12,
         "surfaceColor": "#7A7068",
         "surfaceStyle": "cobblestone",
         "edgeTreatment": "sharp",

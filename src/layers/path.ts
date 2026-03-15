@@ -61,8 +61,8 @@ const PATH_PROPERTIES: LayerPropertySchema[] = [
       { value: "fork", label: "Fork" },
     ],
   },
-  { key: "widthNear", label: "Width (Near)", type: "number", default: 60, min: 10, max: 300, step: 5, group: "shape" },
-  { key: "widthFar", label: "Width (Far)", type: "number", default: 10, min: 2, max: 80, step: 1, group: "shape" },
+  { key: "widthNear", label: "Width (Near)", type: "number", default: 120, min: 10, max: 400, step: 5, group: "shape" },
+  { key: "widthFar", label: "Width (Far)", type: "number", default: 6, min: 2, max: 80, step: 1, group: "shape" },
   { key: "surfaceColor", label: "Surface Color", type: "color", default: "#8B7355", group: "colors" },
   {
     key: "surfaceStyle",

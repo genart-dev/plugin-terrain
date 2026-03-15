@@ -137,8 +137,8 @@
       "properties": {
         "preset": "country-lane",
         "pathPreset": "straight",
-        "widthNear": 90,
-        "widthFar": 16,
+        "widthNear": 180,
+        "widthFar": 12,
         "surfaceColor": "#7A7050",
         "surfaceStyle": "worn-grass",
         "edgeTreatment": "grass-encroach",

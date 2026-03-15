@@ -41,8 +41,8 @@ describe("terrain:river", () => {
     expect(defaults.preset).toBe("gentle-stream");
     expect(defaults.waterColor).toBe("#4A7A8A");
     expect(defaults.bankColor).toBe("#5C6B3A");
-    expect(defaults.widthNear).toBe(80);
-    expect(defaults.widthFar).toBe(15);
+    expect(defaults.widthNear).toBe(140);
+    expect(defaults.widthFar).toBe(8);
     expect(defaults.pathPreset).toBe("meandering");
   });
 

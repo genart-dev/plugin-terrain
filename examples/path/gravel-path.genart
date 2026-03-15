@@ -137,8 +137,8 @@
       "properties": {
         "preset": "gravel-path",
         "pathPreset": "meandering",
-        "widthNear": 70,
-        "widthFar": 12,
+        "widthNear": 140,
+        "widthFar": 8,
         "surfaceColor": "#9A9080",
         "surfaceStyle": "gravel",
         "edgeTreatment": "scattered-stones",

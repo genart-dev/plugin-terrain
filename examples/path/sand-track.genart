@@ -137,8 +137,8 @@
       "properties": {
         "preset": "sand-track",
         "pathPreset": "meandering",
-        "widthNear": 65,
-        "widthFar": 12,
+        "widthNear": 130,
+        "widthFar": 8,
         "surfaceColor": "#C4A870",
         "surfaceStyle": "sand",
         "edgeTreatment": "grass-encroach",

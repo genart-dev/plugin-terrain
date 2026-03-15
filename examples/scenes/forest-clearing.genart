@@ -190,8 +190,8 @@
       "properties": {
         "preset": "forest-path",
         "pathPreset": "winding",
-        "widthNear": 50,
-        "widthFar": 8,
+        "widthNear": 100,
+        "widthFar": 5,
         "surfaceColor": "#6A5A40",
         "surfaceStyle": "dirt",
         "edgeTreatment": "overgrown",

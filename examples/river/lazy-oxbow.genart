@@ -106,8 +106,8 @@
       "properties": {
         "preset": "lazy-oxbow",
         "pathPreset": "s-curve",
-        "widthNear": 140,
-        "widthFar": 30,
+        "widthNear": 220,
+        "widthFar": 18,
         "waterColor": "#3A6070",
         "bankColor": "#5A5030",
         "rippleScale": 0.15,

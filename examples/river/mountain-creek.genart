@@ -106,8 +106,8 @@
       "properties": {
         "preset": "mountain-creek",
         "pathPreset": "switchback",
-        "widthNear": 60,
-        "widthFar": 10,
+        "widthNear": 100,
+        "widthFar": 5,
         "waterColor": "#5A8A9A",
         "bankColor": "#7A7A6A",
         "rippleScale": 0.8,

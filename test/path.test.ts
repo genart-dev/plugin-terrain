@@ -44,8 +44,8 @@ describe("terrain:path", () => {
     expect(defaults.surfaceStyle).toBe("dirt");
     expect(defaults.edgeTreatment).toBe("grass-encroach");
     expect(defaults.wear).toBe(0.5);
-    expect(defaults.widthNear).toBe(60);
-    expect(defaults.widthFar).toBe(10);
+    expect(defaults.widthNear).toBe(120);
+    expect(defaults.widthFar).toBe(6);
   });
 
   it("createDefault includes depthLane property", () => {

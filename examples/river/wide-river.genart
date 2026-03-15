@@ -106,8 +106,8 @@
       "properties": {
         "preset": "wide-river",
         "pathPreset": "meandering",
-        "widthNear": 200,
-        "widthFar": 40,
+        "widthNear": 320,
+        "widthFar": 25,
         "waterColor": "#2A5060",
         "bankColor": "#6B5A3A",
         "rippleScale": 0.6,

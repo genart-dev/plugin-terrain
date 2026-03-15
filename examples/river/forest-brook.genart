@@ -106,8 +106,8 @@
       "properties": {
         "preset": "forest-brook",
         "pathPreset": "winding",
-        "widthNear": 50,
-        "widthFar": 8,
+        "widthNear": 90,
+        "widthFar": 4,
         "waterColor": "#3A5A50",
         "bankColor": "#4A5A30",
         "rippleScale": 0.4,

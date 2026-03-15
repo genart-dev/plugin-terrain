@@ -137,8 +137,8 @@
       "properties": {
         "preset": "dirt-trail",
         "pathPreset": "winding",
-        "widthNear": 60,
-        "widthFar": 10,
+        "widthNear": 120,
+        "widthFar": 6,
         "surfaceColor": "#8B7355",
         "surfaceStyle": "dirt",
         "edgeTreatment": "grass-encroach",

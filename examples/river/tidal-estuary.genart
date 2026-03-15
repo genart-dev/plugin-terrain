@@ -106,8 +106,8 @@
       "properties": {
         "preset": "tidal-estuary",
         "pathPreset": "straight",
-        "widthNear": 250,
-        "widthFar": 60,
+        "widthNear": 400,
+        "widthFar": 35,
         "waterColor": "#3A5A6A",
         "bankColor": "#7A7060",
         "rippleScale": 0.5,

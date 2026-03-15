@@ -137,8 +137,8 @@
       "properties": {
         "preset": "garden-walk",
         "pathPreset": "meandering",
-        "widthNear": 80,
-        "widthFar": 14,
+        "widthNear": 160,
+        "widthFar": 10,
         "surfaceColor": "#8A8070",
         "surfaceStyle": "flagstone",
         "edgeTreatment": "sharp",

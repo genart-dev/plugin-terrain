@@ -96,8 +96,8 @@
       "properties": {
         "preset": "gentle-stream",
         "pathPreset": "meandering",
-        "widthNear": 80,
-        "widthFar": 15,
+        "widthNear": 140,
+        "widthFar": 8,
         "waterColor": "#4A7A8A",
         "bankColor": "#5C6B3A",
         "rippleScale": 0.3,
@@ -129,8 +129,8 @@
       "properties": {
         "preset": "dirt-trail",
         "pathPreset": "winding",
-        "widthNear": 60,
-        "widthFar": 10,
+        "widthNear": 120,
+        "widthFar": 6,
         "surfaceColor": "#8B7355",
         "surfaceStyle": "dirt",
         "edgeTreatment": "grass-encroach",
