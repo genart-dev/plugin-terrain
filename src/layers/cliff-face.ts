@@ -6,7 +6,7 @@ import type {
 } from "@genart-dev/core";
 import { mulberry32 } from "../shared/prng.js";
 import { parseHex, darken, lighten } from "../shared/color-utils.js";
-import { createValueNoise } from "../shared/noise.js";
+import { createFractalNoise } from "../shared/noise.js";
 import {
   createDepthLaneProperty,
   createAtmosphericModeProperty,
@@ -47,13 +47,13 @@ const CLIFF_FACE_PROPERTIES: LayerPropertySchema[] = [
       { value: "limestone", label: "Limestone" },
     ],
   },
-  { key: "color", label: "Rock Color", type: "color", default: "#A08060", group: "colors" },
-  { key: "shadowColor", label: "Shadow Color", type: "color", default: "#604830", group: "colors" },
+  { key: "color", label: "Rock Color", type: "color", default: "#C4A070", group: "colors" },
+  { key: "shadowColor", label: "Shadow Color", type: "color", default: "#7B4028", group: "colors" },
   { key: "height", label: "Height", type: "number", default: 0.6, min: 0.2, max: 1.0, step: 0.05, group: "layout" },
   { key: "xPosition", label: "X Position", type: "number", default: 0.0, min: 0.0, max: 0.7, step: 0.05, group: "layout" },
-  { key: "width", label: "Width", type: "number", default: 0.3, min: 0.1, max: 0.8, step: 0.05, group: "layout" },
+  { key: "width", label: "Width", type: "number", default: 0.4, min: 0.1, max: 0.9, step: 0.05, group: "layout" },
   { key: "roughness", label: "Roughness", type: "number", default: 0.5, min: 0, max: 1, step: 0.05, group: "texture" },
-  { key: "ledgeCount", label: "Ledge Count", type: "number", default: 3, min: 0, max: 8, step: 1, group: "texture" },
+  { key: "ledgeCount", label: "Strata Count", type: "number", default: 5, min: 0, max: 12, step: 1, group: "texture" },
   createDepthLaneProperty("background"),
   createAtmosphericModeProperty(),
 ];
@@ -78,16 +78,319 @@ function resolveProps(properties: LayerProperties): {
   return {
     seed: (properties.seed as number) ?? 42,
     textureMode: (properties.textureMode as string) ?? cp?.textureMode ?? "sandstone",
-    color: (properties.color as string) || cp?.color || "#A08060",
-    shadowColor: (properties.shadowColor as string) || cp?.shadowColor || "#604830",
+    color: (properties.color as string) || cp?.color || "#C4A070",
+    shadowColor: (properties.shadowColor as string) || cp?.shadowColor || "#7B4028",
     height: (properties.height as number) ?? cp?.height ?? 0.6,
     xPosition: (properties.xPosition as number) ?? cp?.xPosition ?? 0.0,
-    width: (properties.width as number) ?? cp?.width ?? 0.3,
+    width: (properties.width as number) ?? cp?.width ?? 0.4,
     roughness: (properties.roughness as number) ?? cp?.roughness ?? 0.5,
-    ledgeCount: (properties.ledgeCount as number) ?? cp?.ledgeCount ?? 3,
+    ledgeCount: (properties.ledgeCount as number) ?? cp?.ledgeCount ?? 5,
     depthLane: (properties.depthLane as string) ?? "background",
     atmosphericMode: (properties.atmosphericMode as AtmosphericMode) ?? "none",
   };
+}
+
+// Build the cliff top silhouette profile (STEPS+1 y-values, left to right)
+function buildTopProfile(
+  textureMode: string,
+  roughness: number,
+  cliffTopBase: number,
+  cliffH: number,
+  seed: number,
+  rng: () => number,
+): number[] {
+  const STEPS = 80;
+  const octaves = Math.max(2, Math.round(2 + roughness * 3));
+  const noise = createFractalNoise(seed + 800, octaves);
+  const profile: number[] = [];
+
+  if (textureMode === "sandstone" || textureMode === "limestone") {
+    // Near-flat cap with collapse notches (sandstone: 3-8%, limestone: slightly rougher)
+    const ampFraction = textureMode === "limestone" ? 0.08 : 0.05;
+    const baseTop = cliffTopBase + cliffH * 0.03;
+    for (let i = 0; i <= STEPS; i++) {
+      const t = i / STEPS;
+      const nv = noise(t * 3.0 + 10, 0.2);
+      profile.push(baseTop - (nv - 0.5) * cliffH * ampFraction * (0.5 + roughness));
+    }
+    // Add 1-3 collapse notches that drop 10-25% of cliff height
+    const notchCount = 1 + Math.floor(rng() * 3);
+    for (let n = 0; n < notchCount; n++) {
+      const notchCenter = 0.1 + rng() * 0.8;
+      const notchHalfWidth = 0.03 + rng() * 0.07;
+      const notchDepth = cliffH * (0.10 + rng() * 0.15);
+      for (let i = 0; i <= STEPS; i++) {
+        const t = i / STEPS;
+        const dist = Math.abs(t - notchCenter) / notchHalfWidth;
+        if (dist < 1.0) {
+          profile[i]! += notchDepth * (1 - dist * dist);
+        }
+      }
+    }
+    // Limestone: extra high-frequency roughness on edge
+    if (textureMode === "limestone") {
+      const roughNoise = createFractalNoise(seed + 1600, 4);
+      for (let i = 0; i <= STEPS; i++) {
+        const t = i / STEPS;
+        profile[i]! += (roughNoise(t * 14 + 50, 1.0) - 0.5) * cliffH * 0.06 * roughness;
+      }
+    }
+  } else if (textureMode === "basalt") {
+    // Stepped profile: broken column tops (5-13 columns across the width)
+    const columnCount = 5 + Math.floor(rng() * 9);
+    const colHeights: number[] = [];
+    for (let c = 0; c <= columnCount; c++) {
+      colHeights.push(cliffTopBase + (rng() - 0.35) * cliffH * 0.12 * (0.4 + roughness));
+    }
+    for (let i = 0; i <= STEPS; i++) {
+      const t = i / STEPS;
+      const colIdx = Math.min(columnCount - 1, Math.floor(t * columnCount));
+      profile.push(colHeights[colIdx]!);
+    }
+  } else {
+    // Granite: angular fractal noise (10-20% amplitude per references)
+    for (let i = 0; i <= STEPS; i++) {
+      const t = i / STEPS;
+      const nv = noise(t * (2.0 + roughness * 4.0) + 5, 0.0);
+      profile.push(cliffTopBase - (nv - 0.3) * cliffH * (0.10 + roughness * 0.12));
+    }
+  }
+
+  return profile;
+}
+
+// Trace the cliff silhouette path (does not call fill/stroke)
+function traceSilhouette(
+  ctx: CanvasRenderingContext2D,
+  cliffLeft: number,
+  cliffW: number,
+  cliffBottom: number,
+  topProfile: number[],
+): void {
+  const STEPS = topProfile.length - 1;
+  ctx.moveTo(cliffLeft, cliffBottom);
+  for (let i = 0; i <= STEPS; i++) {
+    ctx.lineTo(cliffLeft + (i / STEPS) * cliffW, topProfile[i]!);
+  }
+  ctx.lineTo(cliffLeft + cliffW, cliffBottom);
+  ctx.closePath();
+}
+
+// Sandstone: horizontal strata bands + dark desert varnish streaks
+function renderSandstoneTexture(
+  ctx: CanvasRenderingContext2D,
+  cliffLeft: number,
+  cliffW: number,
+  cliffTop: number,
+  cliffBottom: number,
+  cliffH: number,
+  ledgeCount: number,
+  roughness: number,
+  color: string,
+  shadowColor: string,
+  rng: () => number,
+  noise: (x: number, y: number) => number,
+): void {
+  const [sr, sg, sb] = parseHex(shadowColor);
+  const darkColor = darken(color, 0.6);
+  const [dr, dg, db] = parseHex(darkColor);
+
+  // Strata bands: non-uniform thickness, slight horizontal tilt
+  const strataCount = Math.max(3, ledgeCount);
+  let y = cliffTop;
+  for (let i = 0; i < strataCount && y < cliffBottom; i++) {
+    // Non-uniform thickness: 2-15% of cliff height
+    const thickness = cliffH * (0.03 + rng() * 0.10 * (0.3 + roughness));
+    const nextY = Math.min(cliffBottom, y + thickness);
+    // Slight tilt: right edge offset by ±2% of cliff height
+    const tiltOffset = (rng() - 0.5) * cliffH * 0.04;
+    // Alternate between darker and slightly lighter bands
+    const bandAlpha = 0.08 + rng() * 0.14;
+    // Every few bands, draw a slightly darker "marker" band
+    const isDark = rng() > 0.6;
+    if (isDark) {
+      ctx.fillStyle = `rgba(${sr},${sg},${sb},${bandAlpha + 0.08})`;
+    } else {
+      ctx.fillStyle = `rgba(${dr},${dg},${db},${bandAlpha * 0.5})`;
+    }
+    ctx.beginPath();
+    ctx.moveTo(cliffLeft, y);
+    ctx.lineTo(cliffLeft + cliffW, y + tiltOffset);
+    ctx.lineTo(cliffLeft + cliffW, nextY + tiltOffset);
+    ctx.lineTo(cliffLeft, nextY);
+    ctx.closePath();
+    ctx.fill();
+    y = nextY + cliffH * (0.005 + rng() * 0.008); // small gap between bands
+  }
+
+  // Desert varnish streaks: dark vertical lines descending from top
+  const streakCount = Math.round(3 + roughness * 8);
+  for (let i = 0; i < streakCount; i++) {
+    const sx = cliffLeft + rng() * cliffW;
+    const streakAlpha = 0.15 + rng() * 0.20;
+    const streakWidth = 0.5 + rng() * 2.0;
+    // Streaks have a slight wobble as they descend
+    const wobble = (rng() - 0.5) * cliffW * 0.03;
+    ctx.strokeStyle = `rgba(${sr},${sg},${sb},${streakAlpha})`;
+    ctx.lineWidth = streakWidth;
+    ctx.beginPath();
+    ctx.moveTo(sx, cliffTop);
+    ctx.bezierCurveTo(
+      sx + wobble, cliffTop + cliffH * 0.33,
+      sx - wobble * 0.5, cliffTop + cliffH * 0.66,
+      sx + wobble * 0.3, cliffBottom,
+    );
+    ctx.stroke();
+  }
+}
+
+// Granite: vertical joint sets (parallel fracture lines)
+function renderGraniteTexture(
+  ctx: CanvasRenderingContext2D,
+  cliffLeft: number,
+  cliffW: number,
+  cliffTop: number,
+  cliffBottom: number,
+  cliffH: number,
+  ledgeCount: number,
+  roughness: number,
+  shadowColor: string,
+  rng: () => number,
+): void {
+  const [sr, sg, sb] = parseHex(shadowColor);
+
+  // Vertical joint sets: 2 sets of roughly parallel lines at different angles
+  const setCount = 2;
+  for (let s = 0; s < setCount; s++) {
+    // Each joint set has a slightly different angle offset
+    const setAngle = (rng() - 0.5) * 0.08; // ~5° tilt
+    const jointSpacing = cliffW / (4 + Math.round(roughness * 8 + ledgeCount));
+    const jointCount = Math.ceil(cliffW / jointSpacing);
+
+    for (let j = 0; j < jointCount; j++) {
+      const jx = cliffLeft + j * jointSpacing + (rng() - 0.5) * jointSpacing * 0.5;
+      const jAlpha = 0.08 + rng() * 0.12;
+      const jWidth = 0.3 + rng() * 0.7;
+      const jLenFraction = 0.4 + rng() * 0.6; // joint spans 40-100% of cliff height
+      const jTop = cliffTop + rng() * cliffH * 0.2;
+      const jBottom = jTop + cliffH * jLenFraction;
+      const tiltShift = cliffH * setAngle;
+
+      ctx.strokeStyle = `rgba(${sr},${sg},${sb},${jAlpha})`;
+      ctx.lineWidth = jWidth;
+      ctx.beginPath();
+      ctx.moveTo(jx, jTop);
+      ctx.lineTo(jx + tiltShift, Math.min(cliffBottom, jBottom));
+      ctx.stroke();
+    }
+  }
+
+  // Broad horizontal exfoliation sheets (large scale, not strata)
+  const sheetCount = Math.max(1, Math.round(1 + roughness * 2));
+  for (let i = 0; i < sheetCount; i++) {
+    const sy = cliffTop + (i + 1) / (sheetCount + 1) * cliffH;
+    ctx.strokeStyle = `rgba(${sr},${sg},${sb},${0.10 + rng() * 0.08})`;
+    ctx.lineWidth = 0.8 + rng() * 1.5;
+    ctx.beginPath();
+    ctx.moveTo(cliffLeft, sy + (rng() - 0.5) * 8);
+    ctx.lineTo(cliffLeft + cliffW, sy + (rng() - 0.5) * 8);
+    ctx.stroke();
+  }
+}
+
+// Basalt: vertical column joints
+function renderBasaltTexture(
+  ctx: CanvasRenderingContext2D,
+  cliffLeft: number,
+  cliffW: number,
+  topProfile: number[],
+  cliffTop: number,
+  cliffBottom: number,
+  cliffH: number,
+  roughness: number,
+  shadowColor: string,
+  rng: () => number,
+): void {
+  const [sr, sg, sb] = parseHex(shadowColor);
+  const STEPS = topProfile.length - 1;
+
+  // Column joints descend from top profile
+  const columnCount = 6 + Math.round(rng() * 10 * (0.5 + roughness));
+  for (let c = 0; c < columnCount; c++) {
+    const t = c / columnCount;
+    const cx = cliffLeft + t * cliffW;
+    // Find the top profile y at this x
+    const colIdx = Math.min(STEPS, Math.round(t * STEPS));
+    const colTopY = topProfile[colIdx] ?? cliffTop;
+    const colAlpha = 0.20 + rng() * 0.20;
+    const colWidth = 0.5 + rng() * 1.0;
+    // Column joint descends to bottom with slight horizontal wobble
+    const wobble = (rng() - 0.5) * cliffW * 0.02;
+
+    ctx.strokeStyle = `rgba(${sr},${sg},${sb},${colAlpha})`;
+    ctx.lineWidth = colWidth;
+    ctx.beginPath();
+    ctx.moveTo(cx, colTopY);
+    ctx.bezierCurveTo(cx + wobble * 0.3, colTopY + cliffH * 0.33, cx - wobble * 0.5, colTopY + cliffH * 0.66, cx + wobble, cliffBottom);
+    ctx.stroke();
+  }
+
+  // Entablature zone (irregular jointing in upper 20-35%): add cross-hatching
+  const entablatureH = cliffH * (0.20 + roughness * 0.15);
+  const entablatureBottom = cliffTop + entablatureH;
+  const crackCount = 4 + Math.round(roughness * 8);
+  for (let i = 0; i < crackCount; i++) {
+    const cx = cliffLeft + rng() * cliffW;
+    const cy = cliffTop + rng() * entablatureH;
+    const angle = (rng() - 0.5) * Math.PI * 0.6;
+    const len = cliffW * 0.05 + rng() * cliffW * 0.12;
+    ctx.strokeStyle = `rgba(${sr},${sg},${sb},${0.15 + rng() * 0.15})`;
+    ctx.lineWidth = 0.4 + rng() * 0.8;
+    ctx.beginPath();
+    ctx.moveTo(cx, Math.min(entablatureBottom, cy));
+    ctx.lineTo(cx + Math.cos(angle) * len, Math.min(entablatureBottom, cy + Math.sin(angle) * len));
+    ctx.stroke();
+  }
+}
+
+// Limestone: mixed horizontal and irregular crack system
+function renderLimestoneTexture(
+  ctx: CanvasRenderingContext2D,
+  cliffLeft: number,
+  cliffW: number,
+  cliffTop: number,
+  cliffBottom: number,
+  cliffH: number,
+  ledgeCount: number,
+  roughness: number,
+  shadowColor: string,
+  rng: () => number,
+): void {
+  const [sr, sg, sb] = parseHex(shadowColor);
+  const totalCracks = ledgeCount + Math.round(roughness * 8);
+
+  for (let i = 0; i < totalCracks; i++) {
+    const isHorizontal = rng() > 0.35;
+    const alpha = 0.08 + rng() * 0.14;
+    ctx.strokeStyle = `rgba(${sr},${sg},${sb},${alpha})`;
+    ctx.lineWidth = 0.4 + rng() * 1.0;
+    ctx.beginPath();
+    if (isHorizontal) {
+      const y = cliffTop + rng() * cliffH;
+      const x0 = cliffLeft + rng() * cliffW * 0.4;
+      const x1 = cliffLeft + cliffW * (0.4 + rng() * 0.6);
+      const midY = y + (rng() - 0.5) * cliffH * 0.05;
+      ctx.moveTo(x0, y + (rng() - 0.5) * 4);
+      ctx.quadraticCurveTo(x0 + (x1 - x0) * 0.5, midY, x1, y + (rng() - 0.5) * 4);
+    } else {
+      const x = cliffLeft + rng() * cliffW;
+      const y0 = cliffTop + rng() * cliffH * 0.5;
+      const y1 = y0 + cliffH * (0.1 + rng() * 0.5);
+      ctx.moveTo(x, y0);
+      ctx.lineTo(x + (rng() - 0.5) * cliffW * 0.1, Math.min(cliffBottom, y1));
+    }
+    ctx.stroke();
+  }
 }
 
 export const cliffFaceLayerType: LayerTypeDefinition = {
@@ -105,7 +408,6 @@ export const cliffFaceLayerType: LayerTypeDefinition = {
   render(properties, ctx, bounds): void {
     const p = resolveProps(properties);
     const rng = mulberry32(p.seed);
-    const noise = createValueNoise(p.seed + 800);
     const w = bounds.width;
     const h = bounds.height;
 
@@ -120,160 +422,75 @@ export const cliffFaceLayerType: LayerTypeDefinition = {
       }
     }
 
-    const cliffX = bounds.x + p.xPosition * w;
+    const cliffLeft = bounds.x + p.xPosition * w;
     const cliffW = p.width * w;
-    const cliffTop = bounds.y + (1 - p.height) * h;
     const cliffBottom = bounds.y + h;
-    const cliffH = cliffBottom - cliffTop;
+    const cliffH = p.height * h;
+    const cliffTopBase = cliffBottom - cliffH;
 
-    // Draw cliff face silhouette with rough edge
+    if (cliffW <= 0 || cliffH <= 0) return;
+
+    // Generate top silhouette profile
+    const topProfile = buildTopProfile(p.textureMode, p.roughness, cliffTopBase, cliffH, p.seed, rng);
+
+    // Find actual min top y (highest point of silhouette) for texture bounds
+    const minTopY = Math.min(...topProfile);
+
+    // --- Fill cliff silhouette with base color ---
     ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.moveTo(cliffX, cliffBottom);
-
-    // Left edge (rough vertical face)
-    const segments = 30;
-    for (let i = 0; i <= segments; i++) {
-      const t = i / segments;
-      const y = cliffBottom - t * cliffH;
-      const n = noise(t * 8, p.seed * 0.01);
-      const edgeOffset = (n - 0.5) * cliffW * 0.15 * p.roughness;
-      ctx.lineTo(cliffX + edgeOffset, y);
-    }
-
-    // Top edge (jagged cliff top)
-    const topSegments = 20;
-    for (let i = 0; i <= topSegments; i++) {
-      const t = i / topSegments;
-      const x = cliffX + t * cliffW;
-      const n = noise(t * 6 + 100, p.seed * 0.01);
-      const topOffset = (n - 0.5) * cliffH * 0.1 * p.roughness;
-      ctx.lineTo(x, cliffTop + topOffset);
-    }
-
-    // Right edge
-    for (let i = segments; i >= 0; i--) {
-      const t = i / segments;
-      const y = cliffBottom - t * cliffH;
-      const n = noise(t * 8 + 50, p.seed * 0.01 + 10);
-      const edgeOffset = (n - 0.5) * cliffW * 0.1 * p.roughness;
-      ctx.lineTo(cliffX + cliffW + edgeOffset, y);
-    }
-
-    ctx.closePath();
+    traceSilhouette(ctx, cliffLeft, cliffW, cliffBottom, topProfile);
     ctx.fill();
 
-    // Clip all subsequent rendering to the cliff silhouette
+    // --- Clip and apply face shading + texture ---
     ctx.save();
     ctx.beginPath();
-    ctx.moveTo(cliffX, cliffBottom);
-    for (let i = 0; i <= segments; i++) {
-      const t = i / segments;
-      const y = cliffBottom - t * cliffH;
-      const n = noise(t * 8, p.seed * 0.01);
-      const edgeOffset = (n - 0.5) * cliffW * 0.15 * p.roughness;
-      ctx.lineTo(cliffX + edgeOffset, y);
-    }
-    for (let i = 0; i <= topSegments; i++) {
-      const t = i / topSegments;
-      const x = cliffX + t * cliffW;
-      const n = noise(t * 6 + 100, p.seed * 0.01);
-      const topOffset = (n - 0.5) * cliffH * 0.1 * p.roughness;
-      ctx.lineTo(x, cliffTop + topOffset);
-    }
-    for (let i = segments; i >= 0; i--) {
-      const t = i / segments;
-      const y = cliffBottom - t * cliffH;
-      const n = noise(t * 8 + 50, p.seed * 0.01 + 10);
-      const edgeOffset = (n - 0.5) * cliffW * 0.1 * p.roughness;
-      ctx.lineTo(cliffX + cliffW + edgeOffset, y);
-    }
-    ctx.closePath();
+    traceSilhouette(ctx, cliffLeft, cliffW, cliffBottom, topProfile);
     ctx.clip();
 
-    // Texture based on mode
+    // Horizontal face gradient: lit (upper-left) → shadowed (right)
+    // Shadow depth per rock type from references:
+    // granite: 35-40% darker, sandstone: 40-50%, basalt: 45-55%
+    const shadowAlpha =
+      p.textureMode === "granite" ? 0.42 :
+      p.textureMode === "sandstone" ? 0.52 :
+      p.textureMode === "basalt" ? 0.60 :
+      0.48; // limestone
+    const [sr, sg, sb] = parseHex(shadowColor);
+    const faceGrad = ctx.createLinearGradient(cliffLeft, 0, cliffLeft + cliffW, 0);
+    faceGrad.addColorStop(0.0, `rgba(255,255,255,0.14)`); // lit highlight on left
+    faceGrad.addColorStop(0.25, `rgba(${sr},${sg},${sb},0)`); // transparent mid-left
+    faceGrad.addColorStop(1.0, `rgba(${sr},${sg},${sb},${shadowAlpha})`); // shadow right
+    ctx.fillStyle = faceGrad;
+    ctx.fillRect(cliffLeft, bounds.y, cliffW, h);
+
+    // Texture pass (all clipped to silhouette)
+    const octaves = Math.max(2, Math.round(2 + p.roughness * 3));
+    const noise = createFractalNoise(p.seed + 1200, octaves);
+
     if (p.textureMode === "sandstone") {
-      // Horizontal strata lines
-      const strataCount = 15 + Math.round(p.roughness * 15);
-      ctx.strokeStyle = shadowColor;
-      for (let i = 0; i < strataCount; i++) {
-        const y = cliffTop + (i / strataCount) * cliffH;
-        ctx.globalAlpha = 0.1 + rng() * 0.15;
-        ctx.lineWidth = 0.5 + rng() * 1.5;
-        ctx.beginPath();
-        ctx.moveTo(cliffX, y + (rng() - 0.5) * 3);
-        ctx.lineTo(cliffX + cliffW, y + (rng() - 0.5) * 3);
-        ctx.stroke();
-      }
-      ctx.globalAlpha = 1;
+      renderSandstoneTexture(
+        ctx, cliffLeft, cliffW, minTopY, cliffBottom, cliffH,
+        p.ledgeCount, p.roughness, color, shadowColor, rng, noise,
+      );
     } else if (p.textureMode === "granite") {
-      // Speckled granite texture
-      const speckCount = Math.round(200 * p.roughness * (cliffW * cliffH) / (w * h));
-      const darkSpeck = darken(color, 0.7);
-      const lightSpeck = lighten(color, 0.2);
-      for (let i = 0; i < speckCount; i++) {
-        const sx = cliffX + rng() * cliffW;
-        const sy = cliffTop + rng() * cliffH;
-        ctx.fillStyle = rng() > 0.5 ? darkSpeck : lightSpeck;
-        ctx.globalAlpha = 0.15 + rng() * 0.2;
-        ctx.fillRect(sx, sy, 1 + rng() * 2, 1 + rng() * 2);
-      }
-      ctx.globalAlpha = 1;
+      renderGraniteTexture(
+        ctx, cliffLeft, cliffW, minTopY, cliffBottom, cliffH,
+        p.ledgeCount, p.roughness, shadowColor, rng,
+      );
     } else if (p.textureMode === "basalt") {
-      // Vertical columnar joints
-      const columnCount = 8 + Math.round(p.roughness * 12);
-      ctx.strokeStyle = shadowColor;
-      for (let i = 0; i < columnCount; i++) {
-        const x = cliffX + (i / columnCount) * cliffW + (rng() - 0.5) * cliffW * 0.05;
-        ctx.globalAlpha = 0.15 + rng() * 0.2;
-        ctx.lineWidth = 0.5 + rng() * 1;
-        ctx.beginPath();
-        ctx.moveTo(x, cliffTop + rng() * cliffH * 0.1);
-        // Slightly irregular vertical line
-        const midY = cliffTop + cliffH * 0.5;
-        ctx.lineTo(x + (rng() - 0.5) * 4, midY);
-        ctx.lineTo(x + (rng() - 0.5) * 3, cliffBottom);
-        ctx.stroke();
-      }
-      ctx.globalAlpha = 1;
+      renderBasaltTexture(
+        ctx, cliffLeft, cliffW, topProfile, minTopY, cliffBottom, cliffH,
+        p.roughness, shadowColor, rng,
+      );
     } else {
-      // Limestone: mixed horizontal and irregular cracks
-      const crackCount = 10 + Math.round(p.roughness * 10);
-      ctx.strokeStyle = shadowColor;
-      for (let i = 0; i < crackCount; i++) {
-        ctx.globalAlpha = 0.1 + rng() * 0.15;
-        ctx.lineWidth = 0.5 + rng() * 1;
-        const isHorizontal = rng() > 0.4;
-        ctx.beginPath();
-        if (isHorizontal) {
-          const y = cliffTop + rng() * cliffH;
-          ctx.moveTo(cliffX + rng() * cliffW * 0.3, y);
-          ctx.lineTo(cliffX + cliffW * (0.5 + rng() * 0.5), y + (rng() - 0.5) * 5);
-        } else {
-          const x = cliffX + rng() * cliffW;
-          ctx.moveTo(x, cliffTop + rng() * cliffH * 0.5);
-          ctx.lineTo(x + (rng() - 0.5) * 8, cliffTop + cliffH * (0.5 + rng() * 0.5));
-        }
-        ctx.stroke();
-      }
-      ctx.globalAlpha = 1;
+      // limestone
+      renderLimestoneTexture(
+        ctx, cliffLeft, cliffW, minTopY, cliffBottom, cliffH,
+        p.ledgeCount, p.roughness, shadowColor, rng,
+      );
     }
 
-    // Ledge shadows
-    for (let i = 0; i < p.ledgeCount; i++) {
-      const ledgeY = cliffTop + ((i + 1) / (p.ledgeCount + 1)) * cliffH;
-      const ledgeDepth = 3 + rng() * 6;
-      const [sr, sg, sb] = parseHex(shadowColor);
-      ctx.fillStyle = `rgba(${sr},${sg},${sb},0.25)`;
-      ctx.fillRect(cliffX, ledgeY, cliffW, ledgeDepth);
-      // Light edge above ledge
-      const lightColor = lighten(color, 0.2);
-      const [lr, lg, lb] = parseHex(lightColor);
-      ctx.fillStyle = `rgba(${lr},${lg},${lb},0.2)`;
-      ctx.fillRect(cliffX, ledgeY - 1, cliffW, 1);
-    }
-
-    // Restore context (end silhouette clipping)
     ctx.restore();
   },
 

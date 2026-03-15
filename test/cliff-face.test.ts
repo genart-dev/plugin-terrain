@@ -22,6 +22,8 @@ function createMockCtx() {
     fill: vi.fn(),
     stroke: vi.fn(),
     arc: vi.fn(),
+    bezierCurveTo: vi.fn(),
+    quadraticCurveTo: vi.fn(),
   } as unknown as CanvasRenderingContext2D;
 }
 
@@ -44,13 +46,13 @@ describe("terrain:cliff-face", () => {
     const defaults = cliffFaceLayerType.createDefault();
     expect(defaults.preset).toBe("granite-cliff");
     expect(defaults.textureMode).toBe("sandstone");
-    expect(defaults.color).toBe("#A08060");
-    expect(defaults.shadowColor).toBe("#604830");
+    expect(defaults.color).toBe("#C4A070");
+    expect(defaults.shadowColor).toBe("#7B4028");
     expect(defaults.height).toBe(0.6);
     expect(defaults.xPosition).toBe(0.0);
-    expect(defaults.width).toBe(0.3);
+    expect(defaults.width).toBe(0.4);
     expect(defaults.roughness).toBe(0.5);
-    expect(defaults.ledgeCount).toBe(3);
+    expect(defaults.ledgeCount).toBe(5);
   });
 
   it("createDefault includes depthLane property", () => {
