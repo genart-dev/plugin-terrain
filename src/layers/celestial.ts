@@ -55,6 +55,16 @@ const CELESTIAL_PROPERTIES: LayerPropertySchema[] = [
   { key: "moonPhase", label: "Moon Phase", type: "number", default: 1.0, min: 0.0, max: 1.0, step: 0.05, group: "body" },
   { key: "lightPathEnabled", label: "Light Path", type: "boolean", default: false, group: "light-path" },
   { key: "lightPathColor", label: "Light Path Color", type: "color", default: "#FFFFFF", group: "light-path" },
+  {
+    key: "ridgeOcclusionDepth",
+    label: "Ridge Occlusion Height",
+    type: "number",
+    default: 0,
+    min: 0,
+    max: 1,
+    step: 0.01,
+    group: "position",
+  },
   createDepthLaneProperty("sky"),
   createAtmosphericModeProperty(),
 ];
@@ -71,6 +81,7 @@ function resolveProps(properties: LayerProperties): {
   moonPhase: number;
   lightPathEnabled: boolean;
   lightPathColor: string;
+  ridgeOcclusionDepth: number;
   depthLane: string;
   atmosphericMode: AtmosphericMode;
 } {
@@ -90,6 +101,7 @@ function resolveProps(properties: LayerProperties): {
     moonPhase: (properties.moonPhase as number) ?? (cp as any)?.moonPhase ?? 1.0,
     lightPathEnabled: (properties.lightPathEnabled as boolean) ?? cp?.lightPathEnabled ?? false,
     lightPathColor: (properties.lightPathColor as string) || cp?.lightPathColor || "#FFFFFF",
+    ridgeOcclusionDepth: (properties.ridgeOcclusionDepth as number) ?? 0,
     depthLane: (properties.depthLane as string) ?? "sky",
     atmosphericMode: (properties.atmosphericMode as AtmosphericMode) ?? "none",
   };
@@ -130,6 +142,15 @@ export const celestialLayerType: LayerTypeDefinition = {
         bodyColor = applyAtmosphericDepth(bodyColor, laneConfig.depth, p.atmosphericMode);
         lightPathColor = applyAtmosphericDepth(lightPathColor, laneConfig.depth, p.atmosphericMode);
       }
+    }
+
+    // Clip rendering to above ridge occlusion line (simulates body setting behind a ridge)
+    if (p.ridgeOcclusionDepth > 0) {
+      const ridgeY = bounds.y + (1 - p.ridgeOcclusionDepth) * h;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(-99999, -99999, 199999, ridgeY + 99999);
+      ctx.clip();
     }
 
     // Draw light path on water (vertical shimmer band below body)
@@ -244,6 +265,11 @@ export const celestialLayerType: LayerTypeDefinition = {
       ctx.beginPath();
       ctx.arc(cx, cy, bodyRadius, 0, Math.PI * 2);
       ctx.fill();
+    }
+
+    // Restore clip from ridge occlusion
+    if (p.ridgeOcclusionDepth > 0) {
+      ctx.restore();
     }
   },
 

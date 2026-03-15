@@ -43,6 +43,8 @@ function createMockCtx() {
     fill: vi.fn(),
     stroke: vi.fn(),
     arc: vi.fn(),
+    rect: vi.fn(),
+    clip: vi.fn(),
   } as unknown as CanvasRenderingContext2D;
 }
 
@@ -163,6 +165,45 @@ describe("terrain:celestial", () => {
     const ctx = createMockCtx();
     const props = { ...celestialLayerType.createDefault(), atmosphericMode: "ink-wash" };
     expect(() => celestialLayerType.render(props, ctx, BOUNDS, {} as any)).not.toThrow();
+  });
+
+  it("createDefault has ridgeOcclusionDepth of 0 (disabled)", () => {
+    const defaults = celestialLayerType.createDefault();
+    expect(defaults.ridgeOcclusionDepth).toBe(0);
+  });
+
+  it("properties schema includes ridgeOcclusionDepth number", () => {
+    const prop = celestialLayerType.properties.find((p) => p.key === "ridgeOcclusionDepth");
+    expect(prop).toBeTruthy();
+    expect(prop!.type).toBe("number");
+    expect(prop!.default).toBe(0);
+    expect(prop!.min).toBe(0);
+    expect(prop!.max).toBe(1);
+  });
+
+  it("render with ridgeOcclusionDepth 0 does not call clip", () => {
+    const ctx = createMockCtx();
+    const props = { ...celestialLayerType.createDefault(), ridgeOcclusionDepth: 0 };
+    celestialLayerType.render(props, ctx, BOUNDS, {} as any);
+    expect(ctx.clip).not.toHaveBeenCalled();
+  });
+
+  it("render with ridgeOcclusionDepth > 0 sets clip and restores context", () => {
+    const ctx = createMockCtx();
+    const props = { ...celestialLayerType.createDefault(), elevation: 0.85, ridgeOcclusionDepth: 0.3 };
+    celestialLayerType.render(props, ctx, BOUNDS, {} as any);
+    expect(ctx.clip).toHaveBeenCalledTimes(1);
+    expect(ctx.rect).toHaveBeenCalledTimes(1);
+    expect(ctx.save).toHaveBeenCalled();
+    expect(ctx.restore).toHaveBeenCalled();
+  });
+
+  it("render with body elevation below ridgeOcclusionDepth still renders without throw", () => {
+    const ctx = createMockCtx();
+    // Body at elevation 0.1, ridge at 0.5 — body is fully behind ridge, glow clipped
+    const props = { ...celestialLayerType.createDefault(), elevation: 0.1, ridgeOcclusionDepth: 0.5 };
+    expect(() => celestialLayerType.render(props, ctx, BOUNDS, {} as any)).not.toThrow();
+    expect(ctx.clip).toHaveBeenCalled();
   });
 
   it("render works with all celestial presets", () => {
