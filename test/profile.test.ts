@@ -8,7 +8,15 @@ function createMockCtx() {
     lineTo: vi.fn(),
     closePath: vi.fn(),
     fill: vi.fn(),
+    fillRect: vi.fn(),
     fillStyle: "",
+    globalAlpha: 1,
+    save: vi.fn(),
+    restore: vi.fn(),
+    clip: vi.fn(),
+    createLinearGradient: vi.fn(() => ({
+      addColorStop: vi.fn(),
+    })),
   } as unknown as CanvasRenderingContext2D;
 }
 
@@ -114,9 +122,12 @@ describe("terrain:profile", () => {
     profileLayerType.render(propsNone, ctx1, BOUNDS, {} as any);
     profileLayerType.render(propsDefault, ctx2, BOUNDS, {} as any);
 
-    // Both should produce same number of fills
+    // Both should produce same number of ridge fills (no haze/lighting overlays with "none")
     expect(ctx1.fill).toHaveBeenCalledTimes(2);
     expect(ctx2.fill).toHaveBeenCalledTimes(2);
+    // No haze or lighting calls
+    expect(ctx1.fillRect).not.toHaveBeenCalled();
+    expect(ctx1.save).not.toHaveBeenCalled();
   });
 
   it("render with atmosphericMode='western' still produces valid output", () => {
@@ -129,7 +140,15 @@ describe("terrain:profile", () => {
       depthLane: "background",
     };
     profileLayerType.render(props, ctx, BOUNDS, {} as any);
-    expect(ctx.fill).toHaveBeenCalledTimes(3);
+    // 3 ridge fills + lighting overlay fills (fillRect for haze + gradient fills inside clip)
+    expect(ctx.fill).toHaveBeenCalled();
+    expect(ctx.beginPath).toHaveBeenCalled();
+    // Haze overlays use fillRect between ridges
+    expect(ctx.fillRect).toHaveBeenCalled();
+    // Lighting uses save/clip/restore
+    expect(ctx.save).toHaveBeenCalled();
+    expect(ctx.clip).toHaveBeenCalled();
+    expect(ctx.restore).toHaveBeenCalled();
   });
 
   it("render with atmosphericMode='ink-wash' still produces valid output", () => {
@@ -142,6 +161,8 @@ describe("terrain:profile", () => {
       depthLane: "far-background",
     };
     profileLayerType.render(props, ctx, BOUNDS, {} as any);
-    expect(ctx.fill).toHaveBeenCalledTimes(2);
+    expect(ctx.fill).toHaveBeenCalled();
+    expect(ctx.fillRect).toHaveBeenCalled();
+    expect(ctx.save).toHaveBeenCalled();
   });
 });

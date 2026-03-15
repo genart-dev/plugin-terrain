@@ -5,7 +5,7 @@ import type {
   ValidationError,
 } from "@genart-dev/core";
 import { createFractalNoise } from "../shared/noise.js";
-import { lerpColor, lighten } from "../shared/color-utils.js";
+import { lerpColor, lighten, parseHex, toHex } from "../shared/color-utils.js";
 import { applyDepthEasing } from "../shared/depth.js";
 import type { DepthEasing } from "../shared/depth.js";
 import {
@@ -121,18 +121,30 @@ export const profileLayerType: LayerTypeDefinition = {
     // Resolve depth lane once for all ridges
     const laneConfig = resolveDepthLane(p.depthLane);
 
+    // Haze color for inter-ridge atmospheric effect
+    const hazeHex = p.atmosphericMode === "ink-wash" ? "#E8DDD0" : "#B8C8D8";
+    const [hazeR, hazeG, hazeB] = parseHex(hazeHex);
+
     for (let i = 0; i < ridgeCount; i++) {
       // t=0 for farthest ridge, t=1 for nearest
       const t = ridgeCount === 1 ? 1 : i / (ridgeCount - 1);
       const easedT = applyDepthEasing(t, p.depthEasing);
+
+      // --- Inter-ridge haze ---
+      // Before drawing each ridge (except the first), overlay a thin haze
+      // layer over everything already drawn. This accumulates on far ridges,
+      // creating natural atmospheric separation (refs #6 Appalachian, #8 blue mountains).
+      if (i > 0 && p.atmosphericMode !== "none") {
+        const hazeAlpha = 0.03 + (1 - t) * 0.05;
+        ctx.fillStyle = `rgba(${hazeR},${hazeG},${hazeB},${hazeAlpha})`;
+        ctx.fillRect(bx, by, width, height);
+      }
 
       // Per-ridge noise with unique seed offset
       const noise = createFractalNoise(p.seed + i * 7919, octaves, 2.0, 0.5);
 
       // Baseline Y: far ridges (t=0) sit high on screen (near horizon),
       // near ridges (t=1) sit lower (closer to bottom edge).
-      // elevationMin = baseline Y-fraction for far ridges (high on screen)
-      // elevationMax = baseline Y-fraction for near ridges (low on screen)
       const baselineNorm = p.elevationMin + (p.elevationMax - p.elevationMin) * easedT;
       const baselineY = by + height * baselineNorm;
 
@@ -148,45 +160,42 @@ export const profileLayerType: LayerTypeDefinition = {
       let ridgeColor: string;
 
       if (p.atmosphericMode !== "none") {
-        // t=0 (far ridge) → depth 0 → maximum atmospheric effect
-        // t=1 (near ridge) → depth 1 → no atmospheric effect (original colors)
         const bgColor = applyAtmosphericDepth(p.backgroundRidgeColor, t, p.atmosphericMode);
         const fgColor = applyAtmosphericDepth(p.foregroundColor, t, p.atmosphericMode);
         ridgeColor = lerpColor(bgColor, fgColor, t);
       } else {
-        // Even without atmospheric mode, interpolate from backgroundRidgeColor
-        // (far) to foregroundColor (near) with additional lightening on far
-        // ridges for a basic aerial perspective hint.
         const baseLerp = lerpColor(p.backgroundRidgeColor, p.foregroundColor, t);
         const lightenAmount = (1 - t) * p.depthValueShift * 0.5;
         ridgeColor = lighten(baseLerp, lightenAmount);
       }
 
-      // Generate noise profile and draw filled path
-      ctx.beginPath();
-
+      // --- Build noise profile path (used for fill + lighting clip) ---
       const step = Math.max(1, Math.floor(width / 300));
+      const profilePoints: Array<{ px: number; py: number }> = [];
+
       for (let px = 0; px <= width; px += step) {
         const nx = (px / width) * p.noiseScale;
         let noiseVal = noise(nx, i * 10);
 
-        // Jaggedness: add high-frequency overlay
         if (p.jaggedness > 0.3) {
           const hfNoise = createFractalNoise(p.seed + i * 3571 + 999, 2, 4.0, 0.3);
           noiseVal += hfNoise(nx * 3, i * 10) * p.jaggedness * 0.3;
           noiseVal = Math.min(1, Math.max(0, noiseVal));
         }
 
-        const profileY = baselineY - noiseVal * elevRange;
-
-        if (px === 0) {
-          ctx.moveTo(bx + px, profileY);
-        } else {
-          ctx.lineTo(bx + px, profileY);
-        }
+        profilePoints.push({
+          px: bx + px,
+          py: baselineY - noiseVal * elevRange,
+        });
       }
 
-      // Close path to bottom
+      // Draw filled ridge path
+      ctx.beginPath();
+      for (let j = 0; j < profilePoints.length; j++) {
+        const pt = profilePoints[j]!;
+        if (j === 0) ctx.moveTo(pt.px, pt.py);
+        else ctx.lineTo(pt.px, pt.py);
+      }
       ctx.lineTo(bx + width, by + height);
       ctx.lineTo(bx, by + height);
       ctx.closePath();
@@ -198,6 +207,55 @@ export const profileLayerType: LayerTypeDefinition = {
       ctx.fillStyle = ridgeColor;
       ctx.fill();
       ctx.globalAlpha = 1;
+
+      // --- Directional light gradient ---
+      // Apply a subtle left-to-right gradient for consistent sun direction,
+      // plus a vertical gradient for ridge volume (peaks lighter, bases darker).
+      // Only when multiple ridges and atmospheric mode is active.
+      if (ridgeCount > 1 && p.atmosphericMode !== "none") {
+        ctx.save();
+
+        // Re-build the ridge clip path
+        ctx.beginPath();
+        for (let j = 0; j < profilePoints.length; j++) {
+          const pt = profilePoints[j]!;
+          if (j === 0) ctx.moveTo(pt.px, pt.py);
+          else ctx.lineTo(pt.px, pt.py);
+        }
+        ctx.lineTo(bx + width, by + height);
+        ctx.lineTo(bx, by + height);
+        ctx.closePath();
+        ctx.clip();
+
+        // Find the topmost point of this ridge for gradient anchoring
+        let minY = by + height;
+        for (const pt of profilePoints) {
+          if (pt.py < minY) minY = pt.py;
+        }
+
+        // Vertical volume gradient: transparent at peaks, darker at base
+        const volGrad = ctx.createLinearGradient(0, minY, 0, by + height);
+        volGrad.addColorStop(0, "rgba(0,0,0,0)");
+        volGrad.addColorStop(0.5, `rgba(0,0,0,${0.02 + t * 0.03})`);
+        volGrad.addColorStop(1, `rgba(0,0,0,${0.06 + t * 0.06})`);
+        ctx.fillStyle = volGrad;
+        ctx.fillRect(bx, by, width, height);
+
+        // Horizontal directional light: sun from left, shadow on right
+        // Strength decreases for nearer ridges (foreground has its own colors)
+        const lightStrength = (1 - t) * 0.08;
+        if (lightStrength > 0.005) {
+          const dirGrad = ctx.createLinearGradient(bx, 0, bx + width, 0);
+          dirGrad.addColorStop(0, `rgba(255,255,255,${lightStrength})`);
+          dirGrad.addColorStop(0.35, "rgba(255,255,255,0)");
+          dirGrad.addColorStop(0.65, "rgba(0,0,0,0)");
+          dirGrad.addColorStop(1, `rgba(0,0,0,${lightStrength * 0.7})`);
+          ctx.fillStyle = dirGrad;
+          ctx.fillRect(bx, by, width, height);
+        }
+
+        ctx.restore();
+      }
     }
   },
 
