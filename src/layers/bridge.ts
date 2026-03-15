@@ -88,6 +88,12 @@ function resolveProps(properties: LayerProperties): {
   };
 }
 
+let _warnedBridge = false;
+
+/**
+ * @deprecated Use `architecture:bridge` from `@genart-dev/plugin-architecture` instead.
+ * This layer will be removed when plugin-architecture ships (Phase E).
+ */
 export const bridgeLayerType: LayerTypeDefinition = {
   typeId: "terrain:bridge",
   displayName: "Bridge",
@@ -101,6 +107,10 @@ export const bridgeLayerType: LayerTypeDefinition = {
   },
 
   render(properties, ctx, bounds): void {
+    if (!_warnedBridge) {
+      _warnedBridge = true;
+      console.warn("[terrain] terrain:bridge is deprecated. Use architecture:bridge from @genart-dev/plugin-architecture.");
+    }
     const p = resolveProps(properties);
     const rng = mulberry32(p.seed);
     const w = bounds.width;

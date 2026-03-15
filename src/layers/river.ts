@@ -119,6 +119,12 @@ function resolveProps(properties: LayerProperties): {
   };
 }
 
+let _warnedRiver = false;
+
+/**
+ * @deprecated Use `water:surface` from `@genart-dev/plugin-water` instead.
+ * This layer will be removed when plugin-water ships (Phase D).
+ */
 export const riverLayerType: LayerTypeDefinition = {
   typeId: "terrain:river",
   displayName: "River",
@@ -132,6 +138,10 @@ export const riverLayerType: LayerTypeDefinition = {
   },
 
   render(properties, ctx, bounds): void {
+    if (!_warnedRiver) {
+      _warnedRiver = true;
+      console.warn("[terrain] terrain:river is deprecated. Use water:surface from @genart-dev/plugin-water.");
+    }
     const p = resolveProps(properties);
     const curve = getPathPresetCurve(p.pathPreset, p.seed);
     const samples = samplePerspectiveCurve(curve, bounds, p.widthNear, p.widthFar, 100);

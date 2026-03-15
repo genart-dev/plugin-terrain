@@ -84,6 +84,12 @@ function resolveProps(properties: LayerProperties): {
   };
 }
 
+let _warnedFence = false;
+
+/**
+ * @deprecated Use `architecture:fence` from `@genart-dev/plugin-architecture` instead.
+ * This layer will be removed when plugin-architecture ships (Phase E).
+ */
 export const fenceLayerType: LayerTypeDefinition = {
   typeId: "terrain:fence",
   displayName: "Fence",
@@ -97,6 +103,10 @@ export const fenceLayerType: LayerTypeDefinition = {
   },
 
   render(properties, ctx, bounds): void {
+    if (!_warnedFence) {
+      _warnedFence = true;
+      console.warn("[terrain] terrain:fence is deprecated. Use architecture:fence from @genart-dev/plugin-architecture.");
+    }
     const p = resolveProps(properties);
     const rng = mulberry32(p.seed);
     const w = bounds.width;

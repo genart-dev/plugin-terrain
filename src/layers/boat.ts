@@ -84,6 +84,12 @@ function resolveProps(properties: LayerProperties): {
   };
 }
 
+let _warnedBoat = false;
+
+/**
+ * @deprecated Use `architecture:boat` from `@genart-dev/plugin-architecture` instead.
+ * This layer will be removed when plugin-architecture ships (Phase E).
+ */
 export const boatLayerType: LayerTypeDefinition = {
   typeId: "terrain:boat",
   displayName: "Boat",
@@ -97,6 +103,10 @@ export const boatLayerType: LayerTypeDefinition = {
   },
 
   render(properties, ctx, bounds): void {
+    if (!_warnedBoat) {
+      _warnedBoat = true;
+      console.warn("[terrain] terrain:boat is deprecated. Use architecture:boat from @genart-dev/plugin-architecture.");
+    }
     const p = resolveProps(properties);
     const rng = mulberry32(p.seed);
     const w = bounds.width;

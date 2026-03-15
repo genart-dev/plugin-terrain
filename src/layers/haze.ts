@@ -76,6 +76,12 @@ function resolveProps(properties: LayerProperties): {
   };
 }
 
+let _warnedHaze = false;
+
+/**
+ * @deprecated Use `atmosphere:haze` from `@genart-dev/plugin-atmosphere` instead.
+ * This layer will be removed when plugin-atmosphere ships (Phase C).
+ */
 export const hazeLayerType: LayerTypeDefinition = {
   typeId: "terrain:haze",
   displayName: "Haze",
@@ -89,6 +95,10 @@ export const hazeLayerType: LayerTypeDefinition = {
   },
 
   render(properties, ctx, bounds): void {
+    if (!_warnedHaze) {
+      _warnedHaze = true;
+      console.warn("[terrain] terrain:haze is deprecated. Use atmosphere:haze from @genart-dev/plugin-atmosphere.");
+    }
     const p = resolveProps(properties);
     const noise = createValueNoise(p.seed + 700);
     const w = bounds.width;

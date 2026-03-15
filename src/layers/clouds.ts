@@ -93,6 +93,12 @@ function resolveProps(properties: LayerProperties): {
   };
 }
 
+let _warnedClouds = false;
+
+/**
+ * @deprecated Use `atmosphere:clouds` from `@genart-dev/plugin-atmosphere` instead.
+ * This layer will be removed when plugin-atmosphere ships (Phase C).
+ */
 export const cloudsLayerType: LayerTypeDefinition = {
   typeId: "terrain:clouds",
   displayName: "Clouds",
@@ -106,6 +112,10 @@ export const cloudsLayerType: LayerTypeDefinition = {
   },
 
   render(properties, ctx, bounds): void {
+    if (!_warnedClouds) {
+      _warnedClouds = true;
+      console.warn("[terrain] terrain:clouds is deprecated. Use atmosphere:clouds from @genart-dev/plugin-atmosphere.");
+    }
     const p = resolveProps(properties);
     const { width, height, x: bx, y: by } = bounds;
 

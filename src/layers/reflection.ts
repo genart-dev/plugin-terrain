@@ -74,6 +74,12 @@ function resolveProps(properties: LayerProperties): {
   };
 }
 
+let _warnedReflection = false;
+
+/**
+ * @deprecated Use `water:reflection` from `@genart-dev/plugin-water` instead.
+ * This layer will be removed when plugin-water ships (Phase D).
+ */
 export const reflectionLayerType: LayerTypeDefinition = {
   typeId: "terrain:reflection",
   displayName: "Reflection",
@@ -87,6 +93,10 @@ export const reflectionLayerType: LayerTypeDefinition = {
   },
 
   render(properties, ctx, bounds): void {
+    if (!_warnedReflection) {
+      _warnedReflection = true;
+      console.warn("[terrain] terrain:reflection is deprecated. Use water:reflection from @genart-dev/plugin-water.");
+    }
     const p = resolveProps(properties);
     const rng = mulberry32(p.seed);
     const noise = createValueNoise(p.seed + 1000);

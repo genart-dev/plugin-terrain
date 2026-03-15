@@ -87,6 +87,12 @@ function resolveProps(properties: LayerProperties): {
   };
 }
 
+let _warnedFog = false;
+
+/**
+ * @deprecated Use `atmosphere:fog` from `@genart-dev/plugin-atmosphere` instead.
+ * This layer will be removed when plugin-atmosphere ships (Phase C).
+ */
 export const fogLayerType: LayerTypeDefinition = {
   typeId: "terrain:fog-layer",
   displayName: "Fog Layer",
@@ -100,6 +106,10 @@ export const fogLayerType: LayerTypeDefinition = {
   },
 
   render(properties, ctx, bounds): void {
+    if (!_warnedFog) {
+      _warnedFog = true;
+      console.warn("[terrain] terrain:fog is deprecated. Use atmosphere:fog from @genart-dev/plugin-atmosphere.");
+    }
     const p = resolveProps(properties);
     const rng = mulberry32(p.seed);
     const noise = createValueNoise(p.seed + 200);

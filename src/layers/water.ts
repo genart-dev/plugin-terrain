@@ -74,6 +74,12 @@ function resolveProps(properties: LayerProperties): {
   };
 }
 
+let _warnedWater = false;
+
+/**
+ * @deprecated Use `water:surface` from `@genart-dev/plugin-water` instead.
+ * This layer will be removed when plugin-water ships (Phase D).
+ */
 export const waterLayerType: LayerTypeDefinition = {
   typeId: "terrain:water",
   displayName: "Water",
@@ -87,6 +93,10 @@ export const waterLayerType: LayerTypeDefinition = {
   },
 
   render(properties, ctx, bounds): void {
+    if (!_warnedWater) {
+      _warnedWater = true;
+      console.warn("[terrain] terrain:water is deprecated. Use water:surface from @genart-dev/plugin-water.");
+    }
     const p = resolveProps(properties);
     const { width, height, x: bx, y: by } = bounds;
 

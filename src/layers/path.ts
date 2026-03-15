@@ -305,6 +305,12 @@ function drawEdgeTreatment(
   ctx.globalAlpha = 1;
 }
 
+let _warnedPath = false;
+
+/**
+ * @deprecated Use `architecture:path` from `@genart-dev/plugin-architecture` instead.
+ * This layer will be removed when plugin-architecture ships (Phase E).
+ */
 export const pathLayerType: LayerTypeDefinition = {
   typeId: "terrain:path",
   displayName: "Path",
@@ -318,6 +324,10 @@ export const pathLayerType: LayerTypeDefinition = {
   },
 
   render(properties, ctx, bounds): void {
+    if (!_warnedPath) {
+      _warnedPath = true;
+      console.warn("[terrain] terrain:path is deprecated. Use architecture:path from @genart-dev/plugin-architecture.");
+    }
     const p = resolveProps(properties);
     const curve = getPathPresetCurve(p.pathPreset, p.seed);
     const samples = samplePerspectiveCurve(curve, bounds, p.widthNear, p.widthFar, 100);

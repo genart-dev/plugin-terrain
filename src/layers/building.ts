@@ -131,6 +131,12 @@ function drawSimpleBuilding(
   ctx.fillRect(cx - doorW / 2, baseY - doorH, doorW, doorH);
 }
 
+let _warnedBuilding = false;
+
+/**
+ * @deprecated Use `architecture:building` from `@genart-dev/plugin-architecture` instead.
+ * This layer will be removed when plugin-architecture ships (Phase E).
+ */
 export const buildingLayerType: LayerTypeDefinition = {
   typeId: "terrain:building",
   displayName: "Building",
@@ -144,6 +150,10 @@ export const buildingLayerType: LayerTypeDefinition = {
   },
 
   render(properties, ctx, bounds): void {
+    if (!_warnedBuilding) {
+      _warnedBuilding = true;
+      console.warn("[terrain] terrain:building is deprecated. Use architecture:building from @genart-dev/plugin-architecture.");
+    }
     const p = resolveProps(properties);
     const rng = mulberry32(p.seed);
     const w = bounds.width;
