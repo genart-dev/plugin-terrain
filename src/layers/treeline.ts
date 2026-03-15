@@ -141,15 +141,16 @@ export const treelineLayerType: LayerTypeDefinition = {
         const crownNoise = noise(t * 12, p.seed * 0.02);
         topOffset += crownNoise * treeH * 0.3 * p.irregularity;
       } else if (p.canopyStyle === "pointed") {
-        // Sharp peaks for conifers
-        const sawtoothPhase = (t * 15 + nv * 2) % 1;
+        // Sharp peaks for conifers — sawtooth phase must be monotonically increasing
+        // (no noise phase perturbation, which causes inverted-spike artifacts at modulo wrap).
+        const sawtoothPhase = (t * 15) % 1;
         const sawtooth = sawtoothPhase < 0.5 ? sawtoothPhase * 2 : 2 - sawtoothPhase * 2;
         topOffset = sawtooth * treeH * (0.5 + p.irregularity * 0.5);
-        // Height variation between trees
+        // Height variation between trees via noise amplitude (not phase)
         topOffset *= 0.6 + nv * 0.4;
       } else if (p.canopyStyle === "fan") {
-        // Palm-like: sparse tall shapes
-        const palmSpacing = (t * 8 + nv) % 1;
+        // Palm-like: sparse tall shapes — phase from t only (same fix as pointed)
+        const palmSpacing = (t * 8) % 1;
         if (palmSpacing < p.density * 0.3) {
           topOffset = treeH * (0.8 + nv * 0.2);
         } else {
@@ -224,7 +225,8 @@ export const treelineLayerType: LayerTypeDefinition = {
         const mx = bounds.x + rng() * w;
         const mIdx = Math.min(profilePoints.length - 1, Math.floor((mx - bounds.x) / w * profilePoints.length));
         const topY = profilePoints[mIdx]?.y ?? baseY;
-        const my = topY + rng() * (baseY + treeH * 0.15 - topY);
+        const myRange = Math.max(0, baseY + treeH * 0.15 - topY);
+        const my = topY + rng() * myRange;
 
         if (my > baseY + treeH * 0.2) continue;
 

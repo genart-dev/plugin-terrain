@@ -124,35 +124,39 @@ export const fieldLayerType: LayerTypeDefinition = {
     const windDx = Math.cos(windRad) * p.windStrength;
     const windDy = Math.sin(windRad) * p.windStrength;
 
+    // Resolve depth lane to constrain vertical extent
+    const laneConfig = resolveDepthLane(p.depthLane);
+    const depthMin = laneConfig?.depthMin ?? 0;
+    const depthMax = laneConfig?.depthMax ?? 1;
+    const yStart = bounds.y + bounds.height * depthMin;
+    const yEnd = bounds.y + bounds.height * depthMax;
+    const laneHeight = yEnd - yStart;
+
     // Apply atmospheric depth to colors if enabled
     let color = p.color;
     let secondaryColor = p.secondaryColor;
-    if (p.atmosphericMode !== "none") {
-      const laneConfig = resolveDepthLane(p.depthLane);
-      if (laneConfig) {
-        color = applyAtmosphericDepth(color, laneConfig.depth, p.atmosphericMode);
-        secondaryColor = applyAtmosphericDepth(secondaryColor, laneConfig.depth, p.atmosphericMode);
-      }
+    if (p.atmosphericMode !== "none" && laneConfig) {
+      color = applyAtmosphericDepth(color, laneConfig.depth, p.atmosphericMode);
+      secondaryColor = applyAtmosphericDepth(secondaryColor, laneConfig.depth, p.atmosphericMode);
     }
 
-    // Fill ground plane
+    // Fill ground plane within depth lane band only
     const groundColor = darken(color, 0.85);
     ctx.fillStyle = groundColor;
-    ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
+    ctx.fillRect(bounds.x, yStart, bounds.width, laneHeight);
 
-    // Draw vegetation marks receding with depth
+    // Draw vegetation marks receding with depth, constrained to depth lane
     const markCount = Math.round(p.density * 2000);
     const w = bounds.width;
-    const h = bounds.height;
 
     for (let i = 0; i < markCount; i++) {
       const nx = rng();
       const ny = rng();
       const x = bounds.x + nx * w;
-      const y = bounds.y + ny * h;
+      const y = yStart + ny * laneHeight;
 
-      // Depth factor: marks near top of canvas are far (small), near bottom are close (large)
-      const depth = ny; // 0=top(far), 1=bottom(near)
+      // Depth factor within the lane: 0=top of lane (far), 1=bottom of lane (near)
+      const depth = depthMin + ny * (depthMax - depthMin);
       const scale = 0.3 + depth * 0.7;
       const len = p.markLength * scale;
 
