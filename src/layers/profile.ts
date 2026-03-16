@@ -48,7 +48,7 @@ const PROFILE_PROPERTIES: LayerPropertySchema[] = [
       { value: "plains", label: "Plains" },
     ],
   },
-  { key: "ridgeCount", label: "Ridge Count", type: "number", default: 3, min: 1, max: 8, step: 1, group: "shape" },
+  { key: "ridgeCount", label: "Ridge Count", type: "number", default: 3, min: 1, max: 20, step: 1, group: "shape" },
   { key: "roughness", label: "Roughness", type: "number", default: 0.35, min: 0, max: 1, step: 0.05, group: "shape" },
   { key: "elevationMin", label: "Elevation Min", type: "number", default: 0.4, min: 0, max: 1, step: 0.05, group: "shape" },
   { key: "elevationMax", label: "Elevation Max", type: "number", default: 0.7, min: 0, max: 1, step: 0.05, group: "shape" },
@@ -66,8 +66,25 @@ const PROFILE_PROPERTIES: LayerPropertySchema[] = [
       { value: "hatched", label: "Hatched" },
     ],
   },
-  { key: "contourCount", label: "Contour Lines", type: "number", default: 12, min: 4, max: 30, step: 1, group: "style" },
+  { key: "contourCount", label: "Contour Lines", type: "number", default: 12, min: 4, max: 60, step: 1, group: "style" },
+  { key: "contourFollow", label: "Contour Follow", type: "number", default: 0.5, min: 0, max: 1, step: 0.05, group: "style" },
+  { key: "contourPerturbation", label: "Contour Wobble", type: "number", default: 0.3, min: 0, max: 1, step: 0.05, group: "style" },
   { key: "hatchDensity", label: "Hatch Density", type: "number", default: 0.5, min: 0.1, max: 1.0, step: 0.05, group: "style" },
+  { key: "noiseComplexity", label: "Noise Complexity", type: "number", default: 0.5, min: 0, max: 1, step: 0.05, group: "shape" },
+  {
+    key: "baseEdge",
+    label: "Base Edge",
+    type: "select",
+    default: "flat",
+    group: "shape",
+    options: [
+      { value: "flat", label: "Flat" },
+      { value: "natural", label: "Natural" },
+      { value: "jagged", label: "Jagged" },
+      { value: "waterline", label: "Waterline" },
+    ],
+  },
+  { key: "baseEdgeAmount", label: "Base Edge Amount", type: "number", default: 0.5, min: 0, max: 1, step: 0.05, group: "shape" },
   { key: "subRangeCount", label: "Sub-range Layers", type: "number", default: 0, min: 0, max: 3, step: 1, group: "sub-range" },
   { key: "subRangeAmplitude", label: "Sub-range Amplitude", type: "number", default: 0.5, min: 0.1, max: 1.0, step: 0.05, group: "sub-range" },
   { key: "foregroundColor", label: "Foreground Color", type: "color", default: "#3B5E3B", group: "colors" },
@@ -105,7 +122,12 @@ function resolveProps(properties: LayerProperties): {
   depthEasing: DepthEasing;
   renderStyle: "solid" | "contour" | "hatched";
   contourCount: number;
+  contourFollow: number;
+  contourPerturbation: number;
   hatchDensity: number;
+  noiseComplexity: number;
+  baseEdge: "flat" | "natural" | "jagged" | "waterline";
+  baseEdgeAmount: number;
   subRangeCount: number;
   subRangeAmplitude: number;
   depthLane: string;
@@ -130,7 +152,12 @@ function resolveProps(properties: LayerProperties): {
     depthEasing: (properties.depthEasing as DepthEasing) ?? pp?.depthEasing ?? "linear",
     renderStyle: (properties.renderStyle as "solid" | "contour" | "hatched") ?? "solid",
     contourCount: (properties.contourCount as number) ?? 12,
+    contourFollow: (properties.contourFollow as number) ?? 0.5,
+    contourPerturbation: (properties.contourPerturbation as number) ?? 0.3,
     hatchDensity: (properties.hatchDensity as number) ?? 0.5,
+    noiseComplexity: (properties.noiseComplexity as number) ?? 0.5,
+    baseEdge: (properties.baseEdge as "flat" | "natural" | "jagged" | "waterline") ?? "flat",
+    baseEdgeAmount: (properties.baseEdgeAmount as number) ?? 0.5,
     subRangeCount: (properties.subRangeCount as number) ?? 0,
     subRangeAmplitude: (properties.subRangeAmplitude as number) ?? 0.5,
     depthLane: (properties.depthLane as string) ?? "background",
@@ -139,9 +166,15 @@ function resolveProps(properties: LayerProperties): {
 }
 
 /**
- * Draw contour lines: horizontal lines at evenly-spaced elevations.
- * Lines follow the terrain edge — drawn as segments that hug the profile
- * silhouette rather than spanning the full width.
+ * Draw surface-following contour lines.
+ *
+ * Each contour line is positioned as a fraction between the terrain surface
+ * and the baseline at every x position, so lines naturally curve with the
+ * terrain shape. `followFactor` blends between this surface-following
+ * position and a flat horizontal level.
+ *
+ * At high contourCount (40+) the densely packed lines create a "plastic
+ * landscape" fill effect (Ref B).
  */
 function drawContourLines(
   ctx: CanvasRenderingContext2D,
@@ -153,8 +186,10 @@ function drawContourLines(
   _width: number,
   _height: number,
   _by: number,
+  followFactor: number = 0.5,
+  perturbation: number = 0.3,
+  seed: number = 0,
 ): void {
-  // Find the topmost point (minimum Y in canvas coords)
   let minY = baselineY;
   for (const pt of profilePoints) {
     if (pt.py < minY) minY = pt.py;
@@ -164,48 +199,104 @@ function drawContourLines(
   if (elevRange < 4) return;
 
   const [cr, cg, cb] = parseHex(ridgeColor);
-  const lineR = Math.max(0, cr - 45);
-  const lineG = Math.max(0, cg - 45);
-  const lineB = Math.max(0, cb - 45);
+  // Auto-contrast: on dark fills, draw lighter lines; on light fills, draw much darker
+  const brightness = (cr + cg + cb) / 3;
+  const shift = brightness < 100 ? 60 : -60;
+  const lineR = Math.max(0, Math.min(255, cr + shift));
+  const lineG = Math.max(0, Math.min(255, cg + shift));
+  const lineB = Math.max(0, Math.min(255, cb + shift));
+
+  // Perturbation noise
+  const perturbNoise = perturbation > 0.01
+    ? createFractalNoise(seed + 8888, 2, 2.0, 0.5)
+    : null;
+
+  const isDense = contourCount >= 30;
 
   ctx.save();
-  ctx.strokeStyle = `rgba(${lineR},${lineG},${lineB},0.55)`;
-  ctx.lineWidth = 0.8;
+
+  // Clip to ridge shape so lines don't draw outside
+  ctx.beginPath();
+  for (let j = 0; j < profilePoints.length; j++) {
+    const pt = profilePoints[j]!;
+    if (j === 0) ctx.moveTo(pt.px, pt.py);
+    else ctx.lineTo(pt.px, pt.py);
+  }
+  ctx.lineTo(profilePoints[profilePoints.length - 1]!.px, baselineY);
+  ctx.lineTo(profilePoints[0]!.px, baselineY);
+  ctx.closePath();
+  ctx.clip();
 
   for (let c = 1; c < contourCount; c++) {
-    const contourY = minY + (elevRange * c) / contourCount;
+    const cFrac = c / contourCount; // 0=near surface, 1=near baseline
 
-    // Walk profile points and draw segments only where terrain is above this Y
+    // Horizontal contour level (the "flat" position)
+    const horizontalY = minY + elevRange * cFrac;
+
+    // Fade out near the baseline for natural ending (last 30% of depth)
+    const baseFade = cFrac > 0.7 ? 1 - (cFrac - 0.7) / 0.3 : 1;
+
+    // Line style
+    if (isDense) {
+      const alpha = (0.35 + (1 - cFrac) * 0.35) * baseFade;
+      ctx.strokeStyle = `rgba(${lineR},${lineG},${lineB},${alpha})`;
+      ctx.lineWidth = (0.5 + (1 - cFrac) * 0.5) * baseFade;
+    } else {
+      const alpha = 0.75 * baseFade;
+      ctx.strokeStyle = `rgba(${lineR},${lineG},${lineB},${alpha})`;
+      ctx.lineWidth = (1.0 + (1 - cFrac) * 0.6) * baseFade;
+    }
+
+    // Perturbation amplitude scales with depth and elevation range
+    const perturbAmp = perturbation * elevRange * 0.03 * (0.5 + cFrac * 0.5);
+
     ctx.beginPath();
-    let drawing = false;
+    let started = false;
     for (let j = 0; j < profilePoints.length; j++) {
       const pt = profilePoints[j]!;
-      if (pt.py <= contourY) {
-        // Terrain is above (or at) this contour level
-        if (!drawing) {
-          ctx.moveTo(pt.px, contourY);
-          drawing = true;
-        } else {
-          ctx.lineTo(pt.px, contourY);
-        }
+      const surfaceY = pt.py;
+      const localDepth = baselineY - surfaceY;
+
+      if (localDepth < 2) {
+        if (started) { ctx.stroke(); ctx.beginPath(); started = false; }
+        continue;
+      }
+
+      // Surface-following: offset from surface by a constant fraction of
+      // the global elevation range, so lines wrap around peaks evenly.
+      const surfaceFollowY = surfaceY + elevRange * cFrac;
+
+      // Near the surface (small cFrac), lines hug the ridgeline closely.
+      // Deeper into the body (large cFrac), blend toward horizontal.
+      // This makes peaks look natural while bases stay structured.
+      const depthFollow = followFactor + (1 - followFactor) * (1 - cFrac);
+      let lineY = horizontalY * (1 - depthFollow) + surfaceFollowY * depthFollow;
+
+      // Add wobble
+      if (perturbNoise) {
+        const pxNorm = (pt.px - profilePoints[0]!.px) / (_width || 1);
+        lineY += (perturbNoise(pxNorm * 5, c * 3.7) - 0.5) * perturbAmp * 2;
+      }
+
+      if (!started) {
+        ctx.moveTo(pt.px, lineY);
+        started = true;
       } else {
-        // Terrain dropped below this contour — end segment
-        if (drawing) {
-          ctx.stroke();
-          ctx.beginPath();
-          drawing = false;
-        }
+        ctx.lineTo(pt.px, lineY);
       }
     }
-    if (drawing) ctx.stroke();
+    if (started) ctx.stroke();
   }
 
   ctx.restore();
 }
 
 /**
- * Draw hatching: diagonal parallel lines filling the ridge body, clipped to
- * the ridge shape. Denser on steep slopes (surface-normal edge marks added too).
+ * Draw surface-normal hatching: short marks perpendicular to the terrain
+ * slope, radiating inward from the surface. Density varies with steepness
+ * and depth. At each surface point, multiple marks stack downward into the
+ * body along the inward normal — like cross-section lines of the terrain form.
+ * Target: Ref D middle-left dense line-work appearance.
  */
 function drawHatching(
   ctx: CanvasRenderingContext2D,
@@ -220,7 +311,6 @@ function drawHatching(
 ): void {
   if (profilePoints.length < 3) return;
 
-  // Find topmost point
   let minY = baselineY;
   for (const pt of profilePoints) {
     if (pt.py < minY) minY = pt.py;
@@ -243,61 +333,168 @@ function drawHatching(
   ctx.clip();
 
   const [cr, cg, cb] = parseHex(ridgeColor);
-  const lineR = Math.max(0, cr - 50);
-  const lineG = Math.max(0, cg - 50);
-  const lineB = Math.max(0, cb - 50);
+  const brightness = (cr + cg + cb) / 3;
+  const lineR = brightness < 100 ? Math.min(255, cr + 50) : Math.max(0, cr - 40);
+  const lineG = brightness < 100 ? Math.min(255, cg + 50) : Math.max(0, cg - 40);
+  const lineB = brightness < 100 ? Math.min(255, cb + 50) : Math.max(0, cb - 40);
 
-  // --- Body hatching: diagonal parallel lines at ~45° ---
-  const spacing = Math.max(3, Math.round(10 / hatchDensity));
-  ctx.strokeStyle = `rgba(${lineR},${lineG},${lineB},0.35)`;
-  ctx.lineWidth = 0.6;
+  // Surface-normal hatching: at each profile point, draw a line from
+  // the surface straight down (perpendicular to slope) into the body.
+  // This creates the "cross-section" line effect.
+  const stride = Math.max(1, Math.round(3 / hatchDensity));
 
-  // Diagonal lines from top-left to bottom-right (slope = 1)
-  const diagLen = width + (baselineY - minY);
-  ctx.beginPath();
-  for (let d = -diagLen; d < diagLen; d += spacing) {
-    // Line from (bx + d, minY) going at 45° down-right
-    const x0 = bx + d;
-    const y0 = minY;
-    const x1 = x0 + elevRange;
-    const y1 = y0 + elevRange;
-    ctx.moveTo(x0, y0);
-    ctx.lineTo(x1, y1);
-  }
-  ctx.stroke();
-
-  // --- Edge hatching: short marks perpendicular to surface at steep slopes ---
-  ctx.strokeStyle = `rgba(${lineR},${lineG},${lineB},0.5)`;
-  ctx.lineWidth = 0.7;
-  const baseStride = Math.max(2, Math.round(6 / hatchDensity));
-
-  for (let j = 1; j < profilePoints.length - 1; j++) {
+  for (let j = 1; j < profilePoints.length - 1; j += stride) {
     const prev = profilePoints[j - 1]!;
     const curr = profilePoints[j]!;
-    const next = profilePoints[j + 1]!;
+    const next = profilePoints[Math.min(j + 1, profilePoints.length - 1)]!;
 
     const dx = next.px - prev.px;
     const dy = next.py - prev.py;
-    const slope = Math.abs(dy / (dx || 1));
-
-    // Only at steep slopes, and spaced by stride
-    const slopeStride = Math.max(1, Math.round(baseStride / (0.2 + slope * 4)));
-    if (j % slopeStride !== 0 || slope < 0.15) continue;
-
     const tangentLen = Math.sqrt(dx * dx + dy * dy);
     if (tangentLen < 0.5) continue;
-    const nx = -dy / tangentLen;
-    const ny = dx / tangentLen;
 
-    const hatchLen = Math.min(elevRange * 0.3, 5 + slope * 20) * hatchDensity;
+    // Two candidate normals to the surface tangent
+    const n1x = -dy / tangentLen;
+    const n1y = dx / tangentLen;
+    // Pick the one pointing inward (toward baseline = positive Y direction)
+    const inwardNx = n1y > 0 ? n1x : -n1x;
+    const inwardNy = n1y > 0 ? n1y : -n1y;
+
+    const slope = Math.abs(dy / (dx || 1));
+
+    // How deep is the ridge body at this point
+    const depthToBase = baselineY - curr.py;
+    if (depthToBase < 3) continue;
+
+    // Draw a single hatch line from the surface inward
+    // Length: proportional to local depth, slope adds emphasis, capped to avoid rain-like lines
+    const rawLen = Math.min(depthToBase * 0.5, elevRange * 0.35) * (0.3 + slope * 0.7);
+    const hatchLen = Math.min(rawLen, 30 * hatchDensity);
+    if (hatchLen < 2) continue;
+
+    const alpha = 0.25 + slope * 0.35;
+    ctx.strokeStyle = `rgba(${lineR},${lineG},${lineB},${Math.min(0.6, alpha)})`;
+    ctx.lineWidth = 0.5 + slope * 0.5;
 
     ctx.beginPath();
     ctx.moveTo(curr.px, curr.py);
-    ctx.lineTo(curr.px + nx * hatchLen, curr.py + ny * hatchLen);
+    ctx.lineTo(curr.px + inwardNx * hatchLen, curr.py + inwardNy * hatchLen);
+    ctx.stroke();
+  }
+
+  // Second pass: body fill with horizontal-ish depth marks at intervals
+  // These create the cross-hatching density effect
+  const depthLayers = Math.max(3, Math.round(8 * hatchDensity));
+  const bodyStride = Math.max(2, Math.round(5 / hatchDensity));
+
+  for (let d = 1; d <= depthLayers; d++) {
+    const depthFrac = d / (depthLayers + 1);
+    const alpha = (0.15 + (1 - depthFrac) * 0.2);
+    ctx.strokeStyle = `rgba(${lineR},${lineG},${lineB},${alpha})`;
+    ctx.lineWidth = 0.4 + (1 - depthFrac) * 0.3;
+
+    ctx.beginPath();
+    let started = false;
+    for (let j = 0; j < profilePoints.length; j += bodyStride) {
+      const pt = profilePoints[j]!;
+      const localDepth = baselineY - pt.py;
+      if (localDepth < 3) {
+        if (started) { ctx.stroke(); ctx.beginPath(); started = false; }
+        continue;
+      }
+
+      // Position: surface + fraction of depth to baseline
+      const markY = pt.py + localDepth * depthFrac;
+
+      // Get local tangent for mark direction
+      const prevJ = Math.max(0, j - 1);
+      const nextJ = Math.min(profilePoints.length - 1, j + 1);
+      const tdx = profilePoints[nextJ]!.px - profilePoints[prevJ]!.px;
+      const tdy = profilePoints[nextJ]!.py - profilePoints[prevJ]!.py;
+      const tLen = Math.sqrt(tdx * tdx + tdy * tdy);
+      if (tLen < 0.5) continue;
+
+      // Normal to tangent
+      const tnx = -tdy / tLen;
+      const tny = tdx / tLen;
+      // Make sure it points inward
+      const inx = tny > 0 ? tnx : -tnx;
+      const iny = tny > 0 ? tny : -tny;
+
+      // Short mark along the normal direction at this depth
+      const markLen = (4 + Math.abs(tdy / (tdx || 1)) * 8) * hatchDensity * (1 - depthFrac * 0.5);
+
+      if (!started) {
+        // Draw individual marks, not connected lines
+      }
+      started = false; // reset — we draw individual marks
+
+      ctx.moveTo(pt.px - inx * markLen * 0.5, markY - iny * markLen * 0.5);
+      ctx.lineTo(pt.px + inx * markLen * 0.5, markY + iny * markLen * 0.5);
+    }
     ctx.stroke();
   }
 
   ctx.restore();
+}
+
+/**
+ * Generate a bottom edge path for a ridge instead of flat horizontal lines.
+ * "natural": gentle noise undulation; "jagged": sharp rocky edge;
+ * "waterline": subtle wave at the water meeting point.
+ */
+function drawBaseEdge(
+  ctx: CanvasRenderingContext2D,
+  baseEdge: "flat" | "natural" | "jagged" | "waterline",
+  amount: number,
+  baselineY: number,
+  bx: number,
+  width: number,
+  canvasBottom: number,
+  seed: number,
+  step: number,
+): void {
+  if (baseEdge === "flat") {
+    ctx.lineTo(bx + width, canvasBottom);
+    ctx.lineTo(bx, canvasBottom);
+    return;
+  }
+
+  // Height of the base edge undulations (fraction of space below baseline)
+  const belowSpace = canvasBottom - baselineY;
+  const edgeHeight = belowSpace * amount * 0.6;
+  if (edgeHeight < 2) {
+    ctx.lineTo(bx + width, canvasBottom);
+    ctx.lineTo(bx, canvasBottom);
+    return;
+  }
+
+  // Generate noise for bottom edge
+  const octaves = baseEdge === "jagged" ? 3 : baseEdge === "waterline" ? 1 : 2;
+  const freq = baseEdge === "jagged" ? 4.0 : baseEdge === "waterline" ? 1.5 : 2.5;
+  const baseNoise = createFractalNoise(seed + 33333, octaves, 2.0, 0.5);
+
+  // Right edge: go down from last profile point to bottom-right area
+  const edgeY = baselineY + belowSpace * 0.3; // base edge sits ~30% below baseline
+  ctx.lineTo(bx + width, edgeY);
+
+  // Walk right-to-left along the bottom edge with noise
+  const edgeStep = Math.max(2, step);
+  for (let px = width; px >= 0; px -= edgeStep) {
+    const nx = (px / width) * freq;
+    let nv = baseNoise(nx, seed * 0.01);
+
+    if (baseEdge === "waterline") {
+      // Subtle sine wave for waterline
+      nv = 0.5 + Math.sin(px * 0.02 + seed) * 0.15 + (nv - 0.5) * 0.3;
+    }
+
+    const y = edgeY + (nv - 0.5) * edgeHeight;
+    ctx.lineTo(bx + px, y);
+  }
+
+  // Close: connect back up to the first profile point's x position
+  ctx.lineTo(bx, edgeY);
 }
 
 export const profileLayerType: LayerTypeDefinition = {
@@ -315,7 +512,7 @@ export const profileLayerType: LayerTypeDefinition = {
   render(properties, ctx, bounds): void {
     const p = resolveProps(properties);
     const { width, height, x: bx, y: by } = bounds;
-    const ridgeCount = Math.max(1, Math.min(8, p.ridgeCount));
+    const ridgeCount = Math.max(1, Math.min(20, p.ridgeCount));
 
     // Terrain mode: hills and plains get gentler noise (wider wavelength, lower amplitude)
     const terrainNoiseScaleMultiplier = p.terrainType === "hills" ? 0.4 : p.terrainType === "plains" ? 0.2 : 1.0;
@@ -394,24 +591,48 @@ export const profileLayerType: LayerTypeDefinition = {
       // layer over everything already drawn. This accumulates on far ridges,
       // creating natural atmospheric separation (refs #6 Appalachian, #8 blue mountains).
       if (i > 0 && p.atmosphericMode !== "none") {
-        const hazeAlpha = 0.03 + (1 - t) * 0.05;
+        // Scale haze alpha down for high ridge counts to prevent washout
+        const hazeScale = ridgeCount > 8 ? 8 / ridgeCount : 1;
+        const hazeAlpha = (0.03 + (1 - t) * 0.05) * hazeScale;
         ctx.fillStyle = `rgba(${hazeR},${hazeG},${hazeB},${hazeAlpha})`;
         ctx.fillRect(bx, by, width, height);
       }
 
-      // Per-ridge noise with unique seed offset
-      const noise = createFractalNoise(p.seed + i * 7919, octaves, 2.0, 0.5);
+      // --- Per-ridge noise variation (W4) ---
+      // Far ridges: smoother (fewer octaves, lower scale). Near ridges: rougher.
+      const ridgeOctaves = Math.max(1, Math.round(octaves * (0.6 + t * 0.5)));
+      const ridgeNoiseScale = p.noiseScale * terrainNoiseScaleMultiplier * (0.7 + t * 0.5);
+      const ridgeRoughness = Math.min(1, p.roughness + (t - 0.5) * 0.2);
+
+      // Primary noise
+      const noise = createFractalNoise(p.seed + i * 7919, ridgeOctaves, 2.0, 0.5);
+
+      // --- Composite noise layers (W3) ---
+      // Secondary: 2-3x frequency, 25-40% amplitude — adds sub-peaks
+      // Tertiary: 5-8x frequency, 10-15% amplitude — fine detail on near ridges
+      const complexity = p.noiseComplexity;
+      const secondaryNoise = complexity > 0.1
+        ? createFractalNoise(p.seed + i * 4253 + 2000, Math.max(1, ridgeOctaves - 1), 2.0, 0.5)
+        : null;
+      const tertiaryNoise = complexity > 0.4 && t > 0.3
+        ? createFractalNoise(p.seed + i * 6101 + 5000, 2, 2.0, 0.4)
+        : null;
+
+      const secondaryAmp = complexity * 0.35;
+      const tertiaryAmp = complexity * 0.12 * Math.min(1, (t - 0.3) / 0.4);
 
       // Baseline Y: far ridges (t=0) sit high on screen (near horizon),
       // near ridges (t=1) sit lower (closer to bottom edge).
       const baselineNorm = p.elevationMin + (p.elevationMax - p.elevationMin) * easedT;
       const baselineY = by + height * baselineNorm;
 
-      // Elevation amplitude: far ridges get dramatic peaks above their baseline,
-      // near ridges get moderate variation. Scale with available space above baseline.
-      // terrainAmpMultiplier suppresses amplitude for hills/plains modes.
+      // Elevation amplitude: far ridges get dramatic peaks, near ridges moderate.
+      // Use max of baseline-proportional and a minimum fraction of canvas height
+      // to prevent far ridges from being paper-thin strips.
       const ampScale = (0.35 + 0.15 * (1 - easedT)) * terrainAmpMultiplier;
-      const elevRange = baselineNorm * height * ampScale;
+      const baselineAmp = baselineNorm * height * ampScale;
+      const minAmp = height * 0.12 * terrainAmpMultiplier; // at least 12% of canvas
+      const elevRange = Math.max(baselineAmp, minAmp);
 
       // Determine colors for this ridge.
       // Use t directly as depth (0=far, 1=near) for maximum ridge-to-ridge
@@ -434,14 +655,23 @@ export const profileLayerType: LayerTypeDefinition = {
       const profilePoints: Array<{ px: number; py: number }> = [];
 
       for (let px = 0; px <= width; px += step) {
-        const nx = (px / width) * p.noiseScale * terrainNoiseScaleMultiplier;
+        const nx = (px / width) * ridgeNoiseScale;
         let noiseVal = noise(nx, i * 10);
+
+        // Composite noise layers
+        if (secondaryNoise) {
+          noiseVal += (secondaryNoise(nx * 2.5, i * 10 + 50) - 0.5) * secondaryAmp;
+        }
+        if (tertiaryNoise) {
+          noiseVal += (tertiaryNoise(nx * 6, i * 10 + 100) - 0.5) * tertiaryAmp;
+        }
 
         if (p.jaggedness > 0.3) {
           const hfNoise = createFractalNoise(p.seed + i * 3571 + 999, 2, 4.0, 0.3);
           noiseVal += hfNoise(nx * 3, i * 10) * p.jaggedness * 0.3;
-          noiseVal = Math.min(1, Math.max(0, noiseVal));
         }
+
+        noiseVal = Math.min(1, Math.max(0, noiseVal));
 
         profilePoints.push({
           px: bx + px,
@@ -456,8 +686,7 @@ export const profileLayerType: LayerTypeDefinition = {
         if (j === 0) ctx.moveTo(pt.px, pt.py);
         else ctx.lineTo(pt.px, pt.py);
       }
-      ctx.lineTo(bx + width, by + height);
-      ctx.lineTo(bx, by + height);
+      drawBaseEdge(ctx, p.baseEdge, p.baseEdgeAmount, baselineY, bx, width, by + height, p.seed + i * 1337, step);
       ctx.closePath();
 
       // Far ridges get slight transparency for natural haze
@@ -518,9 +747,58 @@ export const profileLayerType: LayerTypeDefinition = {
         ctx.restore();
       }
 
+      // --- Valley shadowing (W5) ---
+      // Column-wise shadow from nearest higher peak to the left.
+      // Darkens valleys to create 3D illusion.
+      if (ridgeCount > 1 || p.noiseComplexity > 0.2) {
+        ctx.save();
+
+        // Re-build ridge clip path
+        ctx.beginPath();
+        for (let j = 0; j < profilePoints.length; j++) {
+          const pt = profilePoints[j]!;
+          if (j === 0) ctx.moveTo(pt.px, pt.py);
+          else ctx.lineTo(pt.px, pt.py);
+        }
+        ctx.lineTo(bx + width, by + height);
+        ctx.lineTo(bx, by + height);
+        ctx.closePath();
+        ctx.clip();
+
+        // Compute shadow: for each column, track the highest peak to its left
+        let peakY = profilePoints[0]!.py;
+        const shadowStep = Math.max(1, step);
+        ctx.fillStyle = "rgba(0,0,0,1)";
+
+        for (let j = 0; j < profilePoints.length; j++) {
+          const pt = profilePoints[j]!;
+          // Update running peak (lowest Y = highest point)
+          if (pt.py < peakY) {
+            peakY = pt.py;
+          }
+          // Shadow depth: how far below the peak this point sits
+          const shadowDepth = pt.py - peakY;
+          if (shadowDepth > 2) {
+            const maxShadow = elevRange * 0.4;
+            const shadowAlpha = Math.min(0.18, (shadowDepth / maxShadow) * 0.18);
+            ctx.globalAlpha = shadowAlpha;
+            // Fill a thin column from the surface down to baseline
+            const colWidth = j < profilePoints.length - 1
+              ? profilePoints[j + 1]!.px - pt.px
+              : shadowStep;
+            ctx.fillRect(pt.px, pt.py, colWidth, baselineY - pt.py);
+          }
+          // Gradually relax peak to allow new valleys (decay)
+          peakY += (baselineY - peakY) * 0.003;
+        }
+
+        ctx.globalAlpha = 1;
+        ctx.restore();
+      }
+
       // --- Contour / Hatching overlay ---
       if (p.renderStyle === "contour") {
-        drawContourLines(ctx, profilePoints, baselineY, ridgeColor, p.contourCount, bx, width, height, by);
+        drawContourLines(ctx, profilePoints, baselineY, ridgeColor, p.contourCount, bx, width, height, by, p.contourFollow, p.contourPerturbation, p.seed + i * 1111);
       } else if (p.renderStyle === "hatched") {
         drawHatching(ctx, profilePoints, baselineY, ridgeColor, p.hatchDensity, bx, width, height, by);
       }
