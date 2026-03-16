@@ -54,6 +54,20 @@ const PROFILE_PROPERTIES: LayerPropertySchema[] = [
   { key: "elevationMax", label: "Elevation Max", type: "number", default: 0.7, min: 0, max: 1, step: 0.05, group: "shape" },
   { key: "noiseScale", label: "Noise Scale", type: "number", default: 2.0, min: 0.5, max: 8, step: 0.5, group: "shape" },
   { key: "jaggedness", label: "Jaggedness", type: "number", default: 0.3, min: 0, max: 1, step: 0.05, group: "shape" },
+  {
+    key: "renderStyle",
+    label: "Render Style",
+    type: "select",
+    default: "solid",
+    group: "style",
+    options: [
+      { value: "solid", label: "Solid" },
+      { value: "contour", label: "Contour Lines" },
+      { value: "hatched", label: "Hatched" },
+    ],
+  },
+  { key: "contourCount", label: "Contour Lines", type: "number", default: 12, min: 4, max: 30, step: 1, group: "style" },
+  { key: "hatchDensity", label: "Hatch Density", type: "number", default: 0.5, min: 0.1, max: 1.0, step: 0.05, group: "style" },
   { key: "subRangeCount", label: "Sub-range Layers", type: "number", default: 0, min: 0, max: 3, step: 1, group: "sub-range" },
   { key: "subRangeAmplitude", label: "Sub-range Amplitude", type: "number", default: 0.5, min: 0.1, max: 1.0, step: 0.05, group: "sub-range" },
   { key: "foregroundColor", label: "Foreground Color", type: "color", default: "#3B5E3B", group: "colors" },
@@ -89,6 +103,9 @@ function resolveProps(properties: LayerProperties): {
   backgroundRidgeColor: string;
   depthValueShift: number;
   depthEasing: DepthEasing;
+  renderStyle: "solid" | "contour" | "hatched";
+  contourCount: number;
+  hatchDensity: number;
   subRangeCount: number;
   subRangeAmplitude: number;
   depthLane: string;
@@ -111,11 +128,176 @@ function resolveProps(properties: LayerProperties): {
     backgroundRidgeColor: (properties.backgroundRidgeColor as string) || pp?.backgroundRidgeColor || "#7A9E8A",
     depthValueShift: (properties.depthValueShift as number) ?? pp?.depthValueShift ?? 0.4,
     depthEasing: (properties.depthEasing as DepthEasing) ?? pp?.depthEasing ?? "linear",
+    renderStyle: (properties.renderStyle as "solid" | "contour" | "hatched") ?? "solid",
+    contourCount: (properties.contourCount as number) ?? 12,
+    hatchDensity: (properties.hatchDensity as number) ?? 0.5,
     subRangeCount: (properties.subRangeCount as number) ?? 0,
     subRangeAmplitude: (properties.subRangeAmplitude as number) ?? 0.5,
     depthLane: (properties.depthLane as string) ?? "background",
     atmosphericMode: (properties.atmosphericMode as AtmosphericMode) ?? "none",
   };
+}
+
+/**
+ * Draw contour lines: horizontal lines at evenly-spaced elevations.
+ * Lines follow the terrain edge — drawn as segments that hug the profile
+ * silhouette rather than spanning the full width.
+ */
+function drawContourLines(
+  ctx: CanvasRenderingContext2D,
+  profilePoints: Array<{ px: number; py: number }>,
+  baselineY: number,
+  ridgeColor: string,
+  contourCount: number,
+  _bx: number,
+  _width: number,
+  _height: number,
+  _by: number,
+): void {
+  // Find the topmost point (minimum Y in canvas coords)
+  let minY = baselineY;
+  for (const pt of profilePoints) {
+    if (pt.py < minY) minY = pt.py;
+  }
+
+  const elevRange = baselineY - minY;
+  if (elevRange < 4) return;
+
+  const [cr, cg, cb] = parseHex(ridgeColor);
+  const lineR = Math.max(0, cr - 45);
+  const lineG = Math.max(0, cg - 45);
+  const lineB = Math.max(0, cb - 45);
+
+  ctx.save();
+  ctx.strokeStyle = `rgba(${lineR},${lineG},${lineB},0.55)`;
+  ctx.lineWidth = 0.8;
+
+  for (let c = 1; c < contourCount; c++) {
+    const contourY = minY + (elevRange * c) / contourCount;
+
+    // Walk profile points and draw segments only where terrain is above this Y
+    ctx.beginPath();
+    let drawing = false;
+    for (let j = 0; j < profilePoints.length; j++) {
+      const pt = profilePoints[j]!;
+      if (pt.py <= contourY) {
+        // Terrain is above (or at) this contour level
+        if (!drawing) {
+          ctx.moveTo(pt.px, contourY);
+          drawing = true;
+        } else {
+          ctx.lineTo(pt.px, contourY);
+        }
+      } else {
+        // Terrain dropped below this contour — end segment
+        if (drawing) {
+          ctx.stroke();
+          ctx.beginPath();
+          drawing = false;
+        }
+      }
+    }
+    if (drawing) ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+/**
+ * Draw hatching: diagonal parallel lines filling the ridge body, clipped to
+ * the ridge shape. Denser on steep slopes (surface-normal edge marks added too).
+ */
+function drawHatching(
+  ctx: CanvasRenderingContext2D,
+  profilePoints: Array<{ px: number; py: number }>,
+  baselineY: number,
+  ridgeColor: string,
+  hatchDensity: number,
+  bx: number,
+  width: number,
+  height: number,
+  by: number,
+): void {
+  if (profilePoints.length < 3) return;
+
+  // Find topmost point
+  let minY = baselineY;
+  for (const pt of profilePoints) {
+    if (pt.py < minY) minY = pt.py;
+  }
+  const elevRange = baselineY - minY;
+  if (elevRange < 4) return;
+
+  ctx.save();
+
+  // Clip to ridge shape
+  ctx.beginPath();
+  for (let j = 0; j < profilePoints.length; j++) {
+    const pt = profilePoints[j]!;
+    if (j === 0) ctx.moveTo(pt.px, pt.py);
+    else ctx.lineTo(pt.px, pt.py);
+  }
+  ctx.lineTo(bx + width, by + height);
+  ctx.lineTo(bx, by + height);
+  ctx.closePath();
+  ctx.clip();
+
+  const [cr, cg, cb] = parseHex(ridgeColor);
+  const lineR = Math.max(0, cr - 50);
+  const lineG = Math.max(0, cg - 50);
+  const lineB = Math.max(0, cb - 50);
+
+  // --- Body hatching: diagonal parallel lines at ~45° ---
+  const spacing = Math.max(3, Math.round(10 / hatchDensity));
+  ctx.strokeStyle = `rgba(${lineR},${lineG},${lineB},0.35)`;
+  ctx.lineWidth = 0.6;
+
+  // Diagonal lines from top-left to bottom-right (slope = 1)
+  const diagLen = width + (baselineY - minY);
+  ctx.beginPath();
+  for (let d = -diagLen; d < diagLen; d += spacing) {
+    // Line from (bx + d, minY) going at 45° down-right
+    const x0 = bx + d;
+    const y0 = minY;
+    const x1 = x0 + elevRange;
+    const y1 = y0 + elevRange;
+    ctx.moveTo(x0, y0);
+    ctx.lineTo(x1, y1);
+  }
+  ctx.stroke();
+
+  // --- Edge hatching: short marks perpendicular to surface at steep slopes ---
+  ctx.strokeStyle = `rgba(${lineR},${lineG},${lineB},0.5)`;
+  ctx.lineWidth = 0.7;
+  const baseStride = Math.max(2, Math.round(6 / hatchDensity));
+
+  for (let j = 1; j < profilePoints.length - 1; j++) {
+    const prev = profilePoints[j - 1]!;
+    const curr = profilePoints[j]!;
+    const next = profilePoints[j + 1]!;
+
+    const dx = next.px - prev.px;
+    const dy = next.py - prev.py;
+    const slope = Math.abs(dy / (dx || 1));
+
+    // Only at steep slopes, and spaced by stride
+    const slopeStride = Math.max(1, Math.round(baseStride / (0.2 + slope * 4)));
+    if (j % slopeStride !== 0 || slope < 0.15) continue;
+
+    const tangentLen = Math.sqrt(dx * dx + dy * dy);
+    if (tangentLen < 0.5) continue;
+    const nx = -dy / tangentLen;
+    const ny = dx / tangentLen;
+
+    const hatchLen = Math.min(elevRange * 0.3, 5 + slope * 20) * hatchDensity;
+
+    ctx.beginPath();
+    ctx.moveTo(curr.px, curr.py);
+    ctx.lineTo(curr.px + nx * hatchLen, curr.py + ny * hatchLen);
+    ctx.stroke();
+  }
+
+  ctx.restore();
 }
 
 export const profileLayerType: LayerTypeDefinition = {
@@ -334,6 +516,13 @@ export const profileLayerType: LayerTypeDefinition = {
         }
 
         ctx.restore();
+      }
+
+      // --- Contour / Hatching overlay ---
+      if (p.renderStyle === "contour") {
+        drawContourLines(ctx, profilePoints, baselineY, ridgeColor, p.contourCount, bx, width, height, by);
+      } else if (p.renderStyle === "hatched") {
+        drawHatching(ctx, profilePoints, baselineY, ridgeColor, p.hatchDensity, bx, width, height, by);
       }
     }
   },
