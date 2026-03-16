@@ -20,14 +20,14 @@ export function toHex(r: number, g: number, b: number): string {
   return `#${[r, g, b].map((c) => Math.max(0, Math.min(255, Math.round(c))).toString(16).padStart(2, "0")).join("")}`;
 }
 
-/** Linearly interpolate between two hex colors. t in [0,1]. */
+/** Linearly interpolate between two hex colors. t in [0,1]. Returns hex. */
 export function lerpColor(a: string, b: string, t: number): string {
   const [ar, ag, ab] = parseHex(a);
   const [br, bg, bb] = parseHex(b);
   const r = Math.round(ar + (br - ar) * t);
   const g = Math.round(ag + (bg - ag) * t);
   const bl = Math.round(ab + (bb - ab) * t);
-  return `rgb(${r},${g},${bl})`;
+  return toHex(r, g, bl);
 }
 
 /** Darken a hex color by a factor (0 = black, 1 = unchanged). */
