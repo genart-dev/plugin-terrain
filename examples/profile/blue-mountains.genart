@@ -1,0 +1,73 @@
+{
+  "genart": "1.3",
+  "id": "terrain-blue-mountains",
+  "title": "Blue Mountains",
+  "created": "2026-03-15T00:00:00.000Z",
+  "modified": "2026-03-15T00:00:00.000Z",
+  "renderer": {
+    "type": "canvas2d"
+  },
+  "canvas": {
+    "width": 800,
+    "height": 600
+  },
+  "parameters": [],
+  "colors": [],
+  "state": {
+    "seed": 42,
+    "params": {},
+    "colorPalette": []
+  },
+  "algorithm": "function sketch(ctx, state) {}",
+  "layers": [
+    {
+      "id": "sky-layer",
+      "type": "terrain:sky",
+      "name": "Blue Gradient",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "blendMode": "normal",
+      "transform": { "x": 0, "y": 0, "width": 800, "height": 600, "rotation": 0, "scaleX": 1, "scaleY": 1, "anchorX": 0, "anchorY": 0 },
+      "properties": {
+        "preset": "noon",
+        "zenithColor": "#0A1628",
+        "horizonColor": "#6890B0",
+        "hazeColor": "#8AA8C0",
+        "hazeIntensity": 0.25,
+        "hazePosition": 0.8,
+        "hazeWidth": 0.2,
+        "horizonLine": 1
+      }
+    },
+    {
+      "id": "profile-layer",
+      "type": "terrain:profile",
+      "name": "Blue Mountains",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "blendMode": "normal",
+      "transform": { "x": 0, "y": 0, "width": 800, "height": 600, "rotation": 0, "scaleX": 1, "scaleY": 1, "anchorX": 0, "anchorY": 0 },
+      "properties": {
+        "preset": "alpine-range",
+        "seed": 256,
+        "terrainType": "mountains",
+        "ridgeCount": 16,
+        "roughness": 0.5,
+        "elevationMin": 0.25,
+        "elevationMax": 0.90,
+        "noiseScale": 2.5,
+        "jaggedness": 0.4,
+        "noiseComplexity": 0.7,
+        "renderStyle": "solid",
+        "foregroundColor": "#0A1E3A",
+        "backgroundRidgeColor": "#7AA0C8",
+        "depthValueShift": 0.7,
+        "depthEasing": "quadratic",
+        "atmosphericMode": "western",
+        "depthLane": "background"
+      }
+    }
+  ]
+}
